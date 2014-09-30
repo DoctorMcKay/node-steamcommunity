@@ -1,0 +1,19 @@
+{
+	"name": "steamcommunity",
+	"version": "0.1.0",
+	"description": "Facilitates logins to the Steam Communtiy website",
+	"keywords": ["steam", "steam community"],
+	"homepage": "https://github.com/DoctorMcKay/node-steamcommunity",
+	"bugs": {
+		"url": "https://github.com/DoctorMcKay/node-steamcommunity/issues"
+	},
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Doctor_McKay/node-steamcommunity.git"
+	},
+	"dependencies": {
+		"request":			"2.44.x",
+		"node-bignumber":	"1.2.x"
+	}
+}
