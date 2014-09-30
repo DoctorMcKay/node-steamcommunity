@@ -88,13 +88,17 @@ SteamCommunity.prototype.login = function(authCode, callback) {
 				var sessionID = Math.floor(Math.random() * 1000000000);
 				cookies.push('sessionid=' + sessionID);
 				
+				if(self._steamID && self._sentry) {
+					cookies.push('steamMachineAuth' + self._steamID + '=' + self._sentry);
+				}
+				
 				var steamguard = {};
 				if(json.transfer_parameters.steamid && json.transfer_parameters.webcookie) {
 					steamguard.steamID = json.transfer_parameters.steamid;
 					steamguard.machineAuth = json.transfer_parameters.webcookie;
 					
-					this._steamID = steamguard.steamID;
-					this._sentry = steamguard.machineAuth;
+					self._steamID = steamguard.steamID;
+					self._sentry = steamguard.machineAuth;
 				}
 				
 				callback(null, sessionID, cookies, steamguard);
