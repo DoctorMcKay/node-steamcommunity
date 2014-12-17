@@ -15,6 +15,7 @@
 	"dependencies": {
 		"request":			"2.51.x",
 		"node-bignumber":	"1.2.x",
-		"steamid":			"0.1.x"
+		"steamid":			"0.1.x",
+		"xml2js":			"0.4.x"
 	}
 }
