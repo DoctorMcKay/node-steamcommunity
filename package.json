@@ -1,6 +1,6 @@
 {
 	"name": "steamcommunity",
-	"version": "0.1.0",
+	"version": "1.0.0",
 	"description": "Facilitates logins to the Steam Communtiy website",
 	"keywords": ["steam", "steam community"],
 	"homepage": "https://github.com/DoctorMcKay/node-steamcommunity",
