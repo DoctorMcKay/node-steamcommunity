@@ -90,6 +90,31 @@ CSteamGroup.prototype.getMembers = function(callback, members, link) {
 	});
 };
 
+CSteamGroup.prototype.join = function(callback) {
+	var form = {
+		"action": "join",
+		"sessionID": this._community.getSessionID()
+	};
+	
+	var self = this;
+	this._community._request.post("https://steamcommunity.com/gid/" + this.steamID.toString(), {"form": form}, function(err, response, body) {
+		if(!callback) {
+			return;
+		}
+		
+		if(err || response.statusCode >= 400) {
+			callback(err || "HTTP error " + response.statusCode);
+			return;
+		}
+		
+		if(self._community._checkCommunityError(body, callback)) {
+			return;
+		}
+		
+		callback(null);
+	});
+};
+
 CSteamGroup.prototype.postAnnouncement = function(headline, content, callback) {
 	var form = {
 		"sessionID": this._community.getSessionID(),
