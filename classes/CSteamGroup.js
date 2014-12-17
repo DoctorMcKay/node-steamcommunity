@@ -115,6 +115,32 @@ CSteamGroup.prototype.join = function(callback) {
 	});
 };
 
+CSteamGroup.prototype.leave = function(callback) {
+	var form = {
+		"sessionID": this._community.getSessionID(),
+		"action": "leaveGroup",
+		"groupId": this.steamID.toString()
+	};
+	
+	var self = this;
+	this._community._myProfile("home_process", form, function(err, response, body) {
+		if(!callback) {
+			return;
+		}
+		
+		if(err || response.statusCode >= 400) {
+			callback(err || "HTTP error " + response.statusCode);
+			return;
+		}
+		
+		if(self._community._checkCommunityError(body, callback)) {
+			return;
+		}
+		
+		callback(null);
+	});
+};
+
 CSteamGroup.prototype.postAnnouncement = function(headline, content, callback) {
 	var form = {
 		"sessionID": this._community.getSessionID(),
