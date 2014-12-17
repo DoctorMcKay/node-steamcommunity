@@ -1,8 +1,11 @@
 var Request = require('request');
 var RSA = require('node-bignumber').Key;
 var hex2b64 = require('node-bignumber').hex2b64;
+var SteamID = require('steamid');
 
 module.exports = SteamCommunity;
+
+SteamCommunity.SteamID = SteamID;
 
 function SteamCommunity() {
 	this._jar = Request.jar();
@@ -11,7 +14,7 @@ function SteamCommunity() {
 
 SteamCommunity.prototype.login = function(details, callback) {
 	if(details.steamID && details.sentry) {
-		this._jar.setCookie(Request.cookie('steamMachineAuth' + details.steamID + '=' + encodeURIComponent(details.sentry)), 'https://steamcommunity.com');
+		this._jar.setCookie(Request.cookie('steamMachineAuth' + details.steamID.getSteamID64() + '=' + encodeURIComponent(details.sentry)), 'https://steamcommunity.com');
 	}
 	
 	var self = this;
@@ -66,7 +69,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 				var sessionID = generateSessionID();
 				self._jar.setCookie(Request.cookie('sessionid=' + sessionID), 'http://steamcommunity.com');
 				
-				self.steamID = json.transfer_parameters.steamid;
+				self.steamID = new SteamID(json.transfer_parameters.steamid);
 				var cookies = self._jar.getCookieString("https://steamcommunity.com").split(';').map(function(cookie) {
 					return cookie.trim();
 				});
@@ -92,7 +95,7 @@ SteamCommunity.prototype.setCookies = function(cookies) {
 	cookies.forEach(function(cookie) {
 		var cookieName = cookie.match(/(.+)=/)[1];
 		if(cookieName == 'steamLogin') {
-			self.steamID = cookie.match(/=(\d+)/)[1];
+			self.steamID = new SteamID(cookie.match(/=(\d+)/)[1]);
 		}
 		
 		self._jar.setCookie(Request.cookie(cookie), (cookieName.match(/^steamMachineAuth/) || cookieName.match(/Secure$/) ? "https://" : "http://") + "steamcommunity.com");
