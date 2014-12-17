@@ -1,4 +1,4 @@
-simply # Steam Community for Node.js
+# Steam Community for Node.js
 
 This lightweight module provides an easy interface for the Steam Community website. This module can be used to simply login to steamcommunity.com for use with other libraries, or to interact with steamcommunity.com.
 
