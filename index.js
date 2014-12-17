@@ -130,4 +130,22 @@ SteamCommunity.prototype._checkCommunityError = function(html, callback) {
 	return false;
 };
 
+SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
+	var self = this;
+	this._request("https://steamcommunity.com/my", {"followRedirect": false}, function(err, response, body) {
+		if(err || response.statusCode != 302) {
+			callback(err || "HTTP error " + response.statusCode);
+			return;
+		}
+		
+		var match = response.headers.location.match(/steamcommunity\.com(\/(id|profiles)\/[^\/]+)\/?/);
+		if(!match) {
+			callback("Can't get profile URL");
+			return;
+		}
+		
+		(form ? self._request.post : self._request)("https://steamcommunity.com" + match[1] + "/" + endpoint, form ? {"form": form} : {}, callback);
+	});
+};
+
 require('./classes/CSteamGroup.js');
