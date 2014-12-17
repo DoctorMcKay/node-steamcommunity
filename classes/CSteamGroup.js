@@ -174,3 +174,37 @@ CSteamGroup.prototype.scheduleEvent = function(name, type, description, time, se
 		callback(null);
 	});
 };
+
+CSteamGroup.prototype.setPlayerOfTheWeek = function(steamID, callback) {
+	var form = {
+		"xml": 1,
+		"action": "potw",
+		"memberId": steamID.getSteam3RenderedID(),
+		"sessionid": this._community.getSessionID()
+	};
+	
+	var self = this;
+	this._community._request.post("https://steamcommunity.com/gid/" + this.steamID.toString() + "/potwEdit", {"form": form}, function(err, response, body) {
+		if(!callback) {
+			return;
+		}
+		
+		if(err || response.statusCode != 200) {
+			callback(err || "HTTP error " + response.statusCode);
+			return;
+		}
+		
+		xml2js.parseString(body, function(err, results) {
+			if(err) {
+				callback(err);
+				return;
+			}
+			
+			if(results.response.results[0] == 'OK') {
+				callback(null, new SteamID(results.response.oldPOTW[0]), new SteamID(results.response.newPOTW[0]));
+			} else {
+				callback(results.response.results[0]);
+			}
+		});
+	});
+};
