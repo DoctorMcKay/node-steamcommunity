@@ -91,3 +91,25 @@ CSteamGroup.prototype.getMembers = function(callback, members, link) {
 		});
 	});
 };
+
+CSteamGroup.prototype.postAnnouncement = function(headline, content, callback) {
+	var form = {
+		"sessionID": this._community.getSessionID(),
+		"action": "post",
+		"headline": headline,
+		"body": content
+	};
+	
+	this._community._request.post("https://steamcommunity.com/gid/" + this.steamID.toString() + "/announcements", {"form": form}, function(err, response, body) {
+		if(!callback) {
+			return;
+		}
+		
+		if(err || response.statusCode >= 400) {
+			callback(err || "HTTP error " + response.statusCode);
+			return;
+		}
+		
+		// TODO: Handle Community errors
+	});
+};
