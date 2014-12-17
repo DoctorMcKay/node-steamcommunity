@@ -119,3 +119,5 @@ SteamCommunity.prototype.getSessionID = function() {
 function generateSessionID() {
 	return Math.floor(Math.random() * 1000000000);
 };
+
+require('./classes/CSteamGroup.js');
