@@ -120,4 +120,14 @@ function generateSessionID() {
 	return Math.floor(Math.random() * 1000000000);
 };
 
+SteamCommunity.prototype._checkCommunityError = function(html, callback) {
+	if(html.match(/<h1>Sorry!<\/h1>/)) {
+		var match = html.match(/<h3>(.+)<\/h3>/);
+		callback(match ? match[1] : "Unknown error occurred");
+		return true;
+	}
+	
+	return false;
+};
+
 require('./classes/CSteamGroup.js');

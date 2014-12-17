@@ -18,9 +18,7 @@ SteamCommunity.prototype.getSteamGroup = function(id, callback) {
 			return;
 		}
 		
-		if(body.match(/<h1>Sorry!<\/h1>/)) {
-			var match = body.match(/<h3>(.+)<\/h3>/);
-			callback(match ? match[1] : "Unknown error occurred");
+		if(self._checkCommunityError(body, callback)) {
 			return;
 		}
 		
@@ -110,6 +108,10 @@ CSteamGroup.prototype.postAnnouncement = function(headline, content, callback) {
 			return;
 		}
 		
-		// TODO: Handle Community errors
+		if(self._community._checkCommunityError(body, callback)) {
+			return;
+		}
+		
+		callback(null);
 	});
 };
