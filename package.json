@@ -1,7 +1,7 @@
 {
 	"name": "steamcommunity",
 	"version": "1.0.0",
-	"description": "Facilitates logins to the Steam Communtiy website",
+	"description": "Provides an interface for logging into and interacting with the Steam Community website",
 	"keywords": ["steam", "steam community"],
 	"homepage": "https://github.com/DoctorMcKay/node-steamcommunity",
 	"bugs": {
