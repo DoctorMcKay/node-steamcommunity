@@ -48,7 +48,6 @@ SteamCommunity.prototype.login = function(details, callback) {
 			"username": details.accountName
 		};
 		
-		console.log(self._jar.getCookieString("https://steamcommunity.com"));
 		self._request.post("https://steamcommunity.com/login/dologin/", {"form": form}, function(err, response, body) {
 			if(err) {
 				callback(err);
