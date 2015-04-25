@@ -150,3 +150,4 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 };
 
 require('./classes/CSteamGroup.js');
+require('./classes/CSteamUser.js');
