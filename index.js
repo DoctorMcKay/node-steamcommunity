@@ -63,8 +63,10 @@ SteamCommunity.prototype.login = function(details, callback) {
 				return;
 			}
 			
-			if(!json.success) {
-				callback(json.message);
+			if(!json.success && json.emailauth_needed) {
+				callback("Please provide the authorization code sent to your address at " + json.emaildomain);
+			} else if(!json.success) {
+				callback(json.message || "Unknown error");
 			} else {
 				var sessionID = generateSessionID();
 				self._jar.setCookie(Request.cookie('sessionid=' + sessionID), 'http://steamcommunity.com');
