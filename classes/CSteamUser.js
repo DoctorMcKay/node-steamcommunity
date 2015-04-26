@@ -145,10 +145,58 @@ CSteamUser.prototype.acceptFriendRequest = function(callback) {
 	});
 };
 
+CSteamUser.prototype.removeFriend = function(callback) {
+	this._community._request.post('https://steamcommunity.com/actions/RemoveFriendAjax', {"form": {"sessionID": this._community.getSessionID(), "steamid": this.steamID.toString()}}, function(err, response, body) {
+		if(!callback) {
+			return;
+		}
+		
+		if(err || response.statusCode != 200) {
+			callback(err || "HTTP error " + response.statusCode);
+			return;
+		}
+		
+		callback();
+	});
+};
+
+CSteamUser.prototype.blockCommunication = function(callback) {
+	this._community._request.post('https://steamcommunity.com/actions/BlockUserAjax', {"form": {"sessionID": this._community.getSessionID(), "steamid": this.steamID.toString()}}, function(err, response, body) {
+		if(!callback) {
+			return;
+		}
+		
+		if(err || response.statusCode != 200) {
+			callback(err || "HTTP error " + response.statusCode);
+			return;
+		}
+		
+		callback();
+	});
+};
+
+CSteamUser.prototype.unblockCommunication = function(callback) {
+	var form = {"action": "unignore"};
+	form['friends[' + this.steamID.toString() + ']'] = 1;
+	
+	this._community._myProfile('friends/blocked/', form, function(err, response, body) {
+		if(!callback) {
+			return;
+		}
+		
+		if(err || response.statusCode >= 400) {
+			callback(err || "HTTP error " + response.statusCode);
+			return;
+		}
+		
+		callback();
+	});
+};
+
 CSteamUser.prototype.comment = function(message, callback) {
 	this._community._request.post('https://steamcommunity.com/comment/Profile/post/' + this.steamID.toString() + '/-1/', {"form": {
 		"comment": message,
-		"count": 6, // TODO: Figure out if significant
+		"count": 6,
 		"sessionid": this._community.getSessionID()
 	}}, function(err, response, body) {
 		if(!callback) {
@@ -170,6 +218,8 @@ CSteamUser.prototype.comment = function(message, callback) {
 		
 		if(json.success) {
 			callback();
+		} else if(json.error) {
+			callback(json.error);
 		} else {
 			callback("Unknown error");
 		}
