@@ -154,6 +154,29 @@ SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
 	});
 };
 
+SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
+	this._request.post("https://steamcommunity.com/parental/ajaxunlock", {
+		"json": true,
+		"form": {
+			"pin": pin
+		}
+	}, function(err, response, body) {
+		if(err || response.statusCode != 200) {
+			return callback(err.message || "HTTP error " + response.statusCode);
+		}
+		
+		if(!body || typeof body.success !== 'boolean') {
+			return callback("Invalid response");
+		}
+		
+		if(!body.success) {
+			return callback("Incorrect PIN");
+		}
+		
+		callback();
+	}.bind(this));
+};
+
 SteamCommunity.prototype._checkCommunityError = function(html, callback) {
 	if(html.match(/<h1>Sorry!<\/h1>/)) {
 		var match = html.match(/<h3>(.+)<\/h3>/);
