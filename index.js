@@ -121,6 +121,39 @@ function generateSessionID() {
 	return Math.floor(Math.random() * 1000000000);
 };
 
+SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
+	var self = this;
+	this._request("https://steamcommunity.com/dev/apikey", function(err, response, body) {
+		if(err || response.statusCode != 200) {
+			return callback(err.message || "HTTP error " + response.statusCode);
+		}
+		
+		if(body.match(/<h2>Access Denied<\/h2>/)) {
+			return callback("Access Denied");
+		}
+		
+		var match = body.match(/<p>Key: ([0-9A-F]+)<\/p>/);
+		if(match) {
+			// We already have an API key registered
+			callback(null, match[1]);
+		} else {
+			// We need to register a new API key
+			self._request.post('https://steamcommunity.com/dev/registerkey', {
+				"form": {
+					"domain": domain,
+					"agreeToTerms": 1
+				}
+			}, function(err, response, body) {
+				if(err || response.statusCode >= 400) {
+					return callback(err.message || "HTTP error " + response.statusCode);
+				}
+				
+				self.getWebApiKey(domain, callback);
+			});
+		}
+	});
+};
+
 SteamCommunity.prototype._checkCommunityError = function(html, callback) {
 	if(html.match(/<h1>Sorry!<\/h1>/)) {
 		var match = html.match(/<h3>(.+)<\/h3>/);
