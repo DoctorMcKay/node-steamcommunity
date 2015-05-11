@@ -161,6 +161,10 @@ SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
 			"pin": pin
 		}
 	}, function(err, response, body) {
+		if(!callback) {
+			return;
+		}
+		
 		if(err || response.statusCode != 200) {
 			return callback(err.message || "HTTP error " + response.statusCode);
 		}
