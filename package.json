@@ -10,7 +10,7 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/Doctor_McKay/node-steamcommunity.git"
+		"url": "https://github.com/DoctorMcKay/node-steamcommunity.git"
 	},
 	"dependencies": {
 		"request":			"2.51.x",
