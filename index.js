@@ -181,6 +181,20 @@ SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
 	}.bind(this));
 };
 
+SteamCommunity.prototype.resetItemNotifications = function(callback) {
+	this._request.get("https://steamcommunity.com/my/inventory", function(err, response, body) {
+		if(!callback) {
+			return;
+		}
+		
+		if(err || response.statusCode != 200) {
+			callback(err.message || "HTTP error " + response.statusCode);
+		} else {
+			callback();
+		}
+	});
+};
+
 SteamCommunity.prototype._checkCommunityError = function(html, callback) {
 	if(html.match(/<h1>Sorry!<\/h1>/)) {
 		var match = html.match(/<h3>(.+)<\/h3>/);
