@@ -181,6 +181,41 @@ SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
 	}.bind(this));
 };
 
+SteamCommunity.prototype.getNotifications = function(callback) {
+	this._request.get("https://steamcommunity.com/actions/RefreshNotificationArea", function(err, response, body) {
+		if(err || response.statusCode != 200) {
+			return callback(err.message || "HTTP error " + response.statusCode);
+		}
+		
+		var notifications = {
+			"comments": 0,
+			"items": 0,
+			"invites": 0,
+			"gifts": 0,
+			"chat": 0,
+			"trades": 0
+		};
+		
+		var items = {
+			"comments": /(\d+) new comments?/,
+			"items": /(\d+) new items? in your inventory/,
+			"invites": /(\d+) new invites?/,
+			"gifts": /(\d+) new gifts?/,
+			"chat": /(\d+) unread chat messages?/,
+			"trades": /(\d+) new trade notifications?/
+		};
+		
+		var match;
+		for(var i in items) {
+			if(match = body.match(items[i])) {
+				notifications[i] = parseInt(match[1], 10);
+			}
+		}
+		
+		callback(null, notifications);
+	});
+};
+
 SteamCommunity.prototype.resetItemNotifications = function(callback) {
 	this._request.get("https://steamcommunity.com/my/inventory", function(err, response, body) {
 		if(!callback) {
