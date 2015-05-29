@@ -141,7 +141,9 @@ SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
 			self._request.post('https://steamcommunity.com/dev/registerkey', {
 				"form": {
 					"domain": domain,
-					"agreeToTerms": 1
+					"agreeToTerms": "agreed",
+					"sessionid": self.getSessionID(),
+					"Submit": "Register"
 				}
 			}, function(err, response, body) {
 				if(err || response.statusCode >= 400) {
