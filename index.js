@@ -13,8 +13,9 @@ function SteamCommunity() {
 }
 
 SteamCommunity.prototype.login = function(details, callback) {
-	if(details.steamID && details.sentry) {
-		this._jar.setCookie(Request.cookie('steamMachineAuth' + details.steamID.getSteamID64() + '=' + encodeURIComponent(details.sentry)), 'https://steamcommunity.com');
+	if(details.steamguard) {
+		var parts = details.steamguard.split('||');
+		this._jar.setCookie(Request.cookie('steamMachineAuth' + parts[0] + '=' + encodeURIComponent(parts[1])), 'https://steamcommunity.com');
 	}
 	
 	var self = this;
@@ -80,7 +81,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 				for(var i = 0; i < cookies.length; i++) {
 					var parts = cookies[i].split('=');
 					if(parts[0] == 'steamMachineAuth' + self.steamID) {
-						steamguard = {"steamID": self.steamID, "sentry": decodeURIComponent(parts[1])};
+						steamguard = self.steamID.toString() + '||' + decodeURIComponent(parts[1]);
 						break;
 					}
 				}
