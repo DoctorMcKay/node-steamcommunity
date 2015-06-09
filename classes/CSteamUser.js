@@ -12,7 +12,7 @@ SteamCommunity.prototype.getSteamUser = function(id, callback) {
 	}
 	
 	var self = this;
-	this._request("http://steamcommunity.com/" + (typeof id === 'string' ? "id/" + id : "profiles/" + id.toString()) + "/?xml=1", function(err, response, body) {
+	this.request("http://steamcommunity.com/" + (typeof id === 'string' ? "id/" + id : "profiles/" + id.toString()) + "/?xml=1", function(err, response, body) {
 		if(err || response.statusCode != 200) {
 			callback(err || "HTTP error " + response.statusCode);
 			return;
@@ -104,7 +104,7 @@ CSteamUser.prototype.getAvatarURL = function(size, protocol) {
 };
 
 CSteamUser.prototype.addFriend = function(callback) {
-	this._community._request.post('https://steamcommunity.com/actions/AddFriendAjax', {"form": {"accept_invite": 0, "sessionID": this._community.getSessionID(), "steamid": this.steamID.toString()}}, function(err, response, body) {
+	this._community.request.post('https://steamcommunity.com/actions/AddFriendAjax', {"form": {"accept_invite": 0, "sessionID": this._community.getSessionID(), "steamid": this.steamID.toString()}}, function(err, response, body) {
 		if(!callback) {
 			return;
 		}
@@ -131,7 +131,7 @@ CSteamUser.prototype.addFriend = function(callback) {
 };
 
 CSteamUser.prototype.acceptFriendRequest = function(callback) {
-	this._community._request.post('https://steamcommunity.com/actions/AddFriendAjax', {"form": {"accept_invite": 1, "sessionID": this._community.getSessionID(), "steamid": this.steamID.toString()}}, function(err, response, body) {
+	this._community.request.post('https://steamcommunity.com/actions/AddFriendAjax', {"form": {"accept_invite": 1, "sessionID": this._community.getSessionID(), "steamid": this.steamID.toString()}}, function(err, response, body) {
 		if(!callback) {
 			return;
 		}
@@ -146,7 +146,7 @@ CSteamUser.prototype.acceptFriendRequest = function(callback) {
 };
 
 CSteamUser.prototype.removeFriend = function(callback) {
-	this._community._request.post('https://steamcommunity.com/actions/RemoveFriendAjax', {"form": {"sessionID": this._community.getSessionID(), "steamid": this.steamID.toString()}}, function(err, response, body) {
+	this._community.request.post('https://steamcommunity.com/actions/RemoveFriendAjax', {"form": {"sessionID": this._community.getSessionID(), "steamid": this.steamID.toString()}}, function(err, response, body) {
 		if(!callback) {
 			return;
 		}
@@ -161,7 +161,7 @@ CSteamUser.prototype.removeFriend = function(callback) {
 };
 
 CSteamUser.prototype.blockCommunication = function(callback) {
-	this._community._request.post('https://steamcommunity.com/actions/BlockUserAjax', {"form": {"sessionID": this._community.getSessionID(), "steamid": this.steamID.toString()}}, function(err, response, body) {
+	this._community.request.post('https://steamcommunity.com/actions/BlockUserAjax', {"form": {"sessionID": this._community.getSessionID(), "steamid": this.steamID.toString()}}, function(err, response, body) {
 		if(!callback) {
 			return;
 		}
@@ -194,7 +194,7 @@ CSteamUser.prototype.unblockCommunication = function(callback) {
 };
 
 CSteamUser.prototype.comment = function(message, callback) {
-	this._community._request.post('https://steamcommunity.com/comment/Profile/post/' + this.steamID.toString() + '/-1/', {"form": {
+	this._community.request.post('https://steamcommunity.com/comment/Profile/post/' + this.steamID.toString() + '/-1/', {"form": {
 		"comment": message,
 		"count": 6,
 		"sessionid": this._community.getSessionID()

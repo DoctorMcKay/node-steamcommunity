@@ -12,7 +12,7 @@ SteamCommunity.prototype.getSteamGroup = function(id, callback) {
 	}
 	
 	var self = this;
-	this._request("https://steamcommunity.com/" + (typeof id === 'string' ? "groups/" + id : "gid/" + id.toString()) + "/memberslistxml/?xml=1", function(err, response, body) {
+	this.request("https://steamcommunity.com/" + (typeof id === 'string' ? "groups/" + id : "gid/" + id.toString()) + "/memberslistxml/?xml=1", function(err, response, body) {
 		if(err || response.statusCode != 200) {
 			callback(err || "HTTP error " + response.statusCode);
 			return;
@@ -65,7 +65,7 @@ CSteamGroup.prototype.getMembers = function(callback, members, link) {
 	link = link || "http://steamcommunity.com/gid/" + this.steamID.toString() + "/memberslistxml/?xml=1";
 	
 	var self = this;
-	this._community._request(link, function(err, response, body) {
+	this._community.request(link, function(err, response, body) {
 		if(err || response.statusCode != 200) {
 			callback(err || "HTTP error " + response.statusCode);
 			return;
@@ -97,7 +97,7 @@ CSteamGroup.prototype.join = function(callback) {
 	};
 	
 	var self = this;
-	this._community._request.post("https://steamcommunity.com/gid/" + this.steamID.toString(), {"form": form}, function(err, response, body) {
+	this._community.request.post("https://steamcommunity.com/gid/" + this.steamID.toString(), {"form": form}, function(err, response, body) {
 		if(!callback) {
 			return;
 		}
@@ -149,7 +149,7 @@ CSteamGroup.prototype.postAnnouncement = function(headline, content, callback) {
 		"body": content
 	};
 	
-	this._community._request.post("https://steamcommunity.com/gid/" + this.steamID.toString() + "/announcements", {"form": form}, function(err, response, body) {
+	this._community.request.post("https://steamcommunity.com/gid/" + this.steamID.toString() + "/announcements", {"form": form}, function(err, response, body) {
 		if(!callback) {
 			return;
 		}
@@ -208,7 +208,7 @@ CSteamGroup.prototype.scheduleEvent = function(name, type, description, time, se
 	}
 	
 	var self = this;
-	this._community._request.post("https://steamcommunity.com/gid/" + this.steamID.toString() + "/eventEdit", {"form": form}, function(err, response, body) {
+	this._community.request.post("https://steamcommunity.com/gid/" + this.steamID.toString() + "/eventEdit", {"form": form}, function(err, response, body) {
 		if(!callback) {
 			return;
 		}
@@ -235,7 +235,7 @@ CSteamGroup.prototype.setPlayerOfTheWeek = function(steamID, callback) {
 	};
 	
 	var self = this;
-	this._community._request.post("https://steamcommunity.com/gid/" + this.steamID.toString() + "/potwEdit", {"form": form}, function(err, response, body) {
+	this._community.request.post("https://steamcommunity.com/gid/" + this.steamID.toString() + "/potwEdit", {"form": form}, function(err, response, body) {
 		if(!callback) {
 			return;
 		}
@@ -269,7 +269,7 @@ CSteamGroup.prototype.kick = function(steamID, callback) {
 	};
 	
 	var self = this;
-	this._community._request.post("https://steamcommunity.com/gid/" + this.steamID.toString() + "/membersManage", {"form": form}, function(err, response, body) {
+	this._community.request.post("https://steamcommunity.com/gid/" + this.steamID.toString() + "/membersManage", {"form": form}, function(err, response, body) {
 		if(!callback) {
 			return;
 		}

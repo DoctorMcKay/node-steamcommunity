@@ -9,7 +9,7 @@ SteamCommunity.SteamID = SteamID;
 
 function SteamCommunity() {
 	this._jar = Request.jar();
-	this._request = Request.defaults({"jar": this._jar});
+	this.request = Request.defaults({"jar": this._jar});
 }
 
 SteamCommunity.prototype.login = function(details, callback) {
@@ -19,7 +19,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 	}
 	
 	var self = this;
-	this._request.post("https://steamcommunity.com/login/getrsakey/", {"form": {"username": details.accountName}}, function(err, response, body) {
+	this.request.post("https://steamcommunity.com/login/getrsakey/", {"form": {"username": details.accountName}}, function(err, response, body) {
 		if(err) {
 			callback(err);
 			return;
@@ -49,7 +49,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 			"username": details.accountName
 		};
 		
-		self._request.post("https://steamcommunity.com/login/dologin/", {"form": form}, function(err, response, body) {
+		self.request.post("https://steamcommunity.com/login/dologin/", {"form": form}, function(err, response, body) {
 			if(err) {
 				callback(err);
 				return;
@@ -124,7 +124,7 @@ function generateSessionID() {
 
 SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
 	var self = this;
-	this._request("https://steamcommunity.com/dev/apikey", function(err, response, body) {
+	this.request("https://steamcommunity.com/dev/apikey", function(err, response, body) {
 		if(err || response.statusCode != 200) {
 			return callback(err.message || "HTTP error " + response.statusCode);
 		}
@@ -139,7 +139,7 @@ SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
 			callback(null, match[1]);
 		} else {
 			// We need to register a new API key
-			self._request.post('https://steamcommunity.com/dev/registerkey', {
+			self.request.post('https://steamcommunity.com/dev/registerkey', {
 				"form": {
 					"domain": domain,
 					"agreeToTerms": "agreed",
@@ -158,7 +158,7 @@ SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
 };
 
 SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
-	this._request.post("https://steamcommunity.com/parental/ajaxunlock", {
+	this.request.post("https://steamcommunity.com/parental/ajaxunlock", {
 		"json": true,
 		"form": {
 			"pin": pin
@@ -185,7 +185,7 @@ SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
 };
 
 SteamCommunity.prototype.getNotifications = function(callback) {
-	this._request.get("https://steamcommunity.com/actions/RefreshNotificationArea", function(err, response, body) {
+	this.request.get("https://steamcommunity.com/actions/RefreshNotificationArea", function(err, response, body) {
 		if(err || response.statusCode != 200) {
 			return callback(err.message || "HTTP error " + response.statusCode);
 		}
@@ -220,7 +220,7 @@ SteamCommunity.prototype.getNotifications = function(callback) {
 };
 
 SteamCommunity.prototype.resetItemNotifications = function(callback) {
-	this._request.get("https://steamcommunity.com/my/inventory", function(err, response, body) {
+	this.request.get("https://steamcommunity.com/my/inventory", function(err, response, body) {
 		if(!callback) {
 			return;
 		}
@@ -245,7 +245,7 @@ SteamCommunity.prototype._checkCommunityError = function(html, callback) {
 
 SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 	var self = this;
-	this._request("https://steamcommunity.com/my", {"followRedirect": false}, function(err, response, body) {
+	this.request("https://steamcommunity.com/my", {"followRedirect": false}, function(err, response, body) {
 		if(err || response.statusCode != 302) {
 			callback(err || "HTTP error " + response.statusCode);
 			return;
@@ -257,7 +257,7 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 			return;
 		}
 		
-		(form ? self._request.post : self._request)("https://steamcommunity.com" + match[1] + "/" + endpoint, form ? {"form": form} : {}, callback);
+		(form ? self.request.post : self.request)("https://steamcommunity.com" + match[1] + "/" + endpoint, form ? {"form": form} : {}, callback);
 	});
 };
 
