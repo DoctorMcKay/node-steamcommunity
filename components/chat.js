@@ -8,6 +8,17 @@ SteamCommunity.ChatState = {
 	"LoggedOn": 3
 };
 
+SteamCommunity.PersonaState = {
+	"Offline": 0,
+	"Online": 1,
+	"Busy": 2,
+	"Away": 3,
+	"Snooze": 4,
+	"LookingToTrade": 5,
+	"LookingToPlay": 6,
+	"Max": 7
+};
+
 SteamCommunity.prototype.chatLogon = function(interval) {
 	if(this.chatState == SteamCommunity.ChatState.LoggingOn || this.chatState == SteamCommunity.ChatState.LoggedOn) {
 		return;
