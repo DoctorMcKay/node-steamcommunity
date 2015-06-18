@@ -19,6 +19,15 @@ SteamCommunity.PersonaState = {
 	"Max": 7
 };
 
+SteamCommunity.PersonaStateFlag = {
+	"HasRichPresence": 1,
+	"InJoinableGame": 2,
+	
+	"OnlineUsingWeb": 256,
+	"OnlineUsingMobile": 512,
+	"OnlineUsingBigPicture": 1024
+};
+
 SteamCommunity.prototype.chatLogon = function(interval) {
 	if(this.chatState == SteamCommunity.ChatState.LoggingOn || this.chatState == SteamCommunity.ChatState.LoggedOn) {
 		return;
@@ -228,7 +237,7 @@ SteamCommunity.prototype._chatUpdatePersona = function(steamID) {
 			"steamID": steamID,
 			"personaName": body.m_strName,
 			"personaState": body.m_ePersonaState,
-			"personaStateFlags": body.m_nPersonaStateFlags,
+			"personaStateFlags": body.m_nPersonaStateFlags || 0,
 			"avatarHash": body.m_strAvatarHash,
 			"inGame": !!body.m_bInGame,
 			"inGameAppID": body.m_nInGameAppID ? parseInt(body.m_nInGameAppID, 10) : null,
