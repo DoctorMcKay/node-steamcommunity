@@ -91,16 +91,20 @@ function CSteamUser(community, userData, customurl) {
 	}
 }
 
-CSteamUser.prototype.getAvatarURL = function(size, protocol) {
+CSteamUser.getAvatarURL = function(hash, size, protocol) {
 	size = size || '';
 	protocol = protocol || 'http://';
 	
-	var url = protocol + "steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/" + this.avatarHash.substring(0, 2) + "/" + this.avatarHash;
+	var url = protocol + "steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/" + hash.substring(0, 2) + "/" + hash;
 	if(size == 'full' || size == 'medium') {
 		return url + "_" + size + ".jpg";
 	} else {
 		return url + ".jpg";
 	}
+};
+
+CSteamUser.prototype.getAvatarURL = function(size, protocol) {
+	return CSteamUser.getAvatarURL(this.avatarHash, size, protocol);
 };
 
 CSteamUser.prototype.addFriend = function(callback) {
