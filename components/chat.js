@@ -13,7 +13,7 @@ SteamCommunity.prototype.chatLogon = function(interval) {
 		return;
 	}
 	
-	interval = interval || 1000;
+	interval = interval || 500;
 	
 	this.emit('debug', 'Requesting chat WebAPI token');
 	this.chatState = SteamCommunity.ChatState.LoggingOn;
