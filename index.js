@@ -3,6 +3,8 @@ var RSA = require('node-bignumber').Key;
 var hex2b64 = require('node-bignumber').hex2b64;
 var SteamID = require('steamid');
 
+require('util').inherits(SteamCommunity, require('events').EventEmitter);
+
 module.exports = SteamCommunity;
 
 SteamCommunity.SteamID = SteamID;
@@ -10,6 +12,7 @@ SteamCommunity.SteamID = SteamID;
 function SteamCommunity() {
 	this._jar = Request.jar();
 	this.request = Request.defaults({"jar": this._jar});
+	this.chatState = SteamCommunity.ChatState.Offline;
 }
 
 SteamCommunity.prototype.login = function(details, callback) {
@@ -263,3 +266,4 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 
 require('./classes/CSteamGroup.js');
 require('./classes/CSteamUser.js');
+require('./components/chat.js');
