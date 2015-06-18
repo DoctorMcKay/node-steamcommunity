@@ -204,7 +204,7 @@ SteamCommunity.prototype._chatPoll = function() {
 					break;
 				
 				case 'saytext':
-					self.emit('chatMessage', sender, message.text, new Date(message.utc_timestamp * 1000));
+					self.emit('chatMessage', sender, message.text);
 					break;
 				
 				case 'typing':
