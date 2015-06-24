@@ -46,35 +46,31 @@ SteamCommunity.prototype.login = function(details, callback) {
 			"emailsteamid": "",
 			"loginfriendlyname": "",
 			"password": hex2b64(key.encrypt(details.password)),
-			"remember_login": false,
+			"remember_login": "true",
 			"rsatimestamp": json.timestamp,
 			"twofactorcode": "",
 			"username": details.accountName
 		};
 		
-		self.request.post("https://steamcommunity.com/login/dologin/", {"form": form}, function(err, response, body) {
+		self.request.post({
+			"uri": "https://steamcommunity.com/login/dologin/",
+			"json": true,
+			"form": form
+		}, function(err, response, body) {
 			if(err) {
 				callback(err);
 				return;
 			}
 			
-			var json;
-			try {
-				json = JSON.parse(body);
-			} catch(e) {
-				callback(e);
-				return;
-			}
-			
-			if(!json.success && json.emailauth_needed) {
-				callback("Please provide the authorization code sent to your address at " + json.emaildomain);
-			} else if(!json.success) {
-				callback(json.message || "Unknown error");
+			if(!body.success && body.emailauth_needed) {
+				callback("Please provide the authorization code sent to your address at " + body.emaildomain);
+			} else if(!body.success) {
+				callback(body.message || "Unknown error");
 			} else {
 				var sessionID = generateSessionID();
 				self._jar.setCookie(Request.cookie('sessionid=' + sessionID), 'http://steamcommunity.com');
 				
-				self.steamID = new SteamID(json.transfer_parameters.steamid);
+				self.steamID = new SteamID(body.transfer_parameters.steamid);
 				var cookies = self._jar.getCookieString("https://steamcommunity.com").split(';').map(function(cookie) {
 					return cookie.trim();
 				});
