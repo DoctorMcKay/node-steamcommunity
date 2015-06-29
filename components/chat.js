@@ -28,12 +28,13 @@ SteamCommunity.PersonaStateFlag = {
 	"OnlineUsingBigPicture": 1024
 };
 
-SteamCommunity.prototype.chatLogon = function(interval) {
+SteamCommunity.prototype.chatLogon = function(interval, uiMode) {
 	if(this.chatState == SteamCommunity.ChatState.LoggingOn || this.chatState == SteamCommunity.ChatState.LoggedOn) {
 		return;
 	}
 	
 	interval = interval || 500;
+	uiMode = uiMode || "web";
 	
 	this.emit('debug', 'Requesting chat WebAPI token');
 	this.chatState = SteamCommunity.ChatState.LoggingOn;
@@ -58,7 +59,7 @@ SteamCommunity.prototype.chatLogon = function(interval) {
 		self.request.post({
 			"uri": "https://api.steampowered.com/ISteamWebUserPresenceOAuth/Logon/v1",
 			"form": {
-				"ui_mode": "web",
+				"ui_mode": uiMode,
 				"access_token": match[0]
 			},
 			"json": true
