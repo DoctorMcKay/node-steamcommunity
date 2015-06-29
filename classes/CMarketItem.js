@@ -124,6 +124,8 @@ CMarketItem.prototype.updatePrice = function(callback) {
 		self.highestBuyOrder = parseInt(body.highest_buy_order, 10);
 		
 		// TODO: The tables?
-		callback();
+		if(callback) {
+			callback();
+		}
 	});
 };
