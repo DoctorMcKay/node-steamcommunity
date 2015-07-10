@@ -13,6 +13,9 @@ function SteamCommunity() {
 	this._jar = Request.jar();
 	this.request = Request.defaults({"jar": this._jar});
 	this.chatState = SteamCommunity.ChatState.Offline;
+	
+	// English
+	this._jar.setCookie(Request.cookie('Steam_Language=english'), 'https://steamcommunity.com');
 }
 
 SteamCommunity.prototype.login = function(details, callback) {
