@@ -25,6 +25,8 @@ SteamCommunity.prototype.marketSearch = function(options, callback) {
 	
 	qs.start = 0;
 	qs.count = 100;
+	qs.sort_column = 'price';
+	qs.sort_dir = 'asc';
 	performSearch(this.request, qs, [], callback);
 };
 
