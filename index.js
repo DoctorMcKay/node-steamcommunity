@@ -261,6 +261,7 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 };
 
 require('./classes/CMarketItem.js');
+require('./classes/CMarketSearchResult.js');
 require('./classes/CSteamGroup.js');
 require('./classes/CSteamUser.js');
 require('./components/chat.js');
