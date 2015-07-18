@@ -11,6 +11,7 @@ SteamCommunity.SteamID = SteamID;
 
 function SteamCommunity() {
 	this._jar = Request.jar();
+	this._captchaGid = -1;
 	this.request = Request.defaults({"jar": this._jar});
 	this.chatState = SteamCommunity.ChatState.Offline;
 	
@@ -43,8 +44,8 @@ SteamCommunity.prototype.login = function(details, callback) {
 		key.setPublic(json.publickey_mod, json.publickey_exp);
 		
 		var form = {
-			"captcha_text": "",
-			"captchagid": -1,
+			"captcha_text": details.captcha || "",
+			"captchagid": self._captchaGid,
 			"emailauth": details.authCode || "",
 			"emailsteamid": "",
 			"loginfriendlyname": "",
