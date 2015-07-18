@@ -235,6 +235,17 @@ SteamCommunity.prototype.resetItemNotifications = function(callback) {
 	});
 };
 
+SteamCommunity.prototype.loggedIn = function(callback) {
+	this.request("https://steamcommunity.com/my", {"followRedirect": false}, function(err, response, body) {
+		if(err || response.statusCode != 302) {
+			callback(err ? err.message : "HTTP error " + response.statusCode);
+			return;
+		}
+		
+		callback(null, !!response.headers.location.match(/steamcommunity\.com(\/(id|profiles)\/[^\/]+)\/?/));
+	});
+};
+
 SteamCommunity.prototype._checkCommunityError = function(html, callback) {
 	if(html.match(/<h1>Sorry!<\/h1>/)) {
 		var match = html.match(/<h3>(.+)<\/h3>/);
