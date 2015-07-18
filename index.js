@@ -237,12 +237,17 @@ SteamCommunity.prototype.resetItemNotifications = function(callback) {
 
 SteamCommunity.prototype.loggedIn = function(callback) {
 	this.request("https://steamcommunity.com/my", {"followRedirect": false}, function(err, response, body) {
-		if(err || response.statusCode != 302) {
+		if(err || (response.statusCode != 302 && response.statusCode != 403)) {
 			callback(err ? err.message : "HTTP error " + response.statusCode);
 			return;
 		}
 		
-		callback(null, !!response.headers.location.match(/steamcommunity\.com(\/(id|profiles)\/[^\/]+)\/?/));
+		if(response.statusCode == 403) {
+			callback(null, true, true);
+			return;
+		}
+		
+		callback(null, !!response.headers.location.match(/steamcommunity\.com(\/(id|profiles)\/[^\/]+)\/?/), false);
 	});
 };
 
