@@ -52,7 +52,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 			"password": hex2b64(key.encrypt(details.password)),
 			"remember_login": "true",
 			"rsatimestamp": json.timestamp,
-			"twofactorcode": "",
+			"twofactorcode": details.twoFactorCode || "",
 			"username": details.accountName
 		};
 		
@@ -66,10 +66,14 @@ SteamCommunity.prototype.login = function(details, callback) {
 			}
 			
 			if(!body.success && body.emailauth_needed) {
+				// Steam Guard (email)
 				var error = new Error("SteamGuard");
 				error.emaildomain = body.emaildomain;
 				
 				callback(error);
+			} else if(!body.success && body.requires_twofactor) {
+				// Steam Guard (app)
+				callback(new Error("SteamGuardMobile"));
 			} else if(!body.success && body.captcha_needed) {
 				var error = new Error("CAPTCHA");
 				error.captchaurl = "https://steamcommunity.com/public/captcha.php?gid=" + body.captcha_gid;
