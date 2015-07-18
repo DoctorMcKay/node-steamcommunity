@@ -125,12 +125,14 @@ SteamCommunity.prototype.chatMessage = function(recipient, text, type, callback)
 			return;
 		}
 		
-		if(err || response.statusCode != 200) {
-			callback(err ? err.message : "HTTP error " + response.statusCode);
-		} else if(body.error != 'OK') {
-			callback(body.error);
+		if(self._checkHttpError(err, response, callback)) {
+			return;
+		}
+		
+		if(body.error != 'OK') {
+			callback(new Error(body.error));
 		} else {
-			callback();
+			callback(null);
 		}
 	});
 };

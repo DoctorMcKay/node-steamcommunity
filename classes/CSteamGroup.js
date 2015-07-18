@@ -13,8 +13,7 @@ SteamCommunity.prototype.getSteamGroup = function(id, callback) {
 	
 	var self = this;
 	this.request("https://steamcommunity.com/" + (typeof id === 'string' ? "groups/" + id : "gid/" + id.toString()) + "/memberslistxml/?xml=1", function(err, response, body) {
-		if(err || response.statusCode != 200) {
-			callback(err || "HTTP error " + response.statusCode);
+		if(self._checkHttpError(err, response, callback)) {
 			return;
 		}
 		
@@ -66,8 +65,7 @@ CSteamGroup.prototype.getMembers = function(callback, members, link) {
 	
 	var self = this;
 	this._community.request(link, function(err, response, body) {
-		if(err || response.statusCode != 200) {
-			callback(err || "HTTP error " + response.statusCode);
+		if(self._checkHttpError(err, response, callback)) {
 			return;
 		}
 		
@@ -103,7 +101,7 @@ CSteamGroup.prototype.join = function(callback) {
 		}
 		
 		if(err || response.statusCode >= 400) {
-			callback(err || "HTTP error " + response.statusCode);
+			callback(err || new Error("HTTP error " + response.statusCode));
 			return;
 		}
 		
@@ -129,7 +127,7 @@ CSteamGroup.prototype.leave = function(callback) {
 		}
 		
 		if(err || response.statusCode >= 400) {
-			callback(err || "HTTP error " + response.statusCode);
+			callback(err || new Error("HTTP error " + response.statusCode));
 			return;
 		}
 		
@@ -155,7 +153,7 @@ CSteamGroup.prototype.postAnnouncement = function(headline, content, callback) {
 		}
 		
 		if(err || response.statusCode >= 400) {
-			callback(err || "HTTP error " + response.statusCode);
+			callback(err || new Error("HTTP error " + response.statusCode));
 			return;
 		}
 		
@@ -214,7 +212,7 @@ CSteamGroup.prototype.scheduleEvent = function(name, type, description, time, se
 		}
 		
 		if(err || response.statusCode >= 400) {
-			callback(err || "HTTP error " + response.statusCode);
+			callback(err || new Error("HTTP error " + response.statusCode));
 			return;
 		}
 		
@@ -241,7 +239,7 @@ CSteamGroup.prototype.setPlayerOfTheWeek = function(steamID, callback) {
 		}
 		
 		if(err || response.statusCode != 200) {
-			callback(err || "HTTP error " + response.statusCode);
+			callback(err || new Error("HTTP error " + response.statusCode));
 			return;
 		}
 		
@@ -254,7 +252,7 @@ CSteamGroup.prototype.setPlayerOfTheWeek = function(steamID, callback) {
 			if(results.response.results[0] == 'OK') {
 				callback(null, new SteamID(results.response.oldPOTW[0]), new SteamID(results.response.newPOTW[0]));
 			} else {
-				callback(results.response.results[0]);
+				callback(new Error(results.response.results[0]));
 			}
 		});
 	});
@@ -275,7 +273,7 @@ CSteamGroup.prototype.kick = function(steamID, callback) {
 		}
 		
 		if(err || response.statusCode >= 400) {
-			callback(err || "HTTP error " + response.statusCode);
+			callback(err || new Error("HTTP error " + response.statusCode));
 			return;
 		}
 		

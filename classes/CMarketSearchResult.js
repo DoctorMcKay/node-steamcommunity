@@ -39,24 +39,23 @@ function performSearch(request, qs, results, callback) {
 		},
 		"json": true
 	}, function(err, response, body) {
-		if(err || response.statusCode != 200) {
-			callback(err ? err.message : "HTTP error " + response.statusCode);
+		if(self._checkHttpError(err, response, callback)) {
 			return;
 		}
 		
 		if(!body.success) {
-			callback("Success is not true");
+			callback(new Error("Success is not true"));
 			return;
 		}
 		
 		if(!body.results_html) {
-			callback("No results_html in response");
+			callback(new Error("No results_html in response"));
 			return;
 		}
 		
 		var $ = Cheerio.load(body.results_html);
 		if($('.market_listing_table_message').length > 0) {
-			callback($('.market_listing_table_message').text());
+			callback(new Error($('.market_listing_table_message').text()));
 			return;
 		}
 		

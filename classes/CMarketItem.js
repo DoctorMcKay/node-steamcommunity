@@ -4,14 +4,13 @@ var Cheerio = require('cheerio');
 SteamCommunity.prototype.getMarketItem = function(appid, hashName, callback) {
 	var self = this;
 	this.request("https://steamcommunity.com/market/listings/" + appid + "/" + encodeURIComponent(hashName), function(err, response, body) {
-		if(err || response.statusCode != 200) {
-			callback(err ? err.message : "HTTP error " + response.statusCode);
+		if(self._checkHttpError(err, response, callback)) {
 			return;
 		}
 		
 		var $ = Cheerio.load(body);
 		if($('.market_listing_table_message') && $('.market_listing_table_message').text().trim() == 'There are no listings for this item.') {
-			callback('There are no listings for this item.');
+			callback(new Error("There are no listings for this item."));
 			return;
 		}
 		
@@ -93,17 +92,13 @@ CMarketItem.prototype.updatePrice = function(callback) {
 		"uri": "https://steamcommunity.com/market/itemordershistogram?country=US&language=english&currency=1&item_nameid=" + this.commodityID,
 		"json": true,
 	}, function(err, response, body) {
-		if(err || response.statusCode != 200) {
-			if(callback) {
-				callback(err ? err.message : "HTTP error " + response.statusCode);
-			}
-			
+		if(self._checkHttpError(err, response, callback)) {
 			return;
 		}
 		
 		if(body.success != 1) {
 			if(callback) {
-				callback("Error " + body.success);
+				callback(new Error("Error " + body.success));
 			}
 			
 			return;
@@ -125,7 +120,7 @@ CMarketItem.prototype.updatePrice = function(callback) {
 		
 		// TODO: The tables?
 		if(callback) {
-			callback();
+			callback(null);
 		}
 	});
 };

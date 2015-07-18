@@ -60,18 +60,24 @@ SteamCommunity.prototype.login = function(details, callback) {
 			"json": true,
 			"form": form
 		}, function(err, response, body) {
-			if(err) {
-				callback(err);
+			if(self._checkHttpError(err, response, callback)) {
 				return;
 			}
 			
 			if(!body.success && body.emailauth_needed) {
-				var error = "SteamGuard";
+				var error = new Error("SteamGuard");
 				error.emaildomain = body.emaildomain;
 				
 				callback(error);
+			} else if(!body.success && body.captcha_needed) {
+				var error = new Error("CAPTCHA");
+				error.captchaurl = "https://steamcommunity.com/public/captcha.php?gid=" + body.captcha_gid;
+				
+				self._captchaGid = body.captcha_gid;
+				
+				callback(error);
 			} else if(!body.success) {
-				callback(body.message || "Unknown error");
+				callback(new Error(body.message || "Unknown error"));
 			} else {
 				var sessionID = generateSessionID();
 				self._jar.setCookie(Request.cookie('sessionid=' + sessionID), 'http://steamcommunity.com');
@@ -130,8 +136,8 @@ function generateSessionID() {
 SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
 	var self = this;
 	this.request("https://steamcommunity.com/dev/apikey", function(err, response, body) {
-		if(err || response.statusCode != 200) {
-			return callback(err.message || "HTTP error " + response.statusCode);
+		if(self._checkHttpError(err, response, callback)) {
+			return;
 		}
 		
 		if(body.match(/<h2>Access Denied<\/h2>/)) {
@@ -173,8 +179,8 @@ SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
 			return;
 		}
 		
-		if(err || response.statusCode != 200) {
-			return callback(err.message || "HTTP error " + response.statusCode);
+		if(self._checkHttpError(err, response, callback)) {
+			return;
 		}
 		
 		if(!body || typeof body.success !== 'boolean') {
@@ -191,8 +197,8 @@ SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
 
 SteamCommunity.prototype.getNotifications = function(callback) {
 	this.request.get("https://steamcommunity.com/actions/RefreshNotificationArea", function(err, response, body) {
-		if(err || response.statusCode != 200) {
-			return callback(err.message || "HTTP error " + response.statusCode);
+		if(self._checkHttpError(err, response, callback)) {
+			return;
 		}
 		
 		var notifications = {
@@ -230,18 +236,18 @@ SteamCommunity.prototype.resetItemNotifications = function(callback) {
 			return;
 		}
 		
-		if(err || response.statusCode != 200) {
-			callback(err.message || "HTTP error " + response.statusCode);
-		} else {
-			callback();
+		if(self._checkHttpError(err, response, callback)) {
+			return;
 		}
+		
+		callback(null);
 	});
 };
 
 SteamCommunity.prototype.loggedIn = function(callback) {
 	this.request("https://steamcommunity.com/my", {"followRedirect": false}, function(err, response, body) {
 		if(err || (response.statusCode != 302 && response.statusCode != 403)) {
-			callback(err ? err.message : "HTTP error " + response.statusCode);
+			callback(err || new Error("HTTP error " + response.statusCode));
 			return;
 		}
 		
@@ -257,7 +263,7 @@ SteamCommunity.prototype.loggedIn = function(callback) {
 SteamCommunity.prototype._checkCommunityError = function(html, callback) {
 	if(html.match(/<h1>Sorry!<\/h1>/)) {
 		var match = html.match(/<h3>(.+)<\/h3>/);
-		callback(match ? match[1] : "Unknown error occurred");
+		callback(new Error(match ? match[1] : "Unknown error occurred"));
 		return true;
 	}
 	
@@ -280,6 +286,22 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 		
 		(form ? self.request.post : self.request)("https://steamcommunity.com" + match[1] + "/" + endpoint, form ? {"form": form} : {}, callback);
 	});
+};
+
+SteamCommunity.prototype._checkHttpError = function(err, response, callback) {
+	if(err) {
+		callback(err);
+		return true;
+	}
+	
+	if(response.statusCode != 200) {
+		var error = new Error("HTTP error " + response.statusCode);
+		error.code = response.statusCode;
+		callback(error);
+		return true;
+	}
+	
+	return false;
 };
 
 require('./classes/CMarketItem.js');

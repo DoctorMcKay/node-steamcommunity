@@ -13,8 +13,7 @@ SteamCommunity.prototype.getSteamUser = function(id, callback) {
 	
 	var self = this;
 	this.request("http://steamcommunity.com/" + (typeof id === 'string' ? "id/" + id : "profiles/" + id.toString()) + "/?xml=1", function(err, response, body) {
-		if(err || response.statusCode != 200) {
-			callback(err || "HTTP error " + response.statusCode);
+		if(self._checkHttpError(err, response, callback)) {
 			return;
 		}
 		
@@ -24,12 +23,12 @@ SteamCommunity.prototype.getSteamUser = function(id, callback) {
 		
 		xml2js.parseString(body, function(err, result) {
 			if(err || (!result.response && !result.profile)) {
-				callback(err || "No valid response");
+				callback(err || new Error("No valid response"));
 				return;
 			}
 			
 			if(result.response && result.response.error && result.response.error.length) {
-				callback(result.response.error[0]);
+				callback(new Error(result.response.error[0]));
 				return;
 			}
 			
@@ -113,8 +112,7 @@ CSteamUser.prototype.addFriend = function(callback) {
 			return;
 		}
 		
-		if(err || response.statusCode != 200) {
-			callback(err || "HTTP error " + response.statusCode);
+		if(self._checkHttpError(err, response, callback)) {
 			return;
 		}
 		
@@ -127,9 +125,9 @@ CSteamUser.prototype.addFriend = function(callback) {
 		}
 		
 		if(json.success) {
-			callback();
+			callback(null);
 		} else {
-			callback("Unknown error");
+			callback(new Error("Unknown error"));
 		}
 	});
 };
@@ -140,12 +138,11 @@ CSteamUser.prototype.acceptFriendRequest = function(callback) {
 			return;
 		}
 		
-		if(err || response.statusCode != 200) {
-			callback(err || "HTTP error " + response.statusCode);
+		if(self._checkHttpError(err, response, callback)) {
 			return;
 		}
 		
-		callback();
+		callback(null);
 	});
 };
 
@@ -155,12 +152,11 @@ CSteamUser.prototype.removeFriend = function(callback) {
 			return;
 		}
 		
-		if(err || response.statusCode != 200) {
-			callback(err || "HTTP error " + response.statusCode);
+		if(self._checkHttpError(err, response, callback)) {
 			return;
 		}
 		
-		callback();
+		callback(null);
 	});
 };
 
@@ -170,12 +166,11 @@ CSteamUser.prototype.blockCommunication = function(callback) {
 			return;
 		}
 		
-		if(err || response.statusCode != 200) {
-			callback(err || "HTTP error " + response.statusCode);
+		if(self._checkHttpError(err, response, callback)) {
 			return;
 		}
 		
-		callback();
+		callback(null);
 	});
 };
 
@@ -189,11 +184,11 @@ CSteamUser.prototype.unblockCommunication = function(callback) {
 		}
 		
 		if(err || response.statusCode >= 400) {
-			callback(err || "HTTP error " + response.statusCode);
+			callback(err || new Error("HTTP error " + response.statusCode));
 			return;
 		}
 		
-		callback();
+		callback(null);
 	});
 };
 
@@ -208,7 +203,7 @@ CSteamUser.prototype.comment = function(message, callback) {
 		}
 		
 		if(err || response.statusCode != 200) {
-			callback(err || "HTTP error " + response.statusCode);
+			callback(err || new Error("HTTP error " + response.statusCode));
 			return;
 		}
 		
@@ -221,11 +216,11 @@ CSteamUser.prototype.comment = function(message, callback) {
 		}
 		
 		if(json.success) {
-			callback();
+			callback(null);
 		} else if(json.error) {
-			callback(json.error);
+			callback(new Error(json.error));
 		} else {
-			callback("Unknown error");
+			callback(new Error("Unknown error"));
 		}
 	});
 };
