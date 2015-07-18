@@ -66,7 +66,10 @@ SteamCommunity.prototype.login = function(details, callback) {
 			}
 			
 			if(!body.success && body.emailauth_needed) {
-				callback("Please provide the authorization code sent to your address at " + body.emaildomain);
+				var error = "SteamGuard";
+				error.emaildomain = body.emaildomain;
+				
+				callback(error);
 			} else if(!body.success) {
 				callback(body.message || "Unknown error");
 			} else {
