@@ -12,7 +12,7 @@ SteamCommunity.SteamID = SteamID;
 function SteamCommunity() {
 	this._jar = Request.jar();
 	this._captchaGid = -1;
-	this.request = Request.defaults({"jar": this._jar});
+	this.request = Request.defaults({"jar": this._jar, "timeout": 50000});
 	this.chatState = SteamCommunity.ChatState.Offline;
 	
 	// English
