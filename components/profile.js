@@ -1,4 +1,5 @@
 var SteamCommunity = require('../index.js');
+var Cheerio = require('cheerio');
 
 SteamCommunity.PrivacyState = {
 	"Private": 1,
@@ -12,24 +13,61 @@ var CommentPrivacyState = {
 	"3": "commentanyone"
 };
 
-SteamCommunity.prototype.profileSettings = function(profile, comments, inventory, inventoryGiftPrivacy, emailConfirmation, callback) {
-	this._myProfile("edit/settings", {
-		"sessionID": this.getSessionID(),
-		"type": "profileSettings",
-		"privacySetting": profile,
-		"commentSetting": CommentPrivacyState[comments],
-		"inventoryPrivacySetting": inventory,
-		"inventoryGiftPrivacy": inventoryGiftPrivacy ? 1 : 0,
-		"tradeConfirmationSetting": emailConfirmation ? 1 : 0
-	}, function(err, response, body) {
-		if(!callback) {
+SteamCommunity.prototype.profileSettings = function(settings, callback) {
+	var self = this;
+	this._myProfile("edit/settings", null, function(err, response, body) {
+		if(err || response.statusCode != 200) {
+			callback(err || new Error("HTTP error " + response.statusCode));
 			return;
 		}
 		
-		if(err || response.statusCode != 200) {
-			callback(err || new Error("HTTP error " + response.statusCode));
-		} else {
-			callback(null);
+		var $ = Cheerio.load(body);
+		var form = $('#editForm');
+		if(!form) {
+			callback(new Error("Malformed response"));
+			return;
 		}
+		
+		var values = {};
+		form.serializeArray().forEach(function(item) {
+			values[item.name] = item.value;
+		});
+		
+		for(var i in settings) {
+			if(!settings.hasOwnProperty(i)) {
+				continue;
+			}
+			
+			switch(i) {
+				case 'profile':
+					values.privacySetting = settings[i];
+					break;
+				
+				case 'comments':
+					values.commentSetting = CommentPrivacyState[settings[i]];
+					break;
+				
+				case 'inventory':
+					values.inventoryPrivacySetting = settings[i];
+					break;
+				
+				case 'inventoryGifts':
+					values.inventoryGiftPrivacy = settings[i] ? 1 : 0;
+					break;
+				
+				case 'emailConfirmation':
+					values.tradeConfirmationSetting = settings[i] ? 1 : 0;
+					break;
+			}
+		}
+		
+		self._myProfile("edit/settings", values, function(err, response, body) {
+			if(err || response.statusCode != 200) {
+				callback(err || new Error("HTTP error " + response.statusCode));
+				return;
+			}
+			
+			callback(null);
+		});
 	});
 };
