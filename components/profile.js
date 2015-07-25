@@ -18,14 +18,20 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 	var self = this;
 	this._myProfile("edit", null, function(err, response, body) {
 		if(err || response.statusCode != 200) {
-			callback(err || new Error("HTTP error " + response.statusCode));
+			if(callback) {
+				callback(err || new Error("HTTP error " + response.statusCode));
+			}
+			
 			return;
 		}
 		
 		var $ = Cheerio.load(body);
 		var form = $('#editForm');
 		if(!form) {
-			callback(new Error("Malformed response"));
+			if(callback) {
+				callback(new Error("Malformed response"));
+			}
+			
 			return;
 		}
 		
@@ -93,7 +99,10 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 		
 		self._myProfile("edit", values, function(err, response, body) {
 			if(err || response.statusCode != 200) {
-				callback(err || new Error("HTTP error " + response.statusCode));
+				if(callback) {
+					callback(err || new Error("HTTP error " + response.statusCode));
+				}
+				
 				return;
 			}
 			
@@ -103,12 +112,17 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 			if(error) {
 				error = error.text().trim();
 				if(error) {
-					callback(new Error(error));
+					if(callback) {
+						callback(new Error(error));
+					}
+					
 					return;
 				}
 			}
 			
-			callback(null);
+			if(callback) {
+				callback(null);
+			}
 		});
 	});
 };
@@ -117,14 +131,20 @@ SteamCommunity.prototype.profileSettings = function(settings, callback) {
 	var self = this;
 	this._myProfile("edit/settings", null, function(err, response, body) {
 		if(err || response.statusCode != 200) {
-			callback(err || new Error("HTTP error " + response.statusCode));
+			if(callback) {
+				callback(err || new Error("HTTP error " + response.statusCode));
+			}
+			
 			return;
 		}
 		
 		var $ = Cheerio.load(body);
 		var form = $('#editForm');
 		if(!form) {
-			callback(new Error("Malformed response"));
+			if(callback) {
+				callback(new Error("Malformed response"));
+			}
+			
 			return;
 		}
 		
@@ -163,11 +183,16 @@ SteamCommunity.prototype.profileSettings = function(settings, callback) {
 		
 		self._myProfile("edit/settings", values, function(err, response, body) {
 			if(err || response.statusCode != 200) {
-				callback(err || new Error("HTTP error " + response.statusCode));
+				if(callback) {
+					callback(err || new Error("HTTP error " + response.statusCode));
+				}
+				
 				return;
 			}
 			
-			callback(null);
+			if(callback) {
+				callback(null);
+			}
 		});
 	});
 };
