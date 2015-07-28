@@ -14,6 +14,21 @@ var CommentPrivacyState = {
 	"3": "commentanyone"
 };
 
+SteamCommunity.prototype.setupProfile = function(callback) {
+	var self = this;
+	this._myProfile("edit?welcomed=1", null, function(err, response, body) {
+		if(!callback) {
+			return;
+		}
+		
+		if(err || response.statusCode != 200) {
+			callback(err || new Error("HTTP error " + response.statusCode));
+		} else {
+			callback(null);
+		}
+	});
+};
+
 SteamCommunity.prototype.editProfile = function(settings, callback) {
 	var self = this;
 	this._myProfile("edit", null, function(err, response, body) {
