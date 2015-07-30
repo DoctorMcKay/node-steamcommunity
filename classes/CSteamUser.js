@@ -107,6 +107,7 @@ CSteamUser.prototype.getAvatarURL = function(size, protocol) {
 };
 
 CSteamUser.prototype.addFriend = function(callback) {
+	var self = this;
 	this._community.request.post('https://steamcommunity.com/actions/AddFriendAjax', {"form": {"accept_invite": 0, "sessionID": this._community.getSessionID(), "steamid": this.steamID.toString()}}, function(err, response, body) {
 		if(!callback) {
 			return;
@@ -133,6 +134,7 @@ CSteamUser.prototype.addFriend = function(callback) {
 };
 
 CSteamUser.prototype.acceptFriendRequest = function(callback) {
+	var self = this;
 	this._community.request.post('https://steamcommunity.com/actions/AddFriendAjax', {"form": {"accept_invite": 1, "sessionID": this._community.getSessionID(), "steamid": this.steamID.toString()}}, function(err, response, body) {
 		if(!callback) {
 			return;
@@ -147,6 +149,7 @@ CSteamUser.prototype.acceptFriendRequest = function(callback) {
 };
 
 CSteamUser.prototype.removeFriend = function(callback) {
+	var self = this;
 	this._community.request.post('https://steamcommunity.com/actions/RemoveFriendAjax', {"form": {"sessionID": this._community.getSessionID(), "steamid": this.steamID.toString()}}, function(err, response, body) {
 		if(!callback) {
 			return;
@@ -161,6 +164,7 @@ CSteamUser.prototype.removeFriend = function(callback) {
 };
 
 CSteamUser.prototype.blockCommunication = function(callback) {
+	var self = this;
 	this._community.request.post('https://steamcommunity.com/actions/BlockUserAjax', {"form": {"sessionID": this._community.getSessionID(), "steamid": this.steamID.toString()}}, function(err, response, body) {
 		if(!callback) {
 			return;
