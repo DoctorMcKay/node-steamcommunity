@@ -309,6 +309,7 @@ SteamCommunity.prototype._checkHttpError = function(err, response, callback) {
 	return false;
 };
 
+require('./classes/CMarket.js');
 require('./classes/CMarketItem.js');
 require('./classes/CMarketSearchResult.js');
 require('./classes/CSteamGroup.js');
