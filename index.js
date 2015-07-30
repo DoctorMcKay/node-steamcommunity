@@ -315,3 +315,4 @@ require('./classes/CSteamGroup.js');
 require('./classes/CSteamUser.js');
 require('./components/chat.js');
 require('./components/profile.js');
+require('./components/market.js');
