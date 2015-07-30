@@ -27,10 +27,11 @@ SteamCommunity.prototype.marketSearch = function(options, callback) {
 	qs.count = 100;
 	qs.sort_column = 'price';
 	qs.sort_dir = 'asc';
-	performSearch(this.request, qs, [], callback);
+	performSearch.call(this, this.request, qs, [], callback);
 };
 
 function performSearch(request, qs, results, callback) {
+	var self = this;
 	request({
 		"uri": "https://steamcommunity.com/market/search/render/",
 		"qs": qs,

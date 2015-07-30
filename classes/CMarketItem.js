@@ -92,7 +92,7 @@ CMarketItem.prototype.updatePrice = function(callback) {
 		"uri": "https://steamcommunity.com/market/itemordershistogram?country=US&language=english&currency=1&item_nameid=" + this.commodityID,
 		"json": true,
 	}, function(err, response, body) {
-		if(self._checkHttpError(err, response, callback)) {
+		if(self._community._checkHttpError(err, response, callback)) {
 			return;
 		}
 		

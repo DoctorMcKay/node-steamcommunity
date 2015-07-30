@@ -65,7 +65,7 @@ CSteamGroup.prototype.getMembers = function(callback, members, link) {
 	
 	var self = this;
 	this._community.request(link, function(err, response, body) {
-		if(self._checkHttpError(err, response, callback)) {
+		if(self._community._checkHttpError(err, response, callback)) {
 			return;
 		}
 		

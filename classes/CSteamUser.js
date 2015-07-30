@@ -112,7 +112,7 @@ CSteamUser.prototype.addFriend = function(callback) {
 			return;
 		}
 		
-		if(self._checkHttpError(err, response, callback)) {
+		if(self._community._checkHttpError(err, response, callback)) {
 			return;
 		}
 		
@@ -138,7 +138,7 @@ CSteamUser.prototype.acceptFriendRequest = function(callback) {
 			return;
 		}
 		
-		if(self._checkHttpError(err, response, callback)) {
+		if(self._community._checkHttpError(err, response, callback)) {
 			return;
 		}
 		
@@ -152,7 +152,7 @@ CSteamUser.prototype.removeFriend = function(callback) {
 			return;
 		}
 		
-		if(self._checkHttpError(err, response, callback)) {
+		if(self._community._checkHttpError(err, response, callback)) {
 			return;
 		}
 		
@@ -166,7 +166,7 @@ CSteamUser.prototype.blockCommunication = function(callback) {
 			return;
 		}
 		
-		if(self._checkHttpError(err, response, callback)) {
+		if(self._community._checkHttpError(err, response, callback)) {
 			return;
 		}
 		
