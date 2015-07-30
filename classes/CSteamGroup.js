@@ -147,6 +147,7 @@ CSteamGroup.prototype.postAnnouncement = function(headline, content, callback) {
 		"body": content
 	};
 	
+	var self = this;
 	this._community.request.post("https://steamcommunity.com/gid/" + this.steamID.toString() + "/announcements", {"form": form}, function(err, response, body) {
 		if(!callback) {
 			return;
