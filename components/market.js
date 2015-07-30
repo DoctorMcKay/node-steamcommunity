@@ -17,9 +17,9 @@ SteamCommunity.prototype.getMarketApps = function(callback) {
 				var appid = url.substr(url.indexOf('=') + 1);
 				apps[appid] = name;
 			});
-			callback(apps);
+			callback(false, apps);
 		} else {
-			callback(null);
+			callback(new Error("Malformed response"));
 		}
 	});
 }
