@@ -9,17 +9,17 @@ SteamCommunity.prototype.getGroupMembers = function(gid, callback, members, link
 	if (!link) {
 		if (typeof gid !== 'string') {
 			// It's a SteamID object
-			link = "https://steamcommunity.com/gid/" + gid.toString() + "/memberslistxml/?xml=1";
+			link = "http://steamcommunity.com/gid/" + gid.toString() + "/memberslistxml/?xml=1";
 		} else {
 			try {
 				var sid = new SteamID(gid);
 				if (sid.type == SteamID.Type.CLAN && sid.isValid()) {
-					link = "https://steamcommunity.com/gid/" + sid.getSteamID64() + "/memberslistxml/?xml=1";
+					link = "http://steamcommunity.com/gid/" + sid.getSteamID64() + "/memberslistxml/?xml=1";
 				} else {
 					throw new Error("Doesn't particularly matter what this message is");
 				}
 			} catch (e) {
-				link = "https://steamcommunity.com/groups/" + gid + "/memberslistxml/?xml=1";
+				link = "http://steamcommunity.com/groups/" + gid + "/memberslistxml/?xml=1";
 			}
 		}
 	}
@@ -55,7 +55,7 @@ SteamCommunity.prototype.getGroupMembers = function(gid, callback, members, link
 
 			if (result.memberList.nextPageLink) {
 				addressIdx++;
-				self.getGroupMembers(gid, callback, members, result.memberList.nextPageLink, addresses, addressIdx);
+				self.getGroupMembers(gid, callback, members, result.memberList.nextPageLink[0], addresses, addressIdx);
 			} else {
 				callback(null, members);
 			}
