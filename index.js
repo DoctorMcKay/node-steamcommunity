@@ -9,11 +9,17 @@ module.exports = SteamCommunity;
 
 SteamCommunity.SteamID = SteamID;
 
-function SteamCommunity() {
+function SteamCommunity(localAddress) {
 	this._jar = Request.jar();
 	this._captchaGid = -1;
-	this.request = Request.defaults({"jar": this._jar, "timeout": 50000});
 	this.chatState = SteamCommunity.ChatState.Offline;
+
+	var defaults = {"jar": this._jar, "timeout": 50000};
+	if(localAddress) {
+		defaults.localAddress = localAddress;
+	}
+
+	this.request = Request.defaults(defaults);
 	
 	// English
 	this._jar.setCookie(Request.cookie('Steam_Language=english'), 'https://steamcommunity.com');

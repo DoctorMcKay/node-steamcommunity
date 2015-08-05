@@ -59,8 +59,13 @@ CSteamGroup.prototype.getAvatarURL = function(size, protocol) {
 	}
 };
 
-CSteamGroup.prototype.getMembers = function(callback) {
-	this._community.getGroupMembers(this.steamID, callback);
+CSteamGroup.prototype.getMembers = function(addresses, callback) {
+	if(typeof addresses === 'function') {
+		callback = addresses;
+		addresses = null;
+	}
+
+	this._community.getGroupMembers(this.steamID, callback, null, null, addresses, 0);
 };
 
 CSteamGroup.prototype.join = function(callback) {

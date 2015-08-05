@@ -1,8 +1,9 @@
 var SteamCommunity = require('../index.js');
 var SteamID = require('steamid');
 var xml2js = require('xml2js');
+var Cheerio = require('cheerio');
 
-SteamCommunity.prototype.getGroupMembers = function(gid, callback, members, link) {
+SteamCommunity.prototype.getGroupMembers = function(gid, callback, members, link, addresses, addressIdx) {
 	members = members || [];
 
 	if (!link) {
@@ -23,29 +24,47 @@ SteamCommunity.prototype.getGroupMembers = function(gid, callback, members, link
 		}
 	}
 
+	addressIdx = addressIdx || 0;
+
+	var options = {};
+	options.uri = link;
+
+	if(addresses) {
+		if(addressIdx >= addresses.length) {
+			addressIdx = 0;
+		}
+
+		options.localAddress = addresses[addressIdx];
+	}
+
 	var self = this;
-	this.request(link, function (err, response, body) {
+	this.request(options, function(err, response, body) {
 		if (self._checkHttpError(err, response, callback)) {
 			return;
 		}
 
-		xml2js.parseString(body, function (err, result) {
+		xml2js.parseString(body, function(err, result) {
 			if (err) {
 				callback(err);
 				return;
 			}
 
-			members = members.concat(result.memberList.members[0].steamID64.map(function (steamID) {
+			members = members.concat(result.memberList.members[0].steamID64.map(function(steamID) {
 				return new SteamID(steamID);
 			}));
 
 			if (result.memberList.nextPageLink) {
-				self.getGroupMembers(gid, callback, members, result.memberList.nextPageLink);
+				addressIdx++;
+				self.getGroupMembers(gid, callback, members, result.memberList.nextPageLink, addresses, addressIdx);
 			} else {
 				callback(null, members);
 			}
 		});
 	});
+};
+
+SteamCommunity.prototype.getGroupMembersEx = function(gid, addresses, callback) {
+	this.getGroupMembers(gid, callback, null, null, addresses, 0);
 };
 
 SteamCommunity.prototype.joinGroup = function(gid, callback) {
