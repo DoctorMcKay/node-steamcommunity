@@ -309,10 +309,11 @@ SteamCommunity.prototype._checkHttpError = function(err, response, callback) {
 	return false;
 };
 
+require('./components/chat.js');
+require('./components/profile.js');
+require('./components/market.js');
+require('./components/groups.js');
 require('./classes/CMarketItem.js');
 require('./classes/CMarketSearchResult.js');
 require('./classes/CSteamGroup.js');
 require('./classes/CSteamUser.js');
-require('./components/chat.js');
-require('./components/profile.js');
-require('./components/market.js');
