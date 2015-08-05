@@ -301,3 +301,86 @@ SteamCommunity.prototype.kickGroupMember = function(gid, steamID, callback) {
 		callback(null);
 	});
 };
+
+SteamCommunity.prototype.getGroupHistory = function(gid, page, callback) {
+	if(typeof gid === 'string') {
+		gid = new SteamID(gid);
+	}
+
+	if(typeof page === 'function') {
+		callback = page;
+		page = 1;
+	}
+
+	var self = this;
+	this.request("https://steamcommunity.com/gid/" + gid.getSteamID64() + "/history?p=" + page, function(err, response, body) {
+		if(self._checkHttpError(err, response, callback)) {
+			return;
+		}
+
+		if(self._checkCommunityError(body, callback)) {
+			return;
+		}
+
+		var $ = Cheerio.load(body);
+		var output = {};
+
+		var paging = $('.group_paging p').text();
+		var match = paging.match(/(\d+) - (\d+) of (\d+)/);
+
+		if(match) {
+			output.first = parseInt(match[1], 10);
+			output.last = parseInt(match[2], 10);
+			output.total = parseInt(match[3], 10);
+		}
+
+		output.items = [];
+		var currentYear = (new Date()).getFullYear();
+		var lastDate = Date.now();
+
+		Array.prototype.forEach.call($('.historyItem, .historyItemb'), function(item) {
+			var data = {};
+
+			var $item = $(item);
+			data.type = $item.find('.historyShort').text().replace(/ /g, '');
+
+			var users = $item.find('.whiteLink[data-miniprofile]');
+			var sid;
+			if(users[0]) {
+				sid = new SteamID();
+				sid.universe = SteamID.Universe.PUBLIC;
+				sid.type = SteamID.Type.INDIVIDUAL;
+				sid.instance = SteamID.Instance.DESKTOP;
+				sid.accountid = $(users[0]).data('miniprofile');
+				data.user = sid;
+			}
+
+			if(users[1]) {
+				sid = new SteamID();
+				sid.universe = SteamID.Universe.PUBLIC;
+				sid.type = SteamID.Type.INDIVIDUAL;
+				sid.instance = SteamID.Instance.DESKTOP;
+				sid.accountid = $(users[0]).data('miniprofile');
+				data.actor = sid;
+			}
+
+			// Figure out the date. Of course there's no year, because Valve
+			var dateParts = $item.find('.historyDate').text().split('@');
+			var date = dateParts[0].trim().replace(/(st|nd|th)$/, '').trim() + ', ' + currentYear;
+			var time = dateParts[1].trim().replace(/(am|pm)/, ' $1');
+
+			date = new Date(date + ' ' + time);
+
+			// If this date is in the future, or it's later than the previous one, decrement the year
+			if(date.getTime() > lastDate) {
+				date.setFullYear(date.getFullYear() - 1);
+			}
+
+			data.date = date;
+
+			output.items.push(data);
+		});
+
+		callback(null, output);
+	});
+};

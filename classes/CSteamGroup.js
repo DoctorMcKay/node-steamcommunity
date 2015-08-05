@@ -91,3 +91,7 @@ CSteamGroup.prototype.setPlayerOfTheWeek = function(steamID, callback) {
 CSteamGroup.prototype.kick = function(steamID, callback) {
 	this._community.kickGroupMember(this.steamID, steamID, callback);
 };
+
+CSteamGroup.prototype.getHistory = function(page, callback) {
+	this._community.getGroupHistory(this.steamID, page, callback);
+};
