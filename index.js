@@ -23,6 +23,9 @@ function SteamCommunity(localAddress) {
 	
 	// English
 	this._jar.setCookie(Request.cookie('Steam_Language=english'), 'https://steamcommunity.com');
+
+	// UTC
+	this._jar.setCookie(Request.cookie('timezoneOffset=0,0'), 'https://steamcommunity.com');
 }
 
 SteamCommunity.prototype.login = function(details, callback) {

@@ -369,7 +369,7 @@ SteamCommunity.prototype.getGroupHistory = function(gid, page, callback) {
 			var date = dateParts[0].trim().replace(/(st|nd|th)$/, '').trim() + ', ' + currentYear;
 			var time = dateParts[1].trim().replace(/(am|pm)/, ' $1');
 
-			date = new Date(date + ' ' + time);
+			date = new Date(date + ' ' + time + ' UTC');
 
 			// If this date is in the future, or it's later than the previous one, decrement the year
 			if(date.getTime() > lastDate) {
