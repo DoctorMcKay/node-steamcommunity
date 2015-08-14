@@ -1,6 +1,11 @@
 var SteamCommunity = require('../index.js');
+var SteamID = require('steamid');
 
 SteamCommunity.prototype.addFriend = function(userID, callback) {
+	if(typeof userID === 'string') {
+		userID = new SteamID(userID);
+	}
+
 	var self = this;
 	this.request.post({
 		"uri": "https://steamcommunity.com/actions/AddFriendAjax",
@@ -28,6 +33,10 @@ SteamCommunity.prototype.addFriend = function(userID, callback) {
 };
 
 SteamCommunity.prototype.acceptFriendRequest = function(userID, callback) {
+	if(typeof userID === 'string') {
+		userID = new SteamID(userID);
+	}
+
 	var self = this;
 	this.request.post({
 		"uri": "https://steamcommunity.com/actions/AddFriendAjax",
@@ -50,6 +59,10 @@ SteamCommunity.prototype.acceptFriendRequest = function(userID, callback) {
 };
 
 SteamCommunity.prototype.removeFriend = function(userID, callback) {
+	if(typeof userID === 'string') {
+		userID = new SteamID(userID);
+	}
+
 	var self = this;
 	this.request.post({
 		"uri": "https://steamcommunity.com/actions/RemoveFriendAjax",
@@ -71,6 +84,10 @@ SteamCommunity.prototype.removeFriend = function(userID, callback) {
 };
 
 SteamCommunity.prototype.blockCommunication = function(userID, callback) {
+	if(typeof userID === 'string') {
+		userID = new SteamID(userID);
+	}
+
 	var self = this;
 	this.request.post({
 		"uri": "https://steamcommunity.com/actions/BlockUserAjax",
@@ -92,6 +109,10 @@ SteamCommunity.prototype.blockCommunication = function(userID, callback) {
 };
 
 SteamCommunity.prototype.unblockCommunication = function(userID, callback) {
+	if(typeof userID === 'string') {
+		userID = new SteamID(userID);
+	}
+
 	var form = {"action": "unignore"};
 	form['friends[' + userID.toString() + ']'] = 1;
 
@@ -110,6 +131,10 @@ SteamCommunity.prototype.unblockCommunication = function(userID, callback) {
 };
 
 SteamCommunity.prototype.postUserComment = function(userID, message, callback) {
+	if(typeof userID === 'string') {
+		userID = new SteamID(userID);
+	}
+
 	var self = this;
 	this.request.post({
 		"uri": "https://steamcommunity.com/comment/Profile/post/" + userID.toString() + "/-1",
@@ -132,6 +157,41 @@ SteamCommunity.prototype.postUserComment = function(userID, message, callback) {
 			callback(null);
 		} else if(bpdy.error) {
 			callback(new Error(body.error));
+		} else {
+			callback(new Error("Unknown error"));
+		}
+	});
+};
+
+SteamCommunity.prototype.inviteUserToGroup = function(userID, groupID, callback) {
+	if(typeof userID === 'string') {
+		userID = new SteamID(userID);
+	}
+
+	var self = this;
+	this.request.post({
+		"uri": "https://steamcommunity.com/actions/GroupInvite",
+		"form": {
+			"group": groupID.toString(),
+			"invitee": userID.toString(),
+			"json": 1,
+			"sessionID": this.getSessionID(),
+			"type": "groupInvite"
+		},
+		"json": true
+	}, function(err, response, body) {
+		if(!callback) {
+			return;
+		}
+
+		if(self._checkHttpError(err, response, callback)) {
+			return;
+		}
+
+		if(body.results == 'OK') {
+			callback(null);
+		} else if(body.results) {
+			callback(new Error(body.results));
 		} else {
 			callback(new Error("Unknown error"));
 		}

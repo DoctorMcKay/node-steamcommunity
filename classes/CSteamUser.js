@@ -130,3 +130,7 @@ CSteamUser.prototype.unblockCommunication = function(callback) {
 CSteamUser.prototype.comment = function(message, callback) {
 	this._community.postUserComment(this.steamID, message, callback);
 };
+
+CSteamUser.prototype.inviteToGroup = function(groupID, callback) {
+	this._community.inviteUserToGroup(this.steamID, groupID, callback);
+};
