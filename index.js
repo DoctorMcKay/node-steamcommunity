@@ -322,6 +322,7 @@ require('./components/chat.js');
 require('./components/profile.js');
 require('./components/market.js');
 require('./components/groups.js');
+require('./components/users.js');
 require('./classes/CMarketItem.js');
 require('./classes/CMarketSearchResult.js');
 require('./classes/CSteamGroup.js');

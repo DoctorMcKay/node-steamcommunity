@@ -107,124 +107,26 @@ CSteamUser.prototype.getAvatarURL = function(size, protocol) {
 };
 
 CSteamUser.prototype.addFriend = function(callback) {
-	var self = this;
-	this._community.request.post('https://steamcommunity.com/actions/AddFriendAjax', {"form": {"accept_invite": 0, "sessionID": this._community.getSessionID(), "steamid": this.steamID.toString()}}, function(err, response, body) {
-		if(!callback) {
-			return;
-		}
-		
-		if(self._community._checkHttpError(err, response, callback)) {
-			return;
-		}
-		
-		var json;
-		try {
-			json = JSON.parse(body);
-		} catch(e) {
-			callback(e);
-			return;
-		}
-		
-		if(json.success) {
-			callback(null);
-		} else {
-			callback(new Error("Unknown error"));
-		}
-	});
+	this._community.addFriend(this.steamID, callback);
 };
 
 CSteamUser.prototype.acceptFriendRequest = function(callback) {
-	var self = this;
-	this._community.request.post('https://steamcommunity.com/actions/AddFriendAjax', {"form": {"accept_invite": 1, "sessionID": this._community.getSessionID(), "steamid": this.steamID.toString()}}, function(err, response, body) {
-		if(!callback) {
-			return;
-		}
-		
-		if(self._community._checkHttpError(err, response, callback)) {
-			return;
-		}
-		
-		callback(null);
-	});
+	this._community.acceptFriendRequest(this.steamID, callback);
 };
 
 CSteamUser.prototype.removeFriend = function(callback) {
-	var self = this;
-	this._community.request.post('https://steamcommunity.com/actions/RemoveFriendAjax', {"form": {"sessionID": this._community.getSessionID(), "steamid": this.steamID.toString()}}, function(err, response, body) {
-		if(!callback) {
-			return;
-		}
-		
-		if(self._community._checkHttpError(err, response, callback)) {
-			return;
-		}
-		
-		callback(null);
-	});
+	this._community.removeFriend(this.steamID, callback);
+
 };
 
 CSteamUser.prototype.blockCommunication = function(callback) {
-	var self = this;
-	this._community.request.post('https://steamcommunity.com/actions/BlockUserAjax', {"form": {"sessionID": this._community.getSessionID(), "steamid": this.steamID.toString()}}, function(err, response, body) {
-		if(!callback) {
-			return;
-		}
-		
-		if(self._community._checkHttpError(err, response, callback)) {
-			return;
-		}
-		
-		callback(null);
-	});
+	this._community.blockCommunication(this.steamID, callback);
 };
 
 CSteamUser.prototype.unblockCommunication = function(callback) {
-	var form = {"action": "unignore"};
-	form['friends[' + this.steamID.toString() + ']'] = 1;
-	
-	this._community._myProfile('friends/blocked/', form, function(err, response, body) {
-		if(!callback) {
-			return;
-		}
-		
-		if(err || response.statusCode >= 400) {
-			callback(err || new Error("HTTP error " + response.statusCode));
-			return;
-		}
-		
-		callback(null);
-	});
+	this._community.unblockCommunication(this.steamID, callback);
 };
 
 CSteamUser.prototype.comment = function(message, callback) {
-	this._community.request.post('https://steamcommunity.com/comment/Profile/post/' + this.steamID.toString() + '/-1/', {"form": {
-		"comment": message,
-		"count": 6,
-		"sessionid": this._community.getSessionID()
-	}}, function(err, response, body) {
-		if(!callback) {
-			return;
-		}
-		
-		if(err || response.statusCode != 200) {
-			callback(err || new Error("HTTP error " + response.statusCode));
-			return;
-		}
-		
-		var json;
-		try {
-			json = JSON.parse(body);
-		} catch(e) {
-			callback(e);
-			return;
-		}
-		
-		if(json.success) {
-			callback(null);
-		} else if(json.error) {
-			callback(new Error(json.error));
-		} else {
-			callback(new Error("Unknown error"));
-		}
-	});
+	this._community.postUserComment(this.steamID, message, callback);
 };
