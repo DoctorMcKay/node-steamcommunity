@@ -153,7 +153,7 @@ SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
 		"uri": "https://steamcommunity.com/dev/apikey",
 		"followRedirect": false
 	}, function(err, response, body) {
-		if(self._checkHttpError(err, response, callback, true)) {
+		if(self._checkHttpError(err, response, callback)) {
 			return;
 		}
 		
@@ -305,13 +305,18 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 	});
 };
 
-SteamCommunity.prototype._checkHttpError = function(err, response, callback, redirectIsFailure) {
+SteamCommunity.prototype._checkHttpError = function(err, response, callback) {
 	if(err) {
 		callback(err);
 		return true;
 	}
 	
-	if(response.statusCode >= (redirectIsFailure ? 300 : 400)) {
+	if(response.statusCode >= 300 && response.statusCode <= 399 && response.headers.location.indexOf('/login') != -1) {
+		callback(new Error("Not Logged In"));
+		return true;
+	}
+	
+	if(response.statusCode >= 400) {
 		var error = new Error("HTTP error " + response.statusCode);
 		error.code = response.statusCode;
 		callback(error);
