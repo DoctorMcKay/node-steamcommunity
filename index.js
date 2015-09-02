@@ -149,8 +149,11 @@ function generateSessionID() {
 
 SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
 	var self = this;
-	this.request("https://steamcommunity.com/dev/apikey", function(err, response, body) {
-		if(self._checkHttpError(err, response, callback)) {
+	this.request({
+		"uri": "https://steamcommunity.com/dev/apikey",
+		"followRedirect": false
+	}, function(err, response, body) {
+		if(self._checkHttpError(err, response, callback, true)) {
 			return;
 		}
 		
@@ -172,8 +175,8 @@ SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
 					"Submit": "Register"
 				}
 			}, function(err, response, body) {
-				if(err || response.statusCode >= 400) {
-					return callback(err.message || "HTTP error " + response.statusCode);
+				if(self._checkHttpError(err, response, callback)) {
+					return;
 				}
 				
 				self.getWebApiKey(domain, callback);
@@ -302,13 +305,13 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 	});
 };
 
-SteamCommunity.prototype._checkHttpError = function(err, response, callback) {
+SteamCommunity.prototype._checkHttpError = function(err, response, callback, redirectIsFailure) {
 	if(err) {
 		callback(err);
 		return true;
 	}
 	
-	if(response.statusCode != 200) {
+	if(response.statusCode >= (redirectIsFailure ? 300 : 400)) {
 		var error = new Error("HTTP error " + response.statusCode);
 		error.code = response.statusCode;
 		callback(error);
