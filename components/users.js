@@ -197,3 +197,42 @@ SteamCommunity.prototype.inviteUserToGroup = function(userID, groupID, callback)
 		}
 	});
 };
+
+SteamCommunity.prototype.getUserInventoryContexts = function(userID, callback) {
+	if(typeof userID === 'string') {
+		userID = new SteamID(userID);
+	}
+
+	if(typeof userID === 'function') {
+		callback = userID;
+		userID = this.steamID;
+	}
+
+	if(!userID) {
+		callback(new Error("No SteamID specified and not logged in"));
+		return;
+	}
+
+	var self = this;
+	this.request("https://steamcommunity.com/profiles/" + userID.getSteamID64() + "/inventory/", function(err, response, body) {
+		if(self._checkHttpError(err, response, callback)) {
+			return;
+		}
+
+		var match = body.match(/var g_rgAppContextData = ([^\n]+);\r?\n/);
+		if(!match) {
+			callback(new Error("Malformed response"));
+			return;
+		}
+
+		var data;
+		try {
+			data = JSON.parse(match[1]);
+		} catch(e) {
+			callback(new Error("Malformed response"));
+			return;
+		}
+
+		callback(null, data);
+	});
+};
