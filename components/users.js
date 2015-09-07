@@ -272,7 +272,7 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 					continue;
 				}
 
-				inventory.push(new CEconItem(body.rgInventory[i], body.rgDescriptions));
+				inventory.push(new CEconItem(body.rgInventory[i], body.rgDescriptions, contextID));
 			}
 
 			for(i in body.rgCurrency) {
@@ -280,7 +280,7 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 					continue;
 				}
 
-				currency.push(new CEconItem(body.rgInventory[i], body.rgDescriptions));
+				currency.push(new CEconItem(body.rgInventory[i], body.rgDescriptions, contextID));
 			}
 
 			if(body.more) {

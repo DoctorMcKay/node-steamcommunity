@@ -1,6 +1,6 @@
 module.exports = CEconItem;
 
-function CEconItem(item, descriptions) {
+function CEconItem(item, descriptions, contextID) {
 	var thing;
 	for(thing in item) {
 		if(item.hasOwnProperty(thing)) {
@@ -11,6 +11,7 @@ function CEconItem(item, descriptions) {
 	this.assetid = this.id = (this.id || this.assetid);
 	this.instanceid = this.instanceid || '0';
 	this.amount = parseInt(this.amount, 10);
+	this.contextid = contextID.toString();
 
 	// Merge the description
 	var description = descriptions[this.classid + '_' + this.instanceid];
