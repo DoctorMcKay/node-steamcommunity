@@ -134,3 +134,11 @@ CSteamUser.prototype.comment = function(message, callback) {
 CSteamUser.prototype.inviteToGroup = function(groupID, callback) {
 	this._community.inviteUserToGroup(this.steamID, groupID, callback);
 };
+
+CSteamUser.prototype.getInventoryContexts = function(callback) {
+	this._community.getUserInventoryContexts(this.steamID, callback);
+};
+
+CSteamUser.prototype.getInventory = function(appID, contextID, tradableOnly, callback) {
+	this._community.getInventory(appID, contextID, tradableOnly, callback);
+};
