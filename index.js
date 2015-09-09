@@ -331,6 +331,7 @@ require('./components/profile.js');
 require('./components/market.js');
 require('./components/groups.js');
 require('./components/users.js');
+require('./components/inventoryhistory.js');
 require('./classes/CMarketItem.js');
 require('./classes/CMarketSearchResult.js');
 require('./classes/CSteamGroup.js');

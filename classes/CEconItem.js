@@ -11,14 +11,16 @@ function CEconItem(item, descriptions, contextID) {
 	this.assetid = this.id = (this.id || this.assetid);
 	this.instanceid = this.instanceid || '0';
 	this.amount = parseInt(this.amount, 10);
-	this.contextid = contextID.toString();
+	this.contextid = this.contextid || contextID.toString();
 
 	// Merge the description
-	var description = descriptions[this.classid + '_' + this.instanceid];
-	if(description) {
-		for(thing in description) {
-			if(description.hasOwnProperty(thing)) {
-				this[thing] = description[thing];
+	if(descriptions) {
+		var description = descriptions[this.classid + '_' + this.instanceid];
+		if(description) {
+			for(thing in description) {
+				if(description.hasOwnProperty(thing)) {
+					this[thing] = description[thing];
+				}
 			}
 		}
 	}
