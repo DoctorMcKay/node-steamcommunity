@@ -38,7 +38,7 @@ SteamCommunity.prototype.getInventoryHistory = function(options, callback) {
 		// Load the inventory item data
 		var match2 = body.match(/var g_rgHistoryInventory = (.*);/);
 		if(!match2) {
-			callback("Malformed page: no trade found");
+			callback(new Error("Malformed page: no trade found"));
 			return;
 		}
 		var historyInventory = JSON.parse(match2[1]);
@@ -132,7 +132,7 @@ function resolveVanityURL(vanityURL, callback) {
 		
 		var match = body.match(/<steamID64>(\d+)<\/steamID64>/);
 		if(!match || !match[1]) {
-			callback("Couldn't find Steam ID");
+			callback(new Error("Couldn't find Steam ID"));
 			return;
 		}
 		
