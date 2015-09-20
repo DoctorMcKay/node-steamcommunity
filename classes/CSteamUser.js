@@ -40,6 +40,10 @@ SteamCommunity.prototype.getSteamUser = function(id, callback) {
 					customurl = match[1];
 				}
 			}
+
+			if(!result.profile.steamID64 || !result.profile.onlineState) {
+				callback(new Error("No valid response"));
+			}
 			
 			callback(null, new CSteamUser(self, result.profile, customurl));
 		});
