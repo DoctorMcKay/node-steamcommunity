@@ -43,6 +43,7 @@ SteamCommunity.prototype.getSteamUser = function(id, callback) {
 
 			if(!result.profile.steamID64 || !result.profile.onlineState) {
 				callback(new Error("No valid response"));
+				return;
 			}
 			
 			callback(null, new CSteamUser(self, result.profile, customurl));
