@@ -55,26 +55,26 @@ function CSteamUser(community, userData, customurl) {
 	this._community = community;
 	
 	this.steamID = new SteamID(userData.steamID64[0]);
-	this.name = processItem(userData, 'steamID');
-	this.onlineState = processItem(userData, 'onlineState');
-	this.stateMessage = processItem(userData, 'stateMessage');
-	this.privacyState = processItem(userData, 'privacyState', 'uncreated');
-	this.visibilityState = processItem(userData, 'visibilityState');
-	this.avatarHash = processItem(userData, 'avatarIcon', '').match(/([0-9a-f]+)\.[a-z]+$/);
+	this.name = processItem('steamID');
+	this.onlineState = processItem('onlineState');
+	this.stateMessage = processItem('stateMessage');
+	this.privacyState = processItem('privacyState', 'uncreated');
+	this.visibilityState = processItem('visibilityState');
+	this.avatarHash = processItem('avatarIcon', '').match(/([0-9a-f]+)\.[a-z]+$/);
 	if(this.avatarHash) {
 		this.avatarHash = this.avatarHash[1];
 	}
 
-	this.vacBanned = !!processItem(userData, 'vacBanned', false);
-	this.tradeBanState = processItem(userData, 'tradeBanState', 'None');
-	this.isLimitedAccount = !!processItem(userData, 'isLimitedAccount');
-	this.customURL = processItem(userData, 'customURL', customurl);
+	this.vacBanned = !!processItem('vacBanned', false);
+	this.tradeBanState = processItem('tradeBanState', 'None');
+	this.isLimitedAccount = !!processItem('isLimitedAccount');
+	this.customURL = processItem('customURL', customurl);
 	
 	if(this.visibilityState == 3) {
-		this.memberSince = new Date(processItem(userData, 'memberSince', '0').replace(/(\d{1,2})(st|nd|th)/, "$1"));
-		this.location = processItem(userData, 'location');
-		this.realName = processItem(userData, 'realname');
-		this.summary = processItem(userData, 'summary');
+		this.memberSince = new Date(processItem('memberSince', '0').replace(/(\d{1,2})(st|nd|th)/, "$1"));
+		this.location = processItem('location');
+		this.realName = processItem('realname');
+		this.summary = processItem('summary');
 	} else {
 		this.memberSince = null;
 		this.location = null;
@@ -98,7 +98,7 @@ function CSteamUser(community, userData, customurl) {
 		});
 	}
 
-	function processItem(userData, name, defaultVal) {
+	function processItem(name, defaultVal) {
 		if(!userData[name]) {
 			return defaultVal;
 		}
