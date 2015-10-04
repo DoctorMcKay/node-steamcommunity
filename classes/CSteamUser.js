@@ -157,5 +157,5 @@ CSteamUser.prototype.getInventoryContexts = function(callback) {
 };
 
 CSteamUser.prototype.getInventory = function(appID, contextID, tradableOnly, callback) {
-	this._community.getInventory(appID, contextID, tradableOnly, callback);
+	this._community.getUserInventory(this.steamID, appID, contextID, tradableOnly, callback);
 };
