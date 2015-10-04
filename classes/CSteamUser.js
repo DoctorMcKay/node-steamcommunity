@@ -98,7 +98,7 @@ function CSteamUser(community, userData, customurl) {
 		});
 	}
 
-	function processItem(name, defaultVal) {
+	function processItem(userData, name, defaultVal) {
 		if(!userData[name]) {
 			return defaultVal;
 		}
