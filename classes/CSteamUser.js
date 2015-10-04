@@ -98,7 +98,7 @@ function CSteamUser(community, userData, customurl) {
 		});
 	}
 
-	function processItem(name, defaultVal) {
+	function processItem(userData, name, defaultVal) {
 		if(!userData[name]) {
 			return defaultVal;
 		}
@@ -157,5 +157,5 @@ CSteamUser.prototype.getInventoryContexts = function(callback) {
 };
 
 CSteamUser.prototype.getInventory = function(appID, contextID, tradableOnly, callback) {
-	this._community.getInventory(appID, contextID, tradableOnly, callback);
+	this._community.getUserInventory(this.steamID, appID, contextID, tradableOnly, callback);
 };
