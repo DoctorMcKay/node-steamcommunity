@@ -158,7 +158,7 @@ SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
 		}
 		
 		if(body.match(/<h2>Access Denied<\/h2>/)) {
-			return callback("Access Denied");
+			return callback(new Error("Access Denied"));
 		}
 		
 		var match = body.match(/<p>Key: ([0-9A-F]+)<\/p>/);
