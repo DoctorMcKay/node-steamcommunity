@@ -101,10 +101,10 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 					break;
 				
 				case 'primaryGroup':
-					if(typeof settings[i] === 'object' && settings[i].accountid) {
-						values.primary_group_steamid = settings[i].accountid;
+					if(typeof settings[i] === 'object' && settings[i].getSteamID64) {
+						values.primary_group_steamid = settings[i].getSteamID64();
 					} else {
-						values.primary_group_steamid = new SteamID(settings[i]).accountid;
+						values.primary_group_steamid = new SteamID(settings[i]).getSteamID64();
 					}
 					
 					break;
