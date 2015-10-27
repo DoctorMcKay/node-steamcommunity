@@ -203,7 +203,7 @@ SteamCommunity.prototype.scheduleGroupEvent = function(gid, name, type, descript
 
 	var self = this;
 	this.request.post({
-		"uri": "https://steamcommunity.com/gid/" + this.steamID.toString() + "/eventEdit",
+		"uri": "https://steamcommunity.com/gid/" + gid.toString() + "/eventEdit",
 		"form": form
 	}, function(err, response, body) {
 		if(!callback) {
