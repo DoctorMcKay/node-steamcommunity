@@ -156,7 +156,7 @@ SteamCommunity.prototype.postUserComment = function(userID, message, callback) {
 
 		if(body.success) {
 			callback(null);
-		} else if(bpdy.error) {
+		} else if(body.error) {
 			callback(new Error(body.error));
 		} else {
 			callback(new Error("Unknown error"));
