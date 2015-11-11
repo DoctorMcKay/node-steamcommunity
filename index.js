@@ -213,6 +213,7 @@ SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
 };
 
 SteamCommunity.prototype.getNotifications = function(callback) {
+	var self = this;
 	this.request.get("https://steamcommunity.com/actions/RefreshNotificationArea", function(err, response, body) {
 		if(self._checkHttpError(err, response, callback)) {
 			return;
