@@ -65,9 +65,9 @@ function CSteamUser(community, userData, customurl) {
 		this.avatarHash = this.avatarHash[1];
 	}
 
-	this.vacBanned = !!processItem('vacBanned', false);
+	this.vacBanned = processItem('vacBanned', false) == 1;
 	this.tradeBanState = processItem('tradeBanState', 'None');
-	this.isLimitedAccount = !!processItem('isLimitedAccount');
+	this.isLimitedAccount = processItem('isLimitedAccount') == 1;
 	this.customURL = processItem('customURL', customurl);
 	
 	if(this.visibilityState == 3) {
