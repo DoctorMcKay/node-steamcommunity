@@ -40,17 +40,9 @@ SteamCommunity.prototype.chatLogon = function(interval, uiMode) {
 	this.chatState = SteamCommunity.ChatState.LoggingOn;
 	
 	var self = this;
-	this.request("https://steamcommunity.com/chat", function(err, response, body) {
-		if(err || response.statusCode != 200) {
-			self.emit('debug', 'Error requesting chat WebAPI token: ' + (err ? err.message : "HTTP error " + response.statusCode));
-			self.chatState = SteamCommunity.ChatState.LogOnFailed;
-			setTimeout(self.chatLogon.bind(self), 5000);
-			return;
-		}
-		
-		var match = body.match(/[0-9a-f]{32}/);
-		if(!match) {
-			self.emit('debug', 'Couldn\'t find a WebAPI chat token in the response.');
+	this.getWebApiOauthToken(function(err, token) {
+		if(err) {
+			self.emit('debug', "Cannot get oauth token: " + err.message);
 			self.chatState = SteamCommunity.ChatState.LogOnFailed;
 			setTimeout(self.chatLogon.bind(self), 5000);
 			return;
@@ -60,7 +52,7 @@ SteamCommunity.prototype.chatLogon = function(interval, uiMode) {
 			"uri": "https://api.steampowered.com/ISteamWebUserPresenceOAuth/Logon/v1",
 			"form": {
 				"ui_mode": uiMode,
-				"access_token": match[0]
+				"access_token": token
 			},
 			"json": true
 		}, function(err, response, body) {
@@ -81,7 +73,7 @@ SteamCommunity.prototype.chatLogon = function(interval, uiMode) {
 			self._chat = {
 				"umqid": body.umqid,
 				"message": body.message,
-				"accessToken": match[0],
+				"accessToken": token,
 				"interval": interval
 			};
 			

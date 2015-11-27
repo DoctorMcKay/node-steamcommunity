@@ -145,7 +145,7 @@ SteamCommunity.prototype.getSessionID = function() {
 
 function generateSessionID() {
 	return Math.floor(Math.random() * 1000000000);
-};
+}
 
 SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
 	var self = this;
@@ -333,6 +333,7 @@ require('./components/market.js');
 require('./components/groups.js');
 require('./components/users.js');
 require('./components/inventoryhistory.js');
+require('./components/webapi.js');
 require('./classes/CMarketItem.js');
 require('./classes/CMarketSearchResult.js');
 require('./classes/CSteamGroup.js');
