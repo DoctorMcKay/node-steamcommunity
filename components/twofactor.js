@@ -1,6 +1,111 @@
+var SteamTotp = require('steam-totp');
 var SteamCommunity = require('../index.js');
 
-// TODO: Add authenticator
+var ETwoFactorTokenType = {
+	"None": 0,                  // No token-based two-factor authentication
+	"ValveMobileApp": 1,        // Tokens generated using Valve's special charset (5 digits, alphanumeric)
+	"ThirdParty": 2             // Tokens generated using literally everyone else's standard charset (6 digits, numeric). This is disabled.
+};
+
+SteamCommunity.prototype.enableTwoFactor = function(callback) {
+	var self = this;
+
+	this.getWebApiOauthToken(function(err, token) {
+		if(err) {
+			callback(err);
+			return;
+		}
+
+		// Create a random device ID hash
+		var hash = require('crypto').createHash('sha1');
+		hash.update(Math.random().toString());
+		hash = hash.digest('hex');
+
+		self.request.post({
+			"uri": "https://api.steampowered.com/ITwoFactorService/AddAuthenticator/v1/",
+			"form": {
+				"steamid": self.steamID.getSteamID64(),
+				"access_token": token,
+				"authenticator_time": Math.floor(Date.now() / 1000),
+				"authenticator_type": ETwoFactorTokenType.ValveMobileApp,
+				"device_identifier": 'android:' + hash,
+				"sms_phone_id": "1"
+			},
+			"json": true
+		}, function(err, response, body) {
+			if(self._checkHttpError(err, response, callback)) {
+				return;
+			}
+
+			if(!body.response) {
+				callback(new Error("Malformed response"));
+				return;
+			}
+
+			callback(null, body.response);
+		});
+	});
+};
+
+SteamCommunity.prototype.finalizeTwoFactor = function(secret, activationCode, callback) {
+	var attemptsLeft = 30;
+	var diff = 0;
+
+	var self = this;
+	this.getWebApiOauthToken(function(err, token) {
+		if(err) {
+			callback(err);
+			return;
+		}
+
+		finalize(token);
+	});
+
+	function finalize(token) {
+		var code = SteamTotp.generateAuthCode(secret, diff);
+
+		self.request.post({
+			"uri": "https://api.steampowered.com/ITwoFactorService/FinalizeAddAuthenticator/v1/",
+			"form": {
+				"steamid": self.steamID.getSteamID64(),
+				"access_token": token,
+				"authenticator_code": code,
+				"authenticator_time": Math.floor(Date.now() / 1000),
+				"activation_code": activationCode
+			},
+			"json": true
+		}, function(err, response, body) {
+			if(self._checkHttpError(err, response, callback)) {
+				return;
+			}
+
+			if(!body.response) {
+				callback(new Error("Malformed response"));
+				return;
+			}
+
+			body = body.response;
+			console.log(body);
+
+			if(body.server_time) {
+				diff = body.server_time - Math.floor(Date.now() / 1000);
+			}
+
+			if(body.status == 89) {
+				callback(new Error("Invalid activation code"));
+			} else if(!body.success) {
+				callback(new Error("Error " + body.status));
+			} else if(body.want_more) {
+				attemptsLeft--;
+				diff += 30;
+
+				finalize(token);
+			} else {
+				callback(null);
+			}
+		});
+	}
+};
 
 SteamCommunity.prototype.disableTwoFactor = function(revocationCode, callback) {
 	var self = this;
