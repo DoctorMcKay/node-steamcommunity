@@ -42,6 +42,13 @@ SteamCommunity.prototype.enableTwoFactor = function(callback) {
 				return;
 			}
 
+			if(body.response.status != 1) {
+				var error = new Error("Error " + body.response.status);
+				error.eresult = body.response.status;
+				callback(error);
+				return;
+			}
+
 			callback(null, body.response);
 		});
 	});
