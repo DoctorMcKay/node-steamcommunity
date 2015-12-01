@@ -9,6 +9,10 @@ SteamCommunity.prototype.getWebApiOauthToken = function(callback) {
 			return;
 		}
 
+		if(self._checkCommunityError(body, callback)) {
+			return;
+		}
+
 		var match = body.match(/"([0-9a-f]{32})"/);
 		if (!match) {
 			callback(new Error("Malformed response"));
