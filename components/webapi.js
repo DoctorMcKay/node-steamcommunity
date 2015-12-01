@@ -3,6 +3,10 @@ var SteamCommunity = require('../index.js');
 SteamCommunity.prototype.getWebApiOauthToken = function(callback) {
 	var self = this;
 
+	if( this.oAuthToken ) {
+		return callback( null, this.oAuthToken );
+	}
+
 	// Pull an oauth token from the webchat UI
 	this.request("https://steamcommunity.com/chat", function(err, response, body) {
 		if(self._checkHttpError(err, response, callback)) {
