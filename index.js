@@ -39,7 +39,6 @@ function SteamCommunity(localAddress) {
 
 	this._jar.setCookie(Request.cookie("mobileClientVersion=0 (2.1.3)"), "https://steamcommunity.com");
 	this._jar.setCookie(Request.cookie("mobileClient=android"), "https://steamcommunity.com");
-	this._jar.setCookie(Request.cookie("Steam_Language=english"), "https://steamcommunity.com");
 }
 
 SteamCommunity.prototype.login = function(details, callback) {
