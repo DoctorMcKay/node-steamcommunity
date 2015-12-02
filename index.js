@@ -16,13 +16,7 @@ function SteamCommunity(localAddress) {
 
 	var defaults = {
 		"jar": this._jar,
-		"timeout": 50000,
-		"headers": {
-			"X-Requested-With": "com.valvesoftware.android.steam.community",
-			"referer": "https://steamcommunity.com/mobilelogin?oauth_client_id=DE45CD61&oauth_scope=read_profile%20write_profile%20read_client%20write_client",
-			"user-agent": "Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; Google Nexus 4 - 4.1.1 - API 16 - 768x1280 Build/JRO03S) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30",
-			"accept": "text/javascript, text/html, application/xml, text/xml, */*"
-		}
+		"timeout": 50000
 	};
 
 	if(localAddress) {
@@ -48,8 +42,21 @@ SteamCommunity.prototype.login = function(details, callback) {
 	}
 	
 	var self = this;
+
+	// headers required to convince steam that we're logging in from a mobile device so that we can get the oAuth data
+	var mobileHeaders = {
+		"X-Requested-With": "com.valvesoftware.android.steam.community",
+		"referer": "https://steamcommunity.com/mobilelogin?oauth_client_id=DE45CD61&oauth_scope=read_profile%20write_profile%20read_client%20write_client",
+		"user-agent": "Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; Google Nexus 4 - 4.1.1 - API 16 - 768x1280 Build/JRO03S) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30",
+		"accept": "text/javascript, text/html, application/xml, text/xml, */*"
+	};
 	
-	this.request.post("https://steamcommunity.com/login/getrsakey/", {"form": {"username": details.accountName}}, function(err, response, body) {
+	this.request.post("https://steamcommunity.com/login/getrsakey/", {
+		"form": {
+			"username": details.accountName
+		},
+		"headers": mobileHeaders
+	}, function(err, response, body) {
 		if(err) {
 			callback(err);
 			return;
@@ -85,7 +92,8 @@ SteamCommunity.prototype.login = function(details, callback) {
 		self.request.post({
 			"uri": "https://steamcommunity.com/login/dologin/",
 			"json": true,
-			"form": form
+			"form": form,
+			"headers": mobileHeaders
 		}, function(err, response, body) {
 			if(self._checkHttpError(err, response, callback)) {
 				return;
