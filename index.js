@@ -14,18 +14,32 @@ function SteamCommunity(localAddress) {
 	this._captchaGid = -1;
 	this.chatState = SteamCommunity.ChatState.Offline;
 
-	var defaults = {"jar": this._jar, "timeout": 50000};
+	var defaults = {
+		"jar": this._jar,
+		"timeout": 50000,
+		"headers": {
+			"X-Requested-With": "com.valvesoftware.android.steam.community",
+			"referer": "https://steamcommunity.com/mobilelogin?oauth_client_id=DE45CD61&oauth_scope=read_profile%20write_profile%20read_client%20write_client",
+			"user-agent": "Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; Google Nexus 4 - 4.1.1 - API 16 - 768x1280 Build/JRO03S) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30",
+			"accept": "text/javascript, text/html, application/xml, text/xml, */*"
+		}
+	}
+
 	if(localAddress) {
 		defaults.localAddress = localAddress;
 	}
 
 	this.request = Request.defaults(defaults);
-	
-	// English
+
+
 	this._jar.setCookie(Request.cookie('Steam_Language=english'), 'https://steamcommunity.com');
 
 	// UTC
 	this._jar.setCookie(Request.cookie('timezoneOffset=0,0'), 'https://steamcommunity.com');
+
+	this._jar.setCookie(Request.cookie("mobileClientVersion=0 (2.1.3)"), "https://steamcommunity.com");
+	this._jar.setCookie(Request.cookie("mobileClient=android"), "https://steamcommunity.com");
+	this._jar.setCookie(Request.cookie("Steam_Language=english"), "https://steamcommunity.com");
 }
 
 SteamCommunity.prototype.login = function(details, callback) {
@@ -335,6 +349,7 @@ require('./components/users.js');
 require('./components/inventoryhistory.js');
 require('./components/webapi.js');
 require('./components/twofactor.js');
+require('./components/tradeconfirmations.js');
 require('./classes/CMarketItem.js');
 require('./classes/CMarketSearchResult.js');
 require('./classes/CSteamGroup.js');
