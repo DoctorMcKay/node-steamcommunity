@@ -78,7 +78,6 @@ SteamCommunity.prototype.login = function(details, callback) {
 			"captchagid": self._captchaGid,
 			"emailauth": details.authCode || "",
 			"emailsteamid": "",
-			"loginfriendlyname": "",
 			"password": hex2b64(key.encrypt(details.password)),
 			"remember_login": "true",
 			"rsatimestamp": json.timestamp,
