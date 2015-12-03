@@ -92,7 +92,6 @@ SteamCommunity.prototype.finalizeTwoFactor = function(secret, activationCode, ca
 			}
 
 			body = body.response;
-			console.log(body);
 
 			if(body.server_time) {
 				diff = body.server_time - Math.floor(Date.now() / 1000);
@@ -100,13 +99,13 @@ SteamCommunity.prototype.finalizeTwoFactor = function(secret, activationCode, ca
 
 			if(body.status == 89) {
 				callback(new Error("Invalid activation code"));
-			} else if(!body.success) {
-				callback(new Error("Error " + body.status));
 			} else if(body.want_more) {
 				attemptsLeft--;
 				diff += 30;
 
 				finalize(token);
+			} else if(!body.success) {
+				callback(new Error("Error " + body.status));
 			} else {
 				callback(null);
 			}
