@@ -363,6 +363,7 @@ require('./components/users.js');
 require('./components/inventoryhistory.js');
 require('./components/webapi.js');
 require('./components/twofactor.js');
+require('./components/confirmations.js');
 require('./classes/CMarketItem.js');
 require('./classes/CMarketSearchResult.js');
 require('./classes/CSteamGroup.js');
