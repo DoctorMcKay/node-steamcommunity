@@ -330,3 +330,8 @@ require('./classes/CMarketItem.js');
 require('./classes/CMarketSearchResult.js');
 require('./classes/CSteamGroup.js');
 require('./classes/CSteamUser.js');
+
+/**
+ @callback SteamCommunity~genericErrorCallback
+ @param {Error|null} err - An Error object on failure, or null on success
+ */
