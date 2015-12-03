@@ -15,6 +15,7 @@ SteamCommunity.prototype.getConfirmations = function(time, key, callback) {
 	request(this, "conf", key, time, "conf", null, false, function(err, body) {
 		if(err) {
 			callback(err);
+			return;
 		}
 
 		var $ = Cheerio.load(body);
@@ -73,6 +74,7 @@ SteamCommunity.prototype.getConfirmationOfferID = function(confID, time, key, ca
 	request(this, "details/" + confID, key, time, "details", null, true, function(err, body) {
 		if(err) {
 			callback(err);
+			return;
 		}
 
 		if(!body.success) {
