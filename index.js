@@ -14,7 +14,11 @@ function SteamCommunity(localAddress) {
 	this._captchaGid = -1;
 	this.chatState = SteamCommunity.ChatState.Offline;
 
-	var defaults = {"jar": this._jar, "timeout": 50000};
+	var defaults = {
+		"jar": this._jar,
+		"timeout": 50000
+	};
+
 	if(localAddress) {
 		defaults.localAddress = localAddress;
 	}
@@ -26,6 +30,9 @@ function SteamCommunity(localAddress) {
 
 	// UTC
 	this._jar.setCookie(Request.cookie('timezoneOffset=0,0'), 'https://steamcommunity.com');
+
+	this._jar.setCookie(Request.cookie("mobileClientVersion=0 (2.1.3)"), "https://steamcommunity.com");
+	this._jar.setCookie(Request.cookie("mobileClient=android"), "https://steamcommunity.com");
 }
 
 SteamCommunity.prototype.login = function(details, callback) {
@@ -35,7 +42,21 @@ SteamCommunity.prototype.login = function(details, callback) {
 	}
 	
 	var self = this;
-	this.request.post("https://steamcommunity.com/login/getrsakey/", {"form": {"username": details.accountName}}, function(err, response, body) {
+
+	// headers required to convince steam that we're logging in from a mobile device so that we can get the oAuth data
+	var mobileHeaders = {
+		"X-Requested-With": "com.valvesoftware.android.steam.community",
+		"referer": "https://steamcommunity.com/mobilelogin?oauth_client_id=DE45CD61&oauth_scope=read_profile%20write_profile%20read_client%20write_client",
+		"user-agent": "Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; Google Nexus 4 - 4.1.1 - API 16 - 768x1280 Build/JRO03S) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30",
+		"accept": "text/javascript, text/html, application/xml, text/xml, */*"
+	};
+	
+	this.request.post("https://steamcommunity.com/login/getrsakey/", {
+		"form": {
+			"username": details.accountName
+		},
+		"headers": mobileHeaders
+	}, function(err, response, body) {
 		if(err) {
 			callback(err);
 			return;
@@ -57,18 +78,21 @@ SteamCommunity.prototype.login = function(details, callback) {
 			"captchagid": self._captchaGid,
 			"emailauth": details.authCode || "",
 			"emailsteamid": "",
-			"loginfriendlyname": "",
 			"password": hex2b64(key.encrypt(details.password)),
 			"remember_login": "true",
 			"rsatimestamp": json.timestamp,
 			"twofactorcode": details.twoFactorCode || "",
-			"username": details.accountName
+			"username": details.accountName,
+			"oauth_client_id": "DE45CD61",
+			"oauth_scope": "read_profile write_profile read_client write_client",
+			"loginfriendlyname": "#login_emailauth_friendlyname_mobile"
 		};
 		
 		self.request.post({
 			"uri": "https://steamcommunity.com/login/dologin/",
 			"json": true,
-			"form": form
+			"form": form,
+			"headers": mobileHeaders
 		}, function(err, response, body) {
 			if(self._checkHttpError(err, response, callback)) {
 				return;
@@ -94,9 +118,12 @@ SteamCommunity.prototype.login = function(details, callback) {
 				callback(new Error(body.message || "Unknown error"));
 			} else {
 				var sessionID = generateSessionID();
+				var oAuth = JSON.parse( body.oauth );
 				self._jar.setCookie(Request.cookie('sessionid=' + sessionID), 'http://steamcommunity.com');
 				
-				self.steamID = new SteamID(body.transfer_parameters.steamid);
+				self.steamID = new SteamID(oAuth.steamid);
+				self.oAuthToken = oAuth.oauth_token;
+
 				var cookies = self._jar.getCookieString("https://steamcommunity.com").split(';').map(function(cookie) {
 					return cookie.trim();
 				});
@@ -249,6 +276,7 @@ SteamCommunity.prototype.getNotifications = function(callback) {
 };
 
 SteamCommunity.prototype.resetItemNotifications = function(callback) {
+	var self = this;
 	this.request.get("https://steamcommunity.com/my/inventory", function(err, response, body) {
 		if(!callback) {
 			return;
