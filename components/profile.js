@@ -191,8 +191,13 @@ SteamCommunity.prototype.profileSettings = function(settings, callback) {
 					values.inventoryGiftPrivacy = settings[i] ? 1 : 0;
 					break;
 				
-				case 'emailConfirmation':
+				case 'emailConfirmation': // deprecated
+				case 'tradeConfirmation':
 					values.tradeConfirmationSetting = settings[i] ? 1 : 0;
+					break;
+
+				case 'marketConfirmation':
+					values.marketConfirmationSetting = settings[i] ? 1 : 0;
 					break;
 			}
 		}
