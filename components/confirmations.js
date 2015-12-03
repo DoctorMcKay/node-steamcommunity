@@ -245,7 +245,9 @@ SteamCommunity.prototype.checkConfirmations = function() {
 	});
 
 	function resetTimer() {
-		self._confirmationTimer = setTimeout(self.checkConfirmations.bind(self), self._confirmationPollInterval);
+		if(self._confirmationPollInterval) {
+			self._confirmationTimer = setTimeout(self.checkConfirmations.bind(self), self._confirmationPollInterval);
+		}
 	}
 
 	function handleNewConfirmation(conf, handleNumber) {
