@@ -69,6 +69,11 @@ SteamCommunity.prototype.login = function(details, callback) {
 			callback(e);
 			return;
 		}
+
+		if(!json.publickey_mod || !json.publickey_exp) {
+			callback(new Error("Invalid RSA key received"));
+			return;
+		}
 		
 		var key = new RSA();
 		key.setPublic(json.publickey_mod, json.publickey_exp);
