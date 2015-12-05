@@ -1,6 +1,7 @@
 var SteamCommunity = require('../index.js');
 var Cheerio = require('cheerio');
 var SteamTotp = require('steam-totp');
+var Async = require('async');
 
 var CConfirmation = require('../classes/CConfirmation.js');
 
@@ -204,9 +205,28 @@ SteamCommunity.prototype.checkConfirmations = function() {
 		delete this._confirmationTimer;
 	}
 
+	var self = this;
+	if(!this._confirmationQueue) {
+		this._confirmationQueue = Async.queue(function(conf, callback) {
+			// Worker to process new confirmations
+			if(self._identitySecret) {
+				// We should accept this
+				self.emit('debug', "Accepting confirmation #" + conf.id);
+				var time = Math.floor(Date.now() / 1000);
+				conf.respond(time, SteamTotp.getConfirmationKey(self._identitySecret, time, "allow"), true, function() {
+					// If there was an error and it wasn't actually accepted, we'll pick it up again
+					delete self._knownConfirmations[conf.id];
+					setTimeout(callback, 1000); // Call the callback in 1 second, to make sure the time changes
+				});
+			} else {
+				self.emit('newConfirmation', conf);
+				setTimeout(callback, 1000); // Call the callback in 1 second, to make sure the time changes
+			}
+		}, 1);
+	}
+
 	this.emit('debug', 'Checking confirmations');
 
-	var self = this;
 	this._confirmationCheckerGetKey('conf', function(err, key) {
 		if(err) {
 			resetTimer();
@@ -232,16 +252,16 @@ SteamCommunity.prototype.checkConfirmations = function() {
 
 			// We have new confirmations! Grab a key to get details.
 			self._confirmationCheckerGetKey('details', function(err, key) {
-				var handled = 0;
-
 				newOnes.forEach(function(conf) {
+					self._knownConfirmations[conf.id] = conf; // Add it to our list of known confirmations
+
 					if(err) {
-						handleNewConfirmation(conf, handled++);
+						self._confirmationQueue.push(conf);
 					} else {
 						// Get its offer ID, if we can
 						conf.getOfferID(key.time, key.key, function(err, offerID) {
 							conf.offerID = offerID ? offerID : null;
-							handleNewConfirmation(conf, handled++);
+							self._confirmationQueue.push(conf);
 						});
 					}
 				});
