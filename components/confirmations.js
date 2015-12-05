@@ -1,5 +1,6 @@
 var SteamCommunity = require('../index.js');
 var Cheerio = require('cheerio');
+var SteamTotp = require('steam-totp');
 
 var CConfirmation = require('../classes/CConfirmation.js');
 
@@ -164,11 +165,13 @@ function request(community, url, key, time, tag, params, json, callback) {
 /**
  * Start automatically polling our confirmations for new ones. The `confKeyNeeded` event will be emitted when we need a confirmation key, or `newConfirmation` when we get a new confirmation
  * @param {int} pollInterval - The interval, in milliseconds, at which we will poll for confirmations. This shouldn't be any less than 10,000 probably.
+ * @param {Buffer|string|null} [identitySecret=null] - Your identity_secret. If passed, all confirmations will be automatically accepted and nothing will be emitted.
  */
-SteamCommunity.prototype.startConfirmationChecker = function(pollInterval) {
+SteamCommunity.prototype.startConfirmationChecker = function(pollInterval, identitySecret) {
 	this._confirmationPollInterval = pollInterval;
 	this._knownConfirmations = this._knownConfirmations || {};
 	this._confirmationKeys = this._confirmationKeys || {};
+	this._identitySecret = identitySecret;
 
 	if(this._confirmationTimer) {
 		clearTimeout(this._confirmationTimer);
@@ -200,6 +203,8 @@ SteamCommunity.prototype.checkConfirmations = function() {
 		clearTimeout(this._confirmationTimer);
 		delete this._confirmationTimer;
 	}
+
+	this.emit('debug', 'Checking confirmations');
 
 	var self = this;
 	this._confirmationCheckerGetKey('conf', function(err, key) {
@@ -257,12 +262,32 @@ SteamCommunity.prototype.checkConfirmations = function() {
 
 		// Delay them by 1 second per new confirmation that we see, so that keys won't be the same.
 		setTimeout(function() {
-			self.emit('newConfirmation', conf);
+			if(self._identitySecret) {
+				self.emit('debug', 'Accepting confirmation ' + conf.id);
+				var time = Math.floor(Date.now() / 1000);
+				conf.respond(time, SteamTotp.getConfirmationKey(self._identitySecret, time, "allow"), true, function() {
+					delete self._knownConfirmations[conf.id];
+				});
+			} else {
+				self.emit('newConfirmation', conf);
+			}
 		}, handleNumber * 1000);
 	}
 };
 
 SteamCommunity.prototype._confirmationCheckerGetKey = function(tag, callback) {
+	if(this._identitySecret) {
+		if(tag == 'details') {
+			// We don't care about details
+			callback(new Error("Disabled"));
+			return;
+		}
+
+		var time = Math.floor(Date.now() / 1000);
+		callback(null, {"time": time, "key": SteamTotp.getConfirmationKey(this._identitySecret, time, tag)});
+		return;
+	}
+
 	var existing = this._confirmationKeys[tag];
 	var reusable = ['conf', 'details'];
 
