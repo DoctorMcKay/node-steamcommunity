@@ -189,6 +189,10 @@ SteamCommunity.prototype.stopConfirmationChecker = function() {
 		delete this._confirmationPollInterval;
 	}
 
+	if(this._identitySecret) {
+		delete this._identitySecret;
+	}
+
 	if(this._confirmationTimer) {
 		clearTimeout(this._confirmationTimer);
 		delete this._confirmationTimer;
