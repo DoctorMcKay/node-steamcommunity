@@ -18,7 +18,7 @@ SteamCommunity.prototype.enableTwoFactor = function(callback) {
 
 		// Create a random device ID hash
 		var hash = require('crypto').createHash('sha1');
-		hash.update(Math.random().toString());
+		hash.update(self.steamID.getSteamID64());
 		hash = hash.digest('hex');
 
 		self.request.post({
