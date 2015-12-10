@@ -30,9 +30,6 @@ function SteamCommunity(localAddress) {
 
 	// UTC
 	this._jar.setCookie(Request.cookie('timezoneOffset=0,0'), 'https://steamcommunity.com');
-
-	this._jar.setCookie(Request.cookie("mobileClientVersion=0 (2.1.3)"), "https://steamcommunity.com");
-	this._jar.setCookie(Request.cookie("mobileClient=android"), "https://steamcommunity.com");
 }
 
 SteamCommunity.prototype.login = function(details, callback) {
@@ -46,10 +43,13 @@ SteamCommunity.prototype.login = function(details, callback) {
 	// headers required to convince steam that we're logging in from a mobile device so that we can get the oAuth data
 	var mobileHeaders = {
 		"X-Requested-With": "com.valvesoftware.android.steam.community",
-		"referer": "https://steamcommunity.com/mobilelogin?oauth_client_id=DE45CD61&oauth_scope=read_profile%20write_profile%20read_client%20write_client",
-		"user-agent": "Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; Google Nexus 4 - 4.1.1 - API 16 - 768x1280 Build/JRO03S) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30",
-		"accept": "text/javascript, text/html, application/xml, text/xml, */*"
+		"Referer": "https://steamcommunity.com/mobilelogin?oauth_client_id=DE45CD61&oauth_scope=read_profile%20write_profile%20read_client%20write_client",
+		"User-Agent": "Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; Google Nexus 4 - 4.1.1 - API 16 - 768x1280 Build/JRO03S) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30",
+		"Accept": "text/javascript, text/html, application/xml, text/xml, */*"
 	};
+
+	this._jar.setCookie(Request.cookie("mobileClientVersion=0 (2.1.3)"), "https://steamcommunity.com");
+	this._jar.setCookie(Request.cookie("mobileClient=android"), "https://steamcommunity.com");
 	
 	this.request.post("https://steamcommunity.com/login/getrsakey/", {
 		"form": {
@@ -57,7 +57,9 @@ SteamCommunity.prototype.login = function(details, callback) {
 		},
 		"headers": mobileHeaders
 	}, function(err, response, body) {
+		// Remove the mobile cookies
 		if(err) {
+			deleteMobileCookies();
 			callback(err);
 			return;
 		}
@@ -66,11 +68,13 @@ SteamCommunity.prototype.login = function(details, callback) {
 		try {
 			json = JSON.parse(body);
 		} catch(e) {
+			deleteMobileCookies();
 			callback(e);
 			return;
 		}
 
 		if(!json.publickey_mod || !json.publickey_exp) {
+			deleteMobileCookies();
 			callback(new Error("Invalid RSA key received"));
 			return;
 		}
@@ -99,6 +103,8 @@ SteamCommunity.prototype.login = function(details, callback) {
 			"form": form,
 			"headers": mobileHeaders
 		}, function(err, response, body) {
+			deleteMobileCookies();
+
 			if(self._checkHttpError(err, response, callback)) {
 				return;
 			}
@@ -147,6 +153,16 @@ SteamCommunity.prototype.login = function(details, callback) {
 			}
 		});
 	});
+
+	function deleteMobileCookies() {
+		var cookie = Request.cookie('mobileClientVersion=');
+		cookie.expires = new Date(0);
+		self._jar.setCookie(cookie, "https://steamcommunity.com");
+
+		cookie = Request.cookie('mobileClient=');
+		cookie.expires = new Date(0);
+		self._jar.setCookie(cookie, "https://steamcommunity.com");
+	}
 };
 
 SteamCommunity.prototype.setCookies = function(cookies) {
