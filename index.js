@@ -309,7 +309,7 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 		
 		var match = response.headers.location.match(/steamcommunity\.com(\/(id|profiles)\/[^\/]+)\/?/);
 		if(!match) {
-			callback("Can't get profile URL");
+			callback(new Error("Can't get profile URL"));
 			return;
 		}
 		
