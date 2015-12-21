@@ -50,6 +50,8 @@ SteamCommunity.prototype.getInventoryHistory = function(options, callback) {
 		for(var i = 0; i < trades.length; i++) {
 			item = $(trades[i]);
 			trade = {};
+
+			trade.onHold = !!item.find('span:nth-of-type(2)').text().match(/Trade on Hold/i);
 			
 			timeMatch = item.find('.tradehistory_timestamp').html().match(/(\d+):(\d+)(am|pm)/);
 			if(timeMatch[1] == 12 && timeMatch[3] == 'am') {
@@ -81,7 +83,7 @@ SteamCommunity.prototype.getInventoryHistory = function(options, callback) {
 			
 			items = item.find('.history_item');
 			for(j = 0; j < items.length; j++) {
-				match = body.match(new RegExp("HistoryPageCreateItemHover\\( '" + $(items[j]).attr('id') + "', (\\d+), '(\\d+)', '(\\d+)', '(\\d+)' \\);"));
+				match = body.match(new RegExp("HistoryPageCreateItemHover\\( '" + $(items[j]).attr('id') + "', (\\d+), '(\\d+)', '(\\d+|class_\\d+_instance_\\d+|class_\\d+)', '(\\d+)' \\);"));
 				econItem = historyInventory[match[1]][match[2]][match[3]];
 				
 				if($(items[j]).attr('id').indexOf('received') != -1) {
