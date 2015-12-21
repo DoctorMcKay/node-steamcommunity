@@ -25,11 +25,18 @@ function CEconItem(item, descriptions, contextID) {
 		}
 	}
 
+	this.is_currency = !!this.is_currency;
 	this.tradable = !!this.tradable;
 	this.marketable = !!this.marketable;
 	this.commodity = !!this.commodity;
 	this.market_tradable_restriction = (this.market_tradable_restriction ? parseInt(this.market_tradable_restriction, 10) : 0);
 	this.market_marketable_restriction = (this.market_marketable_restriction ? parseInt(this.market_marketable_restriction, 10) : 0);
+	this.fraudwarnings = this.fraudwarnings || [];
+	this.descriptions = this.descriptions || [];
+
+	if(this.owner && JSON.stringify(this.owner) == '{}') {
+		this.owner = null;
+	}
 }
 
 CEconItem.prototype.getImageURL = function() {
