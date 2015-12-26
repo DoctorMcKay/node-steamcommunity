@@ -165,6 +165,39 @@ SteamCommunity.prototype.login = function(details, callback) {
 	}
 };
 
+SteamCommunity.prototype.oAuthLogin = function(steamID, token, callback) {
+	if(typeof steamID !== 'object') {
+		steamID = new SteamID(steamID);
+	}
+
+	var self = this;
+	this.request.post({
+		"uri": "https://api.steampowered.com/IMobileAuthService/GetWGToken/v1/",
+		"form": {
+			"access_token": token
+		},
+		"json": true
+	}, function(err, response, body) {
+		if(self._checkHttpError(err, response, callback)) {
+			return;
+		}
+
+		if(!body.response || !body.response.token || !body.response.token_secure) {
+			callback(new Error("Malformed response"));
+			return;
+		}
+
+		var cookies = [
+			'steamLogin=' + steamID.getSteamID64() + '||' + body.response.token,
+			'steamLoginSecure=' + steamID.getSteamID64() + '||' + body.response.token_secure,
+			'sessionid=' + self.getSessionID()
+		];
+
+		self.setCookies(cookies);
+		callback(null, self.getSessionID(), cookies);
+	});
+};
+
 SteamCommunity.prototype.setCookies = function(cookies) {
 	var self = this;
 	cookies.forEach(function(cookie) {
