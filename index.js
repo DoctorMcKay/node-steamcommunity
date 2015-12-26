@@ -154,7 +154,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 					}
 				}
 				
-				callback(null, sessionID, cookies, steamguard);
+				callback(null, sessionID, cookies, steamguard, oAuth.oauth_token);
 			}
 		});
 	});
