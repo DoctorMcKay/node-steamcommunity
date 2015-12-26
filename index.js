@@ -230,7 +230,7 @@ SteamCommunity.prototype.getSessionID = function() {
 };
 
 function generateSessionID() {
-	return Math.floor(Math.random() * 1000000000);
+	return require('crypto').randomBytes(12).toString('hex');
 }
 
 SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
