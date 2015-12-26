@@ -3,6 +3,8 @@ var RSA = require('node-bignumber').Key;
 var hex2b64 = require('node-bignumber').hex2b64;
 var SteamID = require('steamid');
 
+const USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36";
+
 require('util').inherits(SteamCommunity, require('events').EventEmitter);
 
 module.exports = SteamCommunity;
@@ -16,7 +18,10 @@ function SteamCommunity(localAddress) {
 
 	var defaults = {
 		"jar": this._jar,
-		"timeout": 50000
+		"timeout": 50000,
+		"headers": {
+			"User-Agent": USER_AGENT
+		}
 	};
 
 	if(localAddress) {
