@@ -170,10 +170,9 @@ SteamCommunity.prototype.login = function(details, callback) {
 	}
 };
 
-SteamCommunity.prototype.oAuthLogin = function(steamID, token, callback) {
-	if(typeof steamID !== 'object') {
-		steamID = new SteamID(steamID);
-	}
+SteamCommunity.prototype.oAuthLogin = function(steamguard, token, callback) {
+	steamguard = steamguard.split('||');
+	var steamID = new SteamID(steamguard[0]);
 
 	var self = this;
 	this.request.post({
@@ -193,8 +192,9 @@ SteamCommunity.prototype.oAuthLogin = function(steamID, token, callback) {
 		}
 
 		var cookies = [
-			'steamLogin=' + steamID.getSteamID64() + '||' + body.response.token,
-			'steamLoginSecure=' + steamID.getSteamID64() + '||' + body.response.token_secure,
+			'steamLogin=' + encodeURIComponent(steamID.getSteamID64() + '||' + body.response.token),
+			'steamLoginSecure=' + encodeURIComponent(steamID.getSteamID64() + '||' + body.response.token_secure),
+			'steamMachineAuth' + steamID.getSteamID64() + '=' + steamguard[1],
 			'sessionid=' + self.getSessionID()
 		];
 
