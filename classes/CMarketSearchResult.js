@@ -69,7 +69,7 @@ function performSearch(request, qs, results, callback) {
 			callback(null, results);
 		} else {
 			qs.start += body.pagesize;
-			performSearch(request, qs, results, callback);
+			performSearch.call(self, request, qs, results, callback);
 		}
 	});
 }
