@@ -11,25 +11,35 @@ module.exports = SteamCommunity;
 
 SteamCommunity.SteamID = SteamID;
 
-function SteamCommunity(localAddress) {
+function SteamCommunity(options) {
+	options = options || {};
+
 	this._jar = Request.jar();
 	this._captchaGid = -1;
 	this.chatState = SteamCommunity.ChatState.Offline;
 
 	var defaults = {
 		"jar": this._jar,
-		"timeout": 50000,
+		"timeout": options.timeout || 50000,
 		"headers": {
-			"User-Agent": USER_AGENT
+			"User-Agent": options.userAgent || USER_AGENT
 		}
 	};
 
-	if(localAddress) {
-		defaults.localAddress = localAddress;
+	if (typeof options == "string") {
+		options = {
+			localAddress: options
+		};
+	}
+	this._options = options;
+
+	if (options.localAddress) {
+		defaults.localAddress = options.localAddress;
 	}
 
-	this.request = Request.defaults(defaults);
-	
+	this.request = options.request || Request.defaults();
+	this.request = this.request.defaults(defaults);
+
 	// English
 	this._jar.setCookie(Request.cookie('Steam_Language=english'), 'https://steamcommunity.com');
 
