@@ -21,6 +21,7 @@ function SteamCommunity(options) {
 	var defaults = {
 		"jar": this._jar,
 		"timeout": options.timeout || 50000,
+		"gzip": true,
 		"headers": {
 			"User-Agent": options.userAgent || USER_AGENT
 		}
