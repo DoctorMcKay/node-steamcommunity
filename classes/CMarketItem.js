@@ -86,19 +86,6 @@ function CMarketItem(appid, hashName, community, body, $) {
 
 	this.quantity = 0;
 	this.lowestPrice = 0;
-	
-	if(!this.commodity) {
-		var total = $('#searchResults_total');
-		if(total) {
-			this.quantity = parseInt(total.text().replace(/[^\d]/g, '').trim(), 10);
-		}
-		
-		var lowest = $('.market_listing_price.market_listing_price_with_fee');
-		if(lowest[0]) {
-			this.lowestPrice = parseInt($(lowest[0]).text().replace(/[^\d]/g, '').trim(), 10);
-		}
-	}
-	
 	// TODO: Buying listings and placing buy orders
 }
 
@@ -187,7 +174,7 @@ CMarketItem.prototype.updatePriceForNonCommodity = function (currency, callback)
 			for (var i = 0; i < match.length; i++) {
 				lowestPrice = parseFloat($(match[i]).text().replace(",", ".").replace(/[^\d.]/g, ''));
 				if (!isNaN(lowestPrice)) {
-					self.lowestPrice = lowestPrice * 100;
+					self.lowestPrice = lowestPrice;
 					break;
 				}
 			}
