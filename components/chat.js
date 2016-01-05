@@ -101,7 +101,8 @@ SteamCommunity.prototype.chatMessage = function(recipient, text, type, callback)
 	}
 	
 	type = type || 'saytext';
-	
+
+	var self = this;
 	this.request.post({
 		"uri": "https://api.steampowered.com/ISteamWebUserPresenceOAuth/Message/v1",
 		"form": {
