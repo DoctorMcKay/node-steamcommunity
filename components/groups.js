@@ -137,7 +137,9 @@ SteamCommunity.prototype.postGroupAnnouncement = function(gid, headline, content
 			"sessionID": this.getSessionID(),
 			"action": "post",
 			"headline": headline,
-			"body": content
+			"body": content,
+			"languages[0][headline]": headline,
+			"languages[0][body]": content
 		}
 	}, function(err, response, body) {
 		if(!callback) {
