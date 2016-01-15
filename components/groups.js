@@ -159,6 +159,45 @@ SteamCommunity.prototype.postGroupAnnouncement = function(gid, headline, content
 	})
 };
 
+SteamCommunity.prototype.editGroupAnnouncement = function(gid, aid, headline, content, callback) {
+	if(typeof gid === 'string') {
+		gid = new SteamID(gid);
+	}
+
+	var self = this;
+
+	var submitData = {
+		"uri": "https://steamcommunity.com/gid/" + gid.getSteamID64() + "/announcements",
+		"form": {
+			"sessionID": this.getSessionID(),
+			"gid": aid,
+			"action": "update",
+			"headline": headline,
+			"body": content,
+			"languages[0][headline]": headline,
+			"languages[0][body]": content,
+			"languages[0][updated]": 1
+		}
+	}
+
+	this.request.post(submitData, function(err, response, body) {
+		if(!callback) {
+			return;
+		}
+
+		if(err || response.statusCode >= 400) {
+			callback(err || new Error("HTTP error " + response.statusCode));
+			return;
+		}
+
+		if(self._checkCommunityError(body, callback)) {
+			return;
+		}
+
+		callback(null);
+	})
+};
+
 SteamCommunity.prototype.scheduleGroupEvent = function(gid, name, type, description, time, server, callback) {
 	if(typeof gid === 'string') {
 		gid = new SteamID(gid);
