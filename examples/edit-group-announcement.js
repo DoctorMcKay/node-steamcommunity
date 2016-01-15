@@ -19,15 +19,15 @@ function doLogin(accountName, password, authCode, twoFactorCode) {
 		"accountName": accountName,
 		"password": password,
 		"authCode": authCode,
-    "twoFactorCode": twoFactorCode
+		"twoFactorCode": twoFactorCode
 	}, function(err, sessionID, cookies, steamguard) {
 		if(err) {
 			if(err.message == 'SteamGuardMobile') {
-        rl.question("Steam Authenticator Code: ", function(code) {
-          doLogin(accountName, password, null, code);
+				rl.question("Steam Authenticator Code: ", function(code) {
+					doLogin(accountName, password, null, code);
 				});
 
-        return;
+				return;
 			}
 
 			if(err.message == 'SteamGuard') {
@@ -46,34 +46,34 @@ function doLogin(accountName, password, authCode, twoFactorCode) {
 
 		console.log("Logged on!");
 
-    rl.question("Group ID: ", function(gid) {
-      community.getSteamGroup(gid, function(err, group) {
-        if (err) {
-          console.log(err);
-          process.exit(1);
-        }
+		rl.question("Group ID: ", function(gid) {
+			community.getSteamGroup(gid, function(err, group) {
+				if (err) {
+					console.log(err);
+					process.exit(1);
+				}
 
-        rl.question("Annoucement ID: ", function(aid) {
-          rl.question("New title: ", function(header) {
-            rl.question("New body: ", function(content) {
-              // EW THE PYRAMID!
-              editAnnouncement(group, aid, header, content);
-            });
-          });
-        });
-      });
-    });
-  });
+				rl.question("Annoucement ID: ", function(aid) {
+					rl.question("New title: ", function(header) {
+						rl.question("New body: ", function(content) {
+							// EW THE PYRAMID!
+							editAnnouncement(group, aid, header, content);
+						});
+					});
+				});
+			});
+		});
+	});
 }
 
 function editAnnouncement(group, aid, header, content) {
-  // Actual community method.
-  group.editAnnouncement(aid, header, content, function(error) {
-    if(!error) {
-      console.log("Annoucement edited!");
-    } else {
-      console.log("Unable to edit annoucement! %j", error);
-      process.exit(1);
-    }
-  });
+	// Actual community method.
+	group.editAnnouncement(aid, header, content, function(error) {
+		if(!error) {
+			console.log("Annoucement edited!");
+		} else {
+			console.log("Unable to edit annoucement! %j", error);
+			process.exit(1);
+		}
+	});
 }
