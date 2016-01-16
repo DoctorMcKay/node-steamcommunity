@@ -125,7 +125,7 @@ SteamCommunity.prototype.leaveGroup = function(gid, callback) {
 	});
 };
 
-SteamCommunity.prototype.getAllAnnouncements = function(gid, time, callback) {
+SteamCommunity.prototype.getAllGroupAnnouncements = function(gid, time, callback) {
 	if(typeof gid === 'string') {
 		gid = new SteamID(gid);
 	}
@@ -136,15 +136,11 @@ SteamCommunity.prototype.getAllAnnouncements = function(gid, time, callback) {
 	}
 
 	var self = this;
-	this.request({ 
+	this.request({
 		"uri": "https://steamcommunity.com/gid/" + gid.getSteamID64() + "/rss/" 
 	}, function(err, response, body) {
-		if(!callback) {
-			return;
-		}
 
-		if(err || response.statusCode >= 400) {
-			callback(err || new Error("HTTP error " + response.statusCode));
+		if(self._checkHttpError(err, response, callback)) {
 			return;
 		}
 
@@ -167,12 +163,10 @@ SteamCommunity.prototype.getAllAnnouncements = function(gid, time, callback) {
 					headline: announcement.title[0],
 					content:  announcement.description[0],
 					date:     new Date(announcement.pubDate[0]),
-					author:   announcement.author[0], // Unfortunately, the RSS feed likes to give us personanames not steamid's
-					aid:      splitLink[splitLink.length - 1] // The ID after the last /
-					// Note this is marked as guid (gid?) in the rss feed but can also be obtained from link
-					// and is actually a unique ID (or it seems that way)
+					author:   announcement.author[0],
+					aid:      splitLink[splitLink.length - 1]
 				}
-			}).filter(function(announcement) { // Only show the ones they wanted
+			}).filter(function(announcement) {
 				return (announcement.date > time);
 			});
 
@@ -202,8 +196,7 @@ SteamCommunity.prototype.postGroupAnnouncement = function(gid, headline, content
 			return;
 		}
 
-		if(err || response.statusCode >= 400) {
-			callback(err || new Error("HTTP error " + response.statusCode));
+		if(self._checkHttpError(err, response, callback)) {
 			return;
 		}
 
@@ -241,8 +234,7 @@ SteamCommunity.prototype.editGroupAnnouncement = function(gid, aid, headline, co
 			return;
 		}
 
-		if(err || response.statusCode >= 400) {
-			callback(err || new Error("HTTP error " + response.statusCode));
+		if(self._checkHttpError(err, response, callback)) {
 			return;
 		}
 
