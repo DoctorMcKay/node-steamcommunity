@@ -53,11 +53,22 @@ function doLogin(accountName, password, authCode, twoFactorCode) {
 					process.exit(1);
 				}
 
-				rl.question("Annoucement ID: ", function(aid) {
-					rl.question("New title: ", function(header) {
-						rl.question("New body: ", function(content) {
-							// EW THE PYRAMID!
-							editAnnouncement(group, aid, header, content);
+				group.getAllAnnouncements(function(err, announcements) {
+						
+					if(announcements.length === 0) {
+						return console.log("This group has no announcements");
+					}
+
+					for (var i = announcements.length - 1; i >= 0; i--) {
+						console.log("[%s] %s %s: %s", announcements[i].date, announcements[i].aid, announcements[i].author, announcements[i].content);
+					};
+
+					rl.question("Annoucement ID: ", function(aid) {
+						rl.question("New title: ", function(header) {
+							rl.question("New body: ", function(content) {
+								// EW THE PYRAMID!
+								editAnnouncement(group, aid, header, content);
+							});
 						});
 					});
 				});

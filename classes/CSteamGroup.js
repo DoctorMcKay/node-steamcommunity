@@ -76,6 +76,10 @@ CSteamGroup.prototype.leave = function(callback) {
 	this._community.leaveGroup(this.steamID, callback);
 };
 
+CSteamGroup.prototype.getAllAnnouncements = function(time, callback) {
+	this._community.getAllAnnouncements(this.steamID, time, callback);
+};
+
 CSteamGroup.prototype.postAnnouncement = function(headline, content, callback) {
 	this._community.postGroupAnnouncement(this.steamID, headline, content, callback);
 };
