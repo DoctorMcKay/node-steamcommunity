@@ -88,6 +88,10 @@ CSteamGroup.prototype.editAnnouncement = function(annoucementID, headline, conte
 	this._community.editGroupAnnouncement(this.steamID, annoucementID, headline, content, callback)
 };
 
+CSteamGroup.prototype.deleteAnnouncement = function(annoucementID, headline, content, callback) {
+	this._community.deleteGroupAnnouncement(this.steamID, annoucementID, headline, content, callback)
+};
+
 CSteamGroup.prototype.scheduleEvent = function(name, type, description, time, server, callback) {
 	this._community.scheduleGroupEvent(this.steamID, name, type, description, time, server, callback);
 };

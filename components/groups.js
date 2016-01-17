@@ -246,6 +246,34 @@ SteamCommunity.prototype.editGroupAnnouncement = function(gid, aid, headline, co
 	})
 };
 
+SteamCommunity.prototype.deleteGroupAnnouncement = function(gid, aid, callback) {
+	if(typeof gid === 'string') {
+		gid = new SteamID(gid);
+	}
+
+	var self = this;
+
+	var submitData = {
+		"uri": "https://steamcommunity.com/gid/" + gid.getSteamID64() + "/announcements/delete/" + aid + "?sessionID=" + this.getSessionID(),
+	}
+
+	this.request.get(submitData, function(err, response, body) {
+		if(!callback) {
+			return;
+		}
+
+		if(self._checkHttpError(err, response, callback)) {
+			return;
+		}
+
+		if(self._checkCommunityError(body, callback)) {
+			return;
+		}
+
+		callback(null);
+	})
+};
+
 SteamCommunity.prototype.scheduleGroupEvent = function(gid, name, type, description, time, server, callback) {
 	if(typeof gid === 'string') {
 		gid = new SteamID(gid);

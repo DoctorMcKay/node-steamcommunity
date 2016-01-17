@@ -54,7 +54,7 @@ function doLogin(accountName, password, authCode, twoFactorCode) {
 				}
 
 				group.getAllAnnouncements(function(err, announcements) {
-						
+
 					if(announcements.length === 0) {
 						return console.log("This group has no announcements");
 					}
@@ -63,12 +63,19 @@ function doLogin(accountName, password, authCode, twoFactorCode) {
 						console.log("[%s] %s %s: %s", announcements[i].date, announcements[i].aid, announcements[i].author, announcements[i].content);
 					};
 
-					rl.question("Annoucement ID: ", function(aid) {
-						rl.question("New title: ", function(header) {
-							rl.question("New body: ", function(content) {
-								// EW THE PYRAMID!
-								editAnnouncement(group, aid, header, content);
-							});
+					rl.question("Would you like to delete delete or edit an annoucement? (Type edit/delete): ", function(choice) {
+						rl.question("Annoucement ID: ", function(aid) {
+							if(choice === 'edit') {
+								rl.question("New title: ", function(header) {
+									rl.question("New body: ", function(content) {
+										// EW THE PYRAMID!
+										// Try replace this with delete!
+										editAnnouncement(group, aid, header, content);
+									});
+								});
+							} else {
+								deleteAnnouncement(group, aid);
+							}
 						});
 					});
 				});
@@ -87,4 +94,16 @@ function editAnnouncement(group, aid, header, content) {
 			process.exit(1);
 		}
 	});
+}
+
+function deleteAnnouncement(group, aid) {
+	// group.deleteAnnouncement(aid);
+	// Or
+	group.deleteAnnouncement(aid, function(err) {
+		if(!err) {
+			console.log("Deleted");
+		} else {
+			console.log("Error deleting announcement.");
+		}
+	})
 }
