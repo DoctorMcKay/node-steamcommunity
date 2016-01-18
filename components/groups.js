@@ -125,6 +125,56 @@ SteamCommunity.prototype.leaveGroup = function(gid, callback) {
 	});
 };
 
+SteamCommunity.prototype.getAllGroupAnnouncements = function(gid, time, callback) {
+	if(typeof gid === 'string') {
+		gid = new SteamID(gid);
+	}
+
+	if(typeof time === 'function') {
+		callback = time;
+		time = new Date(0); // The beginnig of time...
+	}
+
+	var self = this;
+	this.request({
+		"uri": "https://steamcommunity.com/gid/" + gid.getSteamID64() + "/rss/" 
+	}, function(err, response, body) {
+
+		if(self._checkHttpError(err, response, callback)) {
+			return;
+		}
+
+		if(self._checkCommunityError(body, callback)) {
+			return;
+		}
+
+		xml2js.parseString(body, function(err, results) {
+			if(err) {
+				return callback(err);
+			}
+
+			if(!results.rss.channel[0].item) {
+				return callback(null, []);
+			}
+
+			var announcements = results.rss.channel[0].item.map(function(announcement) {
+				var splitLink = announcement.link[0].split('/');
+				return {
+					headline: announcement.title[0],
+					content:  announcement.description[0],
+					date:     new Date(announcement.pubDate[0]),
+					author:   announcement.author[0],
+					aid:      splitLink[splitLink.length - 1]
+				}
+			}).filter(function(announcement) {
+				return (announcement.date > time);
+			});
+
+			return callback(null, announcements);
+		});
+	});
+}
+
 SteamCommunity.prototype.postGroupAnnouncement = function(gid, headline, content, callback) {
 	if(typeof gid === 'string') {
 		gid = new SteamID(gid);
@@ -146,8 +196,73 @@ SteamCommunity.prototype.postGroupAnnouncement = function(gid, headline, content
 			return;
 		}
 
-		if(err || response.statusCode >= 400) {
-			callback(err || new Error("HTTP error " + response.statusCode));
+		if(self._checkHttpError(err, response, callback)) {
+			return;
+		}
+
+		if(self._checkCommunityError(body, callback)) {
+			return;
+		}
+
+		callback(null);
+	})
+};
+
+SteamCommunity.prototype.editGroupAnnouncement = function(gid, aid, headline, content, callback) {
+	if(typeof gid === 'string') {
+		gid = new SteamID(gid);
+	}
+
+	var self = this;
+
+	var submitData = {
+		"uri": "https://steamcommunity.com/gid/" + gid.getSteamID64() + "/announcements",
+		"form": {
+			"sessionID": this.getSessionID(),
+			"gid": aid,
+			"action": "update",
+			"headline": headline,
+			"body": content,
+			"languages[0][headline]": headline,
+			"languages[0][body]": content,
+			"languages[0][updated]": 1
+		}
+	}
+
+	this.request.post(submitData, function(err, response, body) {
+		if(!callback) {
+			return;
+		}
+
+		if(self._checkHttpError(err, response, callback)) {
+			return;
+		}
+
+		if(self._checkCommunityError(body, callback)) {
+			return;
+		}
+
+		callback(null);
+	})
+};
+
+SteamCommunity.prototype.deleteGroupAnnouncement = function(gid, aid, callback) {
+	if(typeof gid === 'string') {
+		gid = new SteamID(gid);
+	}
+
+	var self = this;
+
+	var submitData = {
+		"uri": "https://steamcommunity.com/gid/" + gid.getSteamID64() + "/announcements/delete/" + aid + "?sessionID=" + this.getSessionID(),
+	}
+
+	this.request.get(submitData, function(err, response, body) {
+		if(!callback) {
+			return;
+		}
+
+		if(self._checkHttpError(err, response, callback)) {
 			return;
 		}
 

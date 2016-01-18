@@ -64,7 +64,7 @@ CSteamGroup.prototype.getMembers = function(addresses, callback) {
 		callback = addresses;
 		addresses = null;
 	}
-
+	
 	this._community.getGroupMembers(this.steamID, callback, null, null, addresses, 0);
 };
 
@@ -76,8 +76,20 @@ CSteamGroup.prototype.leave = function(callback) {
 	this._community.leaveGroup(this.steamID, callback);
 };
 
+CSteamGroup.prototype.getAllAnnouncements = function(time, callback) {
+	this._community.getAllGroupAnnouncements(this.steamID, time, callback);
+};
+
 CSteamGroup.prototype.postAnnouncement = function(headline, content, callback) {
 	this._community.postGroupAnnouncement(this.steamID, headline, content, callback);
+};
+
+CSteamGroup.prototype.editAnnouncement = function(annoucementID, headline, content, callback) {
+	this._community.editGroupAnnouncement(this.steamID, annoucementID, headline, content, callback)
+};
+
+CSteamGroup.prototype.deleteAnnouncement = function(annoucementID, headline, content, callback) {
+	this._community.deleteGroupAnnouncement(this.steamID, annoucementID, headline, content, callback)
 };
 
 CSteamGroup.prototype.scheduleEvent = function(name, type, description, time, server, callback) {
