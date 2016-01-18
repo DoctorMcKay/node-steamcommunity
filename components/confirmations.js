@@ -141,7 +141,7 @@ SteamCommunity.prototype.respondToConfirmation = function(confID, confKey, time,
 
 function request(community, url, key, time, tag, params, json, callback) {
 	params = params || {};
-	params.p = "android:" + require('crypto').randomBytes(16).toString('hex');
+	params.p = SteamTotp.getDeviceID(community.steamID);
 	params.a = community.steamID.getSteamID64();
 	params.k = key;
 	params.t = time;
