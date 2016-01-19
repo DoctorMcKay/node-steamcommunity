@@ -16,11 +16,6 @@ SteamCommunity.prototype.enableTwoFactor = function(callback) {
 			return;
 		}
 
-		// Create a random device ID hash
-		var hash = require('crypto').createHash('sha1');
-		hash.update(self.steamID.getSteamID64());
-		hash = hash.digest('hex');
-
 		self.request.post({
 			"uri": "https://api.steampowered.com/ITwoFactorService/AddAuthenticator/v1/",
 			"form": {
@@ -28,7 +23,7 @@ SteamCommunity.prototype.enableTwoFactor = function(callback) {
 				"access_token": token,
 				"authenticator_time": Math.floor(Date.now() / 1000),
 				"authenticator_type": ETwoFactorTokenType.ValveMobileApp,
-				"device_identifier": 'android:' + hash,
+				"device_identifier": SteamTotp.getDeviceID(self.steamID),
 				"sms_phone_id": "1"
 			},
 			"json": true
