@@ -239,7 +239,7 @@ SteamCommunity.prototype.checkConfirmations = function() {
 
 		self.getConfirmations(key.time, key.key, function(err, confirmations) {
 			if(err) {
-				this.emit('debug', "Can't check confirmations: " + err.message);
+				self.emit('debug', "Can't check confirmations: " + err.message);
 				resetTimer();
 				return;
 			}
