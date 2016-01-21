@@ -239,6 +239,7 @@ SteamCommunity.prototype.checkConfirmations = function() {
 
 		self.getConfirmations(key.time, key.key, function(err, confirmations) {
 			if(err) {
+				this.emit('debug', "Can't check confirmations: " + err.message);
 				resetTimer();
 				return;
 			}
@@ -287,9 +288,14 @@ SteamCommunity.prototype.checkConfirmations = function() {
 		// Delay them by 1 second per new confirmation that we see, so that keys won't be the same.
 		setTimeout(function() {
 			if(self._identitySecret) {
-				self.emit('debug', 'Accepting confirmation ' + conf.id);
+				self.emit('debug', 'Accepting confirmation #' + conf.id);
 				var time = Math.floor(Date.now() / 1000);
-				conf.respond(time, SteamTotp.getConfirmationKey(self._identitySecret, time, "allow"), true, function() {
+				conf.respond(time, SteamTotp.getConfirmationKey(self._identitySecret, time, "allow"), true, function(err) {
+					if (err) {
+						self.emit('debug', "Can't accept confirmation #" + conf.id + ": " + err.message);
+					}
+
+					// We'll just retry next time we poll
 					delete self._knownConfirmations[conf.id];
 				});
 			} else {
