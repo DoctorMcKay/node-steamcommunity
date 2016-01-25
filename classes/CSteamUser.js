@@ -90,7 +90,7 @@ function CSteamUser(community, userData, customurl) {
 	var self = this;
 	if(userData.groups && userData.groups[0] && userData.groups[0].group) {
 		this.groups = userData.groups[0].group.map(function(group) {
-			if(group['$'] && group['$'].isPrimary) {
+			if(group['$'] && group['$'].isPrimary === "1") {
 				self.primaryGroup = new SteamID(group.groupID64[0]);
 			}
 			
