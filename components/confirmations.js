@@ -165,7 +165,7 @@ function request(community, url, key, time, tag, params, json, callback) {
 
 /**
  * Start automatically polling our confirmations for new ones. The `confKeyNeeded` event will be emitted when we need a confirmation key, or `newConfirmation` when we get a new confirmation
- * @param {int} pollInterval - The interval, in milliseconds, at which we will poll for confirmations. This shouldn't be any less than 10,000 probably.
+ * @param {int} pollInterval - The interval, in milliseconds, at which we will poll for confirmations. This should probably be at least 10,000 to avoid rate-limits.
  * @param {Buffer|string|null} [identitySecret=null] - Your identity_secret. If passed, all confirmations will be automatically accepted and nothing will be emitted.
  */
 SteamCommunity.prototype.startConfirmationChecker = function(pollInterval, identitySecret) {
