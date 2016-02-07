@@ -68,35 +68,24 @@ SteamCommunity.prototype.login = function(details, callback) {
 	this._jar.setCookie(Request.cookie("mobileClient=android"), "https://steamcommunity.com");
 	
 	this.request.post("https://steamcommunity.com/login/getrsakey/", {
-		"form": {
-			"username": details.accountName
-		},
-		"headers": mobileHeaders
+		"form": {"username": details.accountName},
+		"headers": mobileHeaders,
+		"json": true
 	}, function(err, response, body) {
 		// Remove the mobile cookies
-		if(err) {
+		if (self._checkHttpError(err, response, callback)) {
 			deleteMobileCookies();
-			callback(err);
-			return;
-		}
-		
-		var json;
-		try {
-			json = JSON.parse(body);
-		} catch(e) {
-			deleteMobileCookies();
-			callback(e);
 			return;
 		}
 
-		if(!json.publickey_mod || !json.publickey_exp) {
+		if(!body.publickey_mod || !body.publickey_exp) {
 			deleteMobileCookies();
 			callback(new Error("Invalid RSA key received"));
 			return;
 		}
 		
 		var key = new RSA();
-		key.setPublic(json.publickey_mod, json.publickey_exp);
+		key.setPublic(body.publickey_mod, body.publickey_exp);
 		
 		var form = {
 			"captcha_text": details.captcha || "",
@@ -105,7 +94,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 			"emailsteamid": "",
 			"password": hex2b64(key.encrypt(details.password)),
 			"remember_login": "true",
-			"rsatimestamp": json.timestamp,
+			"rsatimestamp": body.timestamp,
 			"twofactorcode": details.twoFactorCode || "",
 			"username": details.accountName,
 			"oauth_client_id": "DE45CD61",
