@@ -87,25 +87,24 @@ SteamCommunity.prototype.login = function(details, callback) {
 		var key = new RSA();
 		key.setPublic(body.publickey_mod, body.publickey_exp);
 		
-		var form = {
-			"captcha_text": details.captcha || "",
-			"captchagid": self._captchaGid,
-			"emailauth": details.authCode || "",
-			"emailsteamid": "",
-			"password": hex2b64(key.encrypt(details.password)),
-			"remember_login": "true",
-			"rsatimestamp": body.timestamp,
-			"twofactorcode": details.twoFactorCode || "",
-			"username": details.accountName,
-			"oauth_client_id": "DE45CD61",
-			"oauth_scope": "read_profile write_profile read_client write_client",
-			"loginfriendlyname": "#login_emailauth_friendlyname_mobile"
-		};
-		
 		self.request.post({
 			"uri": "https://steamcommunity.com/login/dologin/",
 			"json": true,
-			"form": form,
+			"form": {
+				"captcha_text": details.captcha || "",
+				"captchagid": self._captchaGid,
+				"emailauth": details.authCode || "",
+				"emailsteamid": "",
+				"password": hex2b64(key.encrypt(details.password)),
+				"remember_login": "true",
+				"rsatimestamp": body.timestamp,
+				"twofactorcode": details.twoFactorCode || "",
+				"username": details.accountName,
+				"oauth_client_id": "DE45CD61",
+				"oauth_scope": "read_profile write_profile read_client write_client",
+				"loginfriendlyname": "#login_emailauth_friendlyname_mobile",
+				"donotcache": Date.now()
+			},
 			"headers": mobileHeaders
 		}, function(err, response, body) {
 			deleteMobileCookies();
@@ -124,7 +123,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 			} else if(!body.success && body.requires_twofactor) {
 				// Steam Guard (app)
 				callback(new Error("SteamGuardMobile"));
-			} else if(!body.success && body.captcha_needed) {
+			} else if(!body.success && body.captcha_needed && body.message.match(/Please verify your humanity/)) {
 				error = new Error("CAPTCHA");
 				error.captchaurl = "https://steamcommunity.com/login/rendercaptcha/?gid=" + body.captcha_gid;
 				
