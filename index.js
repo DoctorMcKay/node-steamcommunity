@@ -113,10 +113,11 @@ SteamCommunity.prototype.login = function(details, callback) {
 			if(self._checkHttpError(err, response, callback)) {
 				return;
 			}
-			
+
+			var error;
 			if(!body.success && body.emailauth_needed) {
 				// Steam Guard (email)
-				var error = new Error("SteamGuard");
+				error = new Error("SteamGuard");
 				error.emaildomain = body.emaildomain;
 				
 				callback(error);
@@ -124,8 +125,8 @@ SteamCommunity.prototype.login = function(details, callback) {
 				// Steam Guard (app)
 				callback(new Error("SteamGuardMobile"));
 			} else if(!body.success && body.captcha_needed) {
-				var error = new Error("CAPTCHA");
-				error.captchaurl = "https://steamcommunity.com/public/captcha.php?gid=" + body.captcha_gid;
+				error = new Error("CAPTCHA");
+				error.captchaurl = "https://steamcommunity.com/login/rendercaptcha/?gid=" + body.captcha_gid;
 				
 				self._captchaGid = body.captcha_gid;
 				
