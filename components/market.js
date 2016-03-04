@@ -3,7 +3,7 @@ var Cheerio = require('cheerio');
 
 SteamCommunity.prototype.getMarketApps = function(callback) {
 	var self = this;
-	this.request('https://steamcommunity.com/market/', function (err, response, body) {
+	this.httpRequest('https://steamcommunity.com/market/', function (err, response, body) {
 		if(self._checkHttpError(err, response, callback)) {
 			return;
 		}

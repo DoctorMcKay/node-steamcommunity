@@ -12,7 +12,7 @@ SteamCommunity.prototype.getSteamGroup = function(id, callback) {
 	}
 	
 	var self = this;
-	this.request("https://steamcommunity.com/" + (typeof id === 'string' ? "groups/" + id : "gid/" + id.toString()) + "/memberslistxml/?xml=1", function(err, response, body) {
+	this.httpRequest("https://steamcommunity.com/" + (typeof id === 'string' ? "groups/" + id : "gid/" + id.toString()) + "/memberslistxml/?xml=1", function(err, response, body) {
 		if(self._checkHttpError(err, response, callback)) {
 			return;
 		}

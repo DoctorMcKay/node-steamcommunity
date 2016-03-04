@@ -67,7 +67,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 	this._jar.setCookie(Request.cookie("mobileClientVersion=0 (2.1.3)"), "https://steamcommunity.com");
 	this._jar.setCookie(Request.cookie("mobileClient=android"), "https://steamcommunity.com");
 	
-	this.request.post("https://steamcommunity.com/login/getrsakey/", {
+	this.httpRequestPost("https://steamcommunity.com/login/getrsakey/", {
 		"form": {"username": details.accountName},
 		"headers": mobileHeaders,
 		"json": true
@@ -87,7 +87,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 		var key = new RSA();
 		key.setPublic(body.publickey_mod, body.publickey_exp);
 		
-		self.request.post({
+		self.httpRequestPost({
 			"uri": "https://steamcommunity.com/login/dologin/",
 			"json": true,
 			"form": {
@@ -175,7 +175,7 @@ SteamCommunity.prototype.oAuthLogin = function(steamguard, token, callback) {
 	var steamID = new SteamID(steamguard[0]);
 
 	var self = this;
-	this.request.post({
+	this.httpRequestPost({
 		"uri": "https://api.steampowered.com/IMobileAuthService/GetWGToken/v1/",
 		"form": {
 			"access_token": token
@@ -234,7 +234,9 @@ function generateSessionID() {
 }
 
 SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
-	this.request.post("https://steamcommunity.com/parental/ajaxunlock", {
+	var self = this;
+
+	this.httpRequestPost("https://steamcommunity.com/parental/ajaxunlock", {
 		"json": true,
 		"form": {
 			"pin": pin
@@ -262,7 +264,7 @@ SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
 
 SteamCommunity.prototype.getNotifications = function(callback) {
 	var self = this;
-	this.request.get("https://steamcommunity.com/actions/RefreshNotificationArea", function(err, response, body) {
+	this.httpRequestGet("https://steamcommunity.com/actions/RefreshNotificationArea", function(err, response, body) {
 		if(self._checkHttpError(err, response, callback)) {
 			return;
 		}
@@ -298,7 +300,7 @@ SteamCommunity.prototype.getNotifications = function(callback) {
 
 SteamCommunity.prototype.resetItemNotifications = function(callback) {
 	var self = this;
-	this.request.get("https://steamcommunity.com/my/inventory", function(err, response, body) {
+	this.httpRequestGet("https://steamcommunity.com/my/inventory", function(err, response, body) {
 		if(!callback) {
 			return;
 		}
@@ -312,7 +314,7 @@ SteamCommunity.prototype.resetItemNotifications = function(callback) {
 };
 
 SteamCommunity.prototype.loggedIn = function(callback) {
-	this.request("https://steamcommunity.com/my", {"followRedirect": false}, function(err, response, body) {
+	this.httpRequest("https://steamcommunity.com/my", {"followRedirect": false}, function(err, response, body) {
 		if(err || (response.statusCode != 302 && response.statusCode != 403)) {
 			callback(err || new Error("HTTP error " + response.statusCode));
 			return;
@@ -327,19 +329,9 @@ SteamCommunity.prototype.loggedIn = function(callback) {
 	});
 };
 
-SteamCommunity.prototype._checkCommunityError = function(html, callback) {
-	if(html.match(/<h1>Sorry!<\/h1>/)) {
-		var match = html.match(/<h3>(.+)<\/h3>/);
-		callback(new Error(match ? match[1] : "Unknown error occurred"));
-		return true;
-	}
-	
-	return false;
-};
-
 SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 	var self = this;
-	this.request("https://steamcommunity.com/my", {"followRedirect": false}, function(err, response, body) {
+	this.httpRequest("https://steamcommunity.com/my", {"followRedirect": false}, function(err, response, body) {
 		if(err || response.statusCode != 302) {
 			callback(err || "HTTP error " + response.statusCode);
 			return;
@@ -350,32 +342,23 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 			callback(new Error("Can't get profile URL"));
 			return;
 		}
-		
-		(form ? self.request.post : self.request)("https://steamcommunity.com" + match[1] + "/" + endpoint, form ? {"form": form} : {}, callback);
+
+		var options = {
+			"uri": "https://steamcommunity.com" + mtch[1] + "/" + endpoint,
+			"method": "GET"
+		};
+
+		if (form) {
+			options.method = "POST";
+			options.form = form;
+		}
+
+		self.httpRequest(options, callback);
 	});
 };
 
-SteamCommunity.prototype._checkHttpError = function(err, response, callback) {
-	if(err) {
-		callback(err);
-		return true;
-	}
-	
-	if(response.statusCode >= 300 && response.statusCode <= 399 && response.headers.location.indexOf('/login') != -1) {
-		callback(new Error("Not Logged In"));
-		return true;
-	}
-	
-	if(response.statusCode >= 400) {
-		var error = new Error("HTTP error " + response.statusCode);
-		error.code = response.statusCode;
-		callback(error);
-		return true;
-	}
-	
-	return false;
-};
 
+require('./components/http.js');
 require('./components/chat.js');
 require('./components/profile.js');
 require('./components/market.js');

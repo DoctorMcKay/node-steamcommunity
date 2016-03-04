@@ -16,7 +16,7 @@ SteamCommunity.prototype.enableTwoFactor = function(callback) {
 			return;
 		}
 
-		self.request.post({
+		self.httpRequestPost({
 			"uri": "https://api.steampowered.com/ITwoFactorService/AddAuthenticator/v1/",
 			"form": {
 				"steamid": self.steamID.getSteamID64(),
@@ -66,7 +66,7 @@ SteamCommunity.prototype.finalizeTwoFactor = function(secret, activationCode, ca
 	function finalize(token) {
 		var code = SteamTotp.generateAuthCode(secret, diff);
 
-		self.request.post({
+		self.httpRequestPost({
 			"uri": "https://api.steampowered.com/ITwoFactorService/FinalizeAddAuthenticator/v1/",
 			"form": {
 				"steamid": self.steamID.getSteamID64(),
@@ -117,7 +117,7 @@ SteamCommunity.prototype.disableTwoFactor = function(revocationCode, callback) {
 			return;
 		}
 
-		self.request.post({
+		self.httpRequestPost({
 			"uri": "https://api.steampowered.com/ITwoFactorService/RemoveAuthenticator/v1/",
 			"form": {
 				"steamid": self.steamID.getSteamID64(),

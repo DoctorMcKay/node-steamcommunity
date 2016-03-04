@@ -2,7 +2,7 @@ var SteamCommunity = require('../index.js');
 
 SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
 	var self = this;
-	this.request({
+	this.httpRequest({
 		"uri": "https://steamcommunity.com/dev/apikey",
 		"followRedirect": false
 	}, function(err, response, body) {
@@ -20,7 +20,7 @@ SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
 			callback(null, match[1]);
 		} else {
 			// We need to register a new API key
-			self.request.post('https://steamcommunity.com/dev/registerkey', {
+			self.httpRequestPost('https://steamcommunity.com/dev/registerkey', {
 				"form": {
 					"domain": domain,
 					"agreeToTerms": "agreed",
@@ -46,7 +46,7 @@ SteamCommunity.prototype.getWebApiOauthToken = function(callback) {
 	}
 
 	// Pull an oauth token from the webchat UI
-	this.request("https://steamcommunity.com/chat", function(err, response, body) {
+	this.httpRequest("https://steamcommunity.com/chat", function(err, response, body) {
 		if(self._checkHttpError(err, response, callback)) {
 			return;
 		}

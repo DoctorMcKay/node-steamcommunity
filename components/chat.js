@@ -48,7 +48,7 @@ SteamCommunity.prototype.chatLogon = function(interval, uiMode) {
 			return;
 		}
 		
-		self.request.post({
+		self.httpRequestPost({
 			"uri": "https://api.steampowered.com/ISteamWebUserPresenceOAuth/Logon/v1",
 			"form": {
 				"ui_mode": uiMode,
@@ -103,7 +103,7 @@ SteamCommunity.prototype.chatMessage = function(recipient, text, type, callback)
 	type = type || 'saytext';
 
 	var self = this;
-	this.request.post({
+	this.httpRequestPost({
 		"uri": "https://api.steampowered.com/ISteamWebUserPresenceOAuth/Message/v1",
 		"form": {
 			"access_token": this._chat.accessToken,
@@ -132,7 +132,7 @@ SteamCommunity.prototype.chatMessage = function(recipient, text, type, callback)
 
 SteamCommunity.prototype.chatLogoff = function() {
 	var self = this;
-	this.request.post({
+	this.httpRequestPost({
 		"uri": "https://api.steampowered.com/ISteamWebUserPresenceOAuth/Logoff/v1",
 		"form": {
 			"access_token": this._chat.accessToken,
@@ -156,7 +156,7 @@ SteamCommunity.prototype._chatPoll = function() {
 	this.emit('debug', 'Doing chat poll');
 	
 	var self = this;
-	this.request.post({
+	this.httpRequestPost({
 		"uri": "https://api.steampowered.com/ISteamWebUserPresenceOAuth/Poll/v1",
 		"form": {
 			"umqid": self._chat.umqid,
@@ -217,7 +217,7 @@ SteamCommunity.prototype._chatPoll = function() {
 SteamCommunity.prototype._chatUpdatePersona = function(steamID) {
 	this.emit('debug', 'Updating persona data for ' + steamID);
 	var self = this;
-	this.request({
+	this.httpRequest({
 		"uri": "https://steamcommunity.com/chat/friendstate/" + steamID.accountid,
 		"json": true
 	}, function(err, response, body) {

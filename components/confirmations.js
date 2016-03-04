@@ -148,7 +148,7 @@ function request(community, url, key, time, tag, params, json, callback) {
 	params.m = "android";
 	params.tag = tag;
 
-	community.request.get({
+	community.httpRequestGet({
 		"uri": "https://steamcommunity.com/mobileconf/" + url,
 		"qs": params,
 		"json": !!json

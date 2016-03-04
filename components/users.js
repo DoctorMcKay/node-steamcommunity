@@ -8,7 +8,7 @@ SteamCommunity.prototype.addFriend = function(userID, callback) {
 	}
 
 	var self = this;
-	this.request.post({
+	this.httpRequestPost({
 		"uri": "https://steamcommunity.com/actions/AddFriendAjax",
 		"form": {
 			"accept_invite": 0,
@@ -39,7 +39,7 @@ SteamCommunity.prototype.acceptFriendRequest = function(userID, callback) {
 	}
 
 	var self = this;
-	this.request.post({
+	this.httpRequestPost({
 		"uri": "https://steamcommunity.com/actions/AddFriendAjax",
 		"form": {
 			"accept_invite": 1,
@@ -65,7 +65,7 @@ SteamCommunity.prototype.removeFriend = function(userID, callback) {
 	}
 
 	var self = this;
-	this.request.post({
+	this.httpRequestPost({
 		"uri": "https://steamcommunity.com/actions/RemoveFriendAjax",
 		"form": {
 			"sessionID": this.getSessionID(),
@@ -90,7 +90,7 @@ SteamCommunity.prototype.blockCommunication = function(userID, callback) {
 	}
 
 	var self = this;
-	this.request.post({
+	this.httpRequestPost({
 		"uri": "https://steamcommunity.com/actions/BlockUserAjax",
 		"form": {
 			"sessionID": this.getSessionID(),
@@ -137,7 +137,7 @@ SteamCommunity.prototype.postUserComment = function(userID, message, callback) {
 	}
 
 	var self = this;
-	this.request.post({
+	this.httpRequestPost({
 		"uri": "https://steamcommunity.com/comment/Profile/post/" + userID.toString() + "/-1",
 		"form": {
 			"comment": message,
@@ -170,7 +170,7 @@ SteamCommunity.prototype.inviteUserToGroup = function(userID, groupID, callback)
 	}
 
 	var self = this;
-	this.request.post({
+	this.httpRequestPost({
 		"uri": "https://steamcommunity.com/actions/GroupInvite",
 		"form": {
 			"group": groupID.toString(),
@@ -215,7 +215,7 @@ SteamCommunity.prototype.getUserInventoryContexts = function(userID, callback) {
 	}
 
 	var self = this;
-	this.request("https://steamcommunity.com/profiles/" + userID.getSteamID64() + "/inventory/", function(err, response, body) {
+	this.httpRequest("https://steamcommunity.com/profiles/" + userID.getSteamID64() + "/inventory/", function(err, response, body) {
 		if(self._checkHttpError(err, response, callback)) {
 			return;
 		}
@@ -249,7 +249,7 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 	get([], []);
 
 	function get(inventory, currency, start) {
-		self.request({
+		self.httpRequest({
 			"uri": "https://steamcommunity.com" + endpoint + "/inventory/json/" + appID + "/" + contextID,
 			"qs": {
 				"start": start,

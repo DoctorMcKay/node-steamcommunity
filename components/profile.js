@@ -220,7 +220,7 @@ SteamCommunity.prototype.uploadAvatar = function(image, format, callback) {
 	if(image instanceof Buffer) {
 		doUpload(image);
 	} else if(image.match(/^https?:\/\//)) {
-		this.request.get({
+		this.httpRequestGet({
 			"uri": image,
 			"encoding": null
 		}, function(err, response, body) {
@@ -300,7 +300,7 @@ SteamCommunity.prototype.uploadAvatar = function(image, format, callback) {
 				return;
 		}
 
-		self.request.post({
+		self.httpRequestPost({
 			"uri": "https://steamcommunity.com/actions/FileUploader",
 			"formData": {
 				"MAX_FILE_SIZE": buffer.length,

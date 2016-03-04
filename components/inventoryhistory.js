@@ -13,7 +13,7 @@ SteamCommunity.prototype.getInventoryHistory = function(options, callback) {
 	
 	options.page = options.page || 1;
 	
-	this.request("https://steamcommunity.com/my/inventoryhistory?l=english&p=" + options.page, function(err, response, body) {
+	this.httpRequest("https://steamcommunity.com/my/inventoryhistory?l=english&p=" + options.page, function(err, response, body) {
 		if(err) {
 			callback(err);
 			return;
