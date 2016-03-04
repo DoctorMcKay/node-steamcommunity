@@ -263,7 +263,7 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 
 			if(!body || !body.success || !body.rgInventory || !body.rgDescriptions || !body.rgCurrency) {
 				if(body) {
-					callback(new Error(body.error || "Malformed response"));
+					callback(new Error(body.Error || "Malformed response"));
 				} else {
 					callback(new Error("Malformed response"));
 				}
