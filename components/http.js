@@ -6,6 +6,10 @@ SteamCommunity.prototype.httpRequest = function(uri, options, callback, source) 
 		callback = options;
 		options = uri;
 		uri = options.url || options.uri;
+	} else if (typeof options === 'function') {
+		source = callback;
+		callback = options;
+		options = {};
 	}
 
 	options.url = options.uri = uri;
