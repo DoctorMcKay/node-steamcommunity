@@ -22,30 +22,46 @@ SteamCommunity.prototype.httpRequest = function(uri, options, callback, source) 
 	var requestID = ++this._httpRequestID;
 	source = source || "";
 
-	if (this.onPreHttpRequest && this.onPreHttpRequest(requestID, source, options, callback) === false) {
-		return false;
+	var self = this;
+	var continued = false;
+
+	if (!this.onPreHttpRequest || !this.onPreHttpRequest(requestID, source, options, continueRequest)) {
+		// No pre-hook, or the pre-hook doesn't want to delay the request.
+		continueRequest(null);
 	}
 
-	var self = this;
-	this.request(options, function(err, response, body) {
-		var hasCallback = !!callback;
-		var httpError = options.checkHttpError !== false && self._checkHttpError(err, response, callback);
-		var communityError = !options.json && options.checkCommunityError !== false && self._checkCommunityError(body, httpError ? function() {} : callback); // don't fire the callback if hasHttpError did it already
-		var tradeError = !options.json && options.checkTradeError !== false && self._checkTradeError(body, httpError || communityError ? function() {} : callback); // don't fire the callback if either of the previous already did
-
-		self.emit('postHttpRequest', requestID, source, options, httpError || communityError || tradeError || null, response, body, {
-			"hasCallback": hasCallback,
-			"httpError": httpError,
-			"communityError": communityError,
-			"tradeError": tradeError
-		});
-
-		if (hasCallback && !(httpError || communityError || tradeError)) {
-			callback.apply(self, arguments);
+	function continueRequest(err) {
+		if (continued) {
+			return;
 		}
-	});
 
-	return true;
+		continued = true;
+
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		self.request(options, function (err, response, body) {
+			var hasCallback = !!callback;
+			var httpError = options.checkHttpError !== false && self._checkHttpError(err, response, callback);
+			var communityError = !options.json && options.checkCommunityError !== false && self._checkCommunityError(body, httpError ? function () {
+				} : callback); // don't fire the callback if hasHttpError did it already
+			var tradeError = !options.json && options.checkTradeError !== false && self._checkTradeError(body, httpError || communityError ? function () {
+				} : callback); // don't fire the callback if either of the previous already did
+
+			self.emit('postHttpRequest', requestID, source, options, httpError || communityError || tradeError || null, response, body, {
+				"hasCallback": hasCallback,
+				"httpError": httpError,
+				"communityError": communityError,
+				"tradeError": tradeError
+			});
+
+			if(hasCallback && !(httpError || communityError || tradeError)) {
+				callback.apply(self, arguments);
+			}
+		});
+	}
 };
 
 SteamCommunity.prototype.httpRequestGet = function() {
