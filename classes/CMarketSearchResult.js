@@ -71,7 +71,7 @@ function performSearch(request, qs, results, callback) {
 			qs.start += body.pagesize;
 			performSearch.call(self, request, qs, results, callback);
 		}
-	});
+	}, "steamcommunity");
 }
 
 function CMarketSearchResult(row) {

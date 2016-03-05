@@ -60,7 +60,7 @@ SteamCommunity.prototype.getGroupMembers = function(gid, callback, members, link
 				callback(null, members);
 			}
 		});
-	});
+	}, "steamcommunity");
 };
 
 SteamCommunity.prototype.getGroupMembersEx = function(gid, addresses, callback) {
@@ -94,7 +94,7 @@ SteamCommunity.prototype.joinGroup = function(gid, callback) {
 		}
 
 		callback(null);
-	});
+	}, "steamcommunity");
 };
 
 SteamCommunity.prototype.leaveGroup = function(gid, callback) {
@@ -172,7 +172,7 @@ SteamCommunity.prototype.getAllGroupAnnouncements = function(gid, time, callback
 
 			return callback(null, announcements);
 		});
-	});
+	}, "steamcommunity");
 }
 
 SteamCommunity.prototype.postGroupAnnouncement = function(gid, headline, content, callback) {
@@ -205,7 +205,7 @@ SteamCommunity.prototype.postGroupAnnouncement = function(gid, headline, content
 		}
 
 		callback(null);
-	})
+	}, "steamcommunity");
 };
 
 SteamCommunity.prototype.editGroupAnnouncement = function(gid, aid, headline, content, callback) {
@@ -243,7 +243,7 @@ SteamCommunity.prototype.editGroupAnnouncement = function(gid, aid, headline, co
 		}
 
 		callback(null);
-	})
+	}, "steamcommunity");
 };
 
 SteamCommunity.prototype.deleteGroupAnnouncement = function(gid, aid, callback) {
@@ -254,8 +254,8 @@ SteamCommunity.prototype.deleteGroupAnnouncement = function(gid, aid, callback) 
 	var self = this;
 
 	var submitData = {
-		"uri": "https://steamcommunity.com/gid/" + gid.getSteamID64() + "/announcements/delete/" + aid + "?sessionID=" + this.getSessionID(),
-	}
+		"uri": "https://steamcommunity.com/gid/" + gid.getSteamID64() + "/announcements/delete/" + aid + "?sessionID=" + this.getSessionID()
+	};
 
 	this.httpRequestGet(submitData, function(err, response, body) {
 		if(!callback) {
@@ -271,7 +271,7 @@ SteamCommunity.prototype.deleteGroupAnnouncement = function(gid, aid, callback) 
 		}
 
 		callback(null);
-	})
+	}, "steamcommunity");
 };
 
 SteamCommunity.prototype.scheduleGroupEvent = function(gid, name, type, description, time, server, callback) {
@@ -337,7 +337,7 @@ SteamCommunity.prototype.scheduleGroupEvent = function(gid, name, type, descript
 		}
 
 		callback(null);
-	});
+	}, "steamcommunity");
 };
 
 SteamCommunity.prototype.setGroupPlayerOfTheWeek = function(gid, steamID, callback) {
@@ -380,7 +380,7 @@ SteamCommunity.prototype.setGroupPlayerOfTheWeek = function(gid, steamID, callba
 				callback(new Error(results.response.results[0]));
 			}
 		});
-	});
+	}, "steamcommunity");
 };
 
 SteamCommunity.prototype.kickGroupMember = function(gid, steamID, callback) {
@@ -416,7 +416,7 @@ SteamCommunity.prototype.kickGroupMember = function(gid, steamID, callback) {
 		}
 
 		callback(null);
-	});
+	}, "steamcommunity");
 };
 
 SteamCommunity.prototype.getGroupHistory = function(gid, page, callback) {
@@ -499,5 +499,5 @@ SteamCommunity.prototype.getGroupHistory = function(gid, page, callback) {
 		});
 
 		callback(null, output);
-	});
+	}, "steamcommunity");
 };

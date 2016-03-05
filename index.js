@@ -16,6 +16,7 @@ function SteamCommunity(options) {
 
 	this._jar = Request.jar();
 	this._captchaGid = -1;
+	this._httpRequestID = 0;
 	this.chatState = SteamCommunity.ChatState.Offline;
 
 	var defaults = {
@@ -156,8 +157,8 @@ SteamCommunity.prototype.login = function(details, callback) {
 				
 				callback(null, sessionID, cookies, steamguard, oAuth.oauth_token);
 			}
-		});
-	});
+		}, "steamcommunity");
+	}, "steamcommunity");
 
 	function deleteMobileCookies() {
 		var cookie = Request.cookie('mobileClientVersion=');
@@ -200,7 +201,7 @@ SteamCommunity.prototype.oAuthLogin = function(steamguard, token, callback) {
 
 		self.setCookies(cookies);
 		callback(null, self.getSessionID(), cookies);
-	});
+	}, "steamcommunity");
 };
 
 SteamCommunity.prototype.setCookies = function(cookies) {
@@ -259,7 +260,7 @@ SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
 		}
 		
 		callback();
-	}.bind(this));
+	}.bind(this), "steamcommunity");
 };
 
 SteamCommunity.prototype.getNotifications = function(callback) {
@@ -295,7 +296,7 @@ SteamCommunity.prototype.getNotifications = function(callback) {
 		}
 		
 		callback(null, notifications);
-	});
+	}, "steamcommunity");
 };
 
 SteamCommunity.prototype.resetItemNotifications = function(callback) {
@@ -310,7 +311,7 @@ SteamCommunity.prototype.resetItemNotifications = function(callback) {
 		}
 		
 		callback(null);
-	});
+	}, "steamcommunity");
 };
 
 SteamCommunity.prototype.loggedIn = function(callback) {
@@ -326,7 +327,7 @@ SteamCommunity.prototype.loggedIn = function(callback) {
 		}
 		
 		callback(null, !!response.headers.location.match(/steamcommunity\.com(\/(id|profiles)\/[^\/]+)\/?/), false);
-	});
+	}, "steamcommunity");
 };
 
 SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
@@ -353,8 +354,8 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 			options.form = form;
 		}
 
-		self.httpRequest(options, callback);
-	});
+		self.httpRequest(options, callback, "steamcommunity");
+	}, "steamcommunity");
 };
 
 

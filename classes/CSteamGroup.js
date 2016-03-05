@@ -29,7 +29,7 @@ SteamCommunity.prototype.getSteamGroup = function(id, callback) {
 			
 			callback(null, new CSteamGroup(self, result.memberList));
 		});
-	});
+	}, "steamcommunity");
 };
 
 function CSteamGroup(community, groupData) {

@@ -26,7 +26,7 @@ SteamCommunity.prototype.getMarketItem = function(appid, hashName, currency, cal
 				callback(null, item);
 			}
 		});
-	});
+	}, "steamcommunity");
 };
 
 function CMarketItem(appid, hashName, community, body, $) {
@@ -137,7 +137,7 @@ CMarketItem.prototype.updatePriceForCommodity = function(currency, callback) {
 		if(callback) {
 			callback(null);
 		}
-	});
+	}, "steamcommunity");
 };
 
 CMarketItem.prototype.updatePriceForNonCommodity = function (currency, callback) {
@@ -181,5 +181,5 @@ CMarketItem.prototype.updatePriceForNonCommodity = function (currency, callback)
 		}
 
 		callback && callback(null);
-	});
+	}, "steamcommunity");
 };

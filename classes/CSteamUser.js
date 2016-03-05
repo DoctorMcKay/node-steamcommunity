@@ -48,7 +48,7 @@ SteamCommunity.prototype.getSteamUser = function(id, callback) {
 			
 			callback(null, new CSteamUser(self, result.profile, customurl));
 		});
-	});
+	}, "steamcommunity");
 };
 
 function CSteamUser(community, userData, customurl) {

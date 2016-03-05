@@ -82,7 +82,7 @@ SteamCommunity.prototype.chatLogon = function(interval, uiMode) {
 			self.chatState = SteamCommunity.ChatState.LoggedOn;
 			self.emit('chatLoggedOn');
 			self._chatPoll();
-		});
+		}, "steamcommunity");
 	});
 };
 
@@ -127,7 +127,7 @@ SteamCommunity.prototype.chatMessage = function(recipient, text, type, callback)
 		} else {
 			callback(null);
 		}
-	});
+	}, "steamcommunity");
 };
 
 SteamCommunity.prototype.chatLogoff = function() {
@@ -149,7 +149,7 @@ SteamCommunity.prototype.chatLogoff = function() {
 			delete self.chatFriends;
 			self.chatState = SteamCommunity.ChatState.Offline;
 		}
-	});
+	}, "steamcommunity");
 };
 
 SteamCommunity.prototype._chatPoll = function() {
@@ -211,7 +211,7 @@ SteamCommunity.prototype._chatPoll = function() {
 					self.emit('debug', 'Unhandled chat message type: ' + message.type);
 			}
 		});
-	});
+	}, "steamcommunity");
 };
 
 SteamCommunity.prototype._chatUpdatePersona = function(steamID) {
@@ -242,5 +242,5 @@ SteamCommunity.prototype._chatUpdatePersona = function(steamID) {
 
 		self.emit('chatPersonaState', steamID, persona);
 		self.chatFriends[steamID.getSteamID64()] = persona;
-	});
+	}, "steamcommunity");
 };

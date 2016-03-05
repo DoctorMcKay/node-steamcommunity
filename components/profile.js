@@ -237,7 +237,7 @@ SteamCommunity.prototype.uploadAvatar = function(image, format, callback) {
 			}
 
 			doUpload(body);
-		})
+		}, "steamcommunity");
 	} else {
 		if(!format) {
 			format = image.match(/\.([^\.]+)$/);
@@ -354,6 +354,6 @@ SteamCommunity.prototype.uploadAvatar = function(image, format, callback) {
 			if(callback) {
 				callback(null, body.images.full);
 			}
-		});
+		}, "steamcommunity");
 	}
 };

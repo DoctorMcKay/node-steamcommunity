@@ -30,7 +30,7 @@ SteamCommunity.prototype.addFriend = function(userID, callback) {
 		} else {
 			callback(new Error("Unknown error"));
 		}
-	});
+	}, "steamcommunity");
 };
 
 SteamCommunity.prototype.acceptFriendRequest = function(userID, callback) {
@@ -56,7 +56,7 @@ SteamCommunity.prototype.acceptFriendRequest = function(userID, callback) {
 		}
 
 		callback(null);
-	});
+	}, "steamcommunity");
 };
 
 SteamCommunity.prototype.removeFriend = function(userID, callback) {
@@ -81,7 +81,7 @@ SteamCommunity.prototype.removeFriend = function(userID, callback) {
 		}
 
 		callback(null);
-	});
+	}, "steamcommunity");
 };
 
 SteamCommunity.prototype.blockCommunication = function(userID, callback) {
@@ -106,7 +106,7 @@ SteamCommunity.prototype.blockCommunication = function(userID, callback) {
 		}
 
 		callback(null);
-	});
+	}, "steamcommunity");
 };
 
 SteamCommunity.prototype.unblockCommunication = function(userID, callback) {
@@ -161,7 +161,7 @@ SteamCommunity.prototype.postUserComment = function(userID, message, callback) {
 		} else {
 			callback(new Error("Unknown error"));
 		}
-	});
+	}, "steamcommunity");
 };
 
 SteamCommunity.prototype.inviteUserToGroup = function(userID, groupID, callback) {
@@ -196,7 +196,7 @@ SteamCommunity.prototype.inviteUserToGroup = function(userID, groupID, callback)
 		} else {
 			callback(new Error("Unknown error"));
 		}
-	});
+	}, "steamcommunity");
 };
 
 SteamCommunity.prototype.getUserInventoryContexts = function(userID, callback) {
@@ -235,7 +235,7 @@ SteamCommunity.prototype.getUserInventoryContexts = function(userID, callback) {
 		}
 
 		callback(null, data);
-	});
+	}, "steamcommunity");
 };
 
 SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, tradableOnly, callback) {
@@ -298,6 +298,6 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 			} else {
 				callback(null, inventory, currency);
 			}
-		});
+		}, "steamcommunity");
 	}
 };

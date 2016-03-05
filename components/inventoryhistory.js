@@ -122,7 +122,7 @@ SteamCommunity.prototype.getInventoryHistory = function(options, callback) {
 		} else {
 			callback(null, output);
 		}
-	});
+	}, "steamcommunity");
 };
 
 function resolveVanityURL(vanityURL, callback) {

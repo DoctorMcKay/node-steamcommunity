@@ -33,9 +33,9 @@ SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
 				}
 
 				self.getWebApiKey(domain, callback);
-			});
+			}, "steamcommunity");
 		}
-	});
+	}, "steamcommunity");
 };
 
 SteamCommunity.prototype.getWebApiOauthToken = function(callback) {
@@ -62,5 +62,5 @@ SteamCommunity.prototype.getWebApiOauthToken = function(callback) {
 		}
 
 		callback(null, match[1]);
-	});
+	}, "steamcommunity");
 };

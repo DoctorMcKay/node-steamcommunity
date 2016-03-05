@@ -45,7 +45,7 @@ SteamCommunity.prototype.enableTwoFactor = function(callback) {
 			}
 
 			callback(null, body.response);
-		});
+		}, "steamcommunity");
 	});
 };
 
@@ -104,7 +104,7 @@ SteamCommunity.prototype.finalizeTwoFactor = function(secret, activationCode, ca
 			} else {
 				callback(null);
 			}
-		});
+		}, "steamcommunity");
 	}
 };
 
@@ -149,6 +149,6 @@ SteamCommunity.prototype.disableTwoFactor = function(revocationCode, callback) {
 			var error = new Error("Cannot remove authenticator (" + body.response.status + ")");
 			error.eresult = body.response.status;
 			callback(error);
-		});
+		}, "steamcommunity");
 	});
 };

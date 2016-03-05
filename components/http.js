@@ -1,7 +1,8 @@
 var SteamCommunity = require('../index.js');
 
-SteamCommunity.prototype.httpRequest = function(uri, options, callback, method) {
+SteamCommunity.prototype.httpRequest = function(uri, options, callback, source) {
 	if (typeof uri === 'object') {
+		source = callback;
 		callback = options;
 		options = uri;
 		uri = options.url || options.uri;
@@ -14,7 +15,10 @@ SteamCommunity.prototype.httpRequest = function(uri, options, callback, method) 
 		delete this._httpRequestConvenienceMethod;
 	}
 
-	if (this.onPreHttpRequest && this.onPreHttpRequest(options, callback) === false) {
+	var requestID = ++this._httpRequestID;
+	source = source || "";
+
+	if (this.onPreHttpRequest && this.onPreHttpRequest(requestID, source, options, callback) === false) {
 		return false;
 	}
 
@@ -25,7 +29,7 @@ SteamCommunity.prototype.httpRequest = function(uri, options, callback, method) 
 		var communityError = !options.json && options.checkCommunityError !== false && self._checkCommunityError(body, httpError ? function() {} : callback); // don't fire the callback if hasHttpError did it already
 		var tradeError = !options.json && options.checkTradeError !== false && self._checkTradeError(body, httpError || communityError ? function() {} : callback); // don't fire the callback if either of the previous already did
 
-		self.emit('postHttpRequest', httpError || communityError || tradeError || null, response, body, {
+		self.emit('postHttpRequest', requestID, source, options, httpError || communityError || tradeError || null, response, body, {
 			"hasCallback": hasCallback,
 			"httpError": httpError,
 			"communityError": communityError,

@@ -21,5 +21,5 @@ SteamCommunity.prototype.getMarketApps = function(callback) {
 		} else {
 			callback(new Error("Malformed response"));
 		}
-	});
-}
+	}, "steamcommunity");
+};
