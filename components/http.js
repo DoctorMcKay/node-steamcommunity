@@ -97,7 +97,7 @@ SteamCommunity.prototype._checkHttpError = function(err, response, callback) {
 };
 
 SteamCommunity.prototype._checkCommunityError = function(html, callback) {
-	if(html.match(/<h1>Sorry!<\/h1>/)) {
+	if(html && html.match(/<h1>Sorry!<\/h1>/)) {
 		var match = html.match(/<h3>(.+)<\/h3>/);
 		var err = new Error(match ? match[1] : "Unknown error occurred");
 		callback(err);
@@ -108,6 +108,10 @@ SteamCommunity.prototype._checkCommunityError = function(html, callback) {
 };
 
 SteamCommunity.prototype._checkTradeError = function(html, callback) {
+	if (!html) {
+		return false;
+	}
+
 	var match = html.match(/<div id="error_msg">\s*([^<]+)\s*<\/div>/);
 	if (match) {
 		var err = new Error(match[1].trim());
