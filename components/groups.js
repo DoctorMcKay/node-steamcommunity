@@ -39,7 +39,8 @@ SteamCommunity.prototype.getGroupMembers = function(gid, callback, members, link
 
 	var self = this;
 	this.httpRequest(options, function(err, response, body) {
-		if (self._checkHttpError(err, response, callback)) {
+		if (err) {
+			callback(err);
 			return;
 		}
 
@@ -84,16 +85,7 @@ SteamCommunity.prototype.joinGroup = function(gid, callback) {
 			return;
 		}
 
-		if(err || response.statusCode >= 400) {
-			callback(err || new Error("HTTP error " + response.statusCode));
-			return;
-		}
-
-		if(self._checkCommunityError(body, callback)) {
-			return;
-		}
-
-		callback(null);
+		callback(err || null);
 	}, "steamcommunity");
 };
 
@@ -112,16 +104,7 @@ SteamCommunity.prototype.leaveGroup = function(gid, callback) {
 			return;
 		}
 
-		if(err || response.statusCode >= 400) {
-			callback(err || new Error("HTTP error " + response.statusCode));
-			return;
-		}
-
-		if(self._checkCommunityError(body, callback)) {
-			return;
-		}
-
-		callback(null);
+		callback(err || null);
 	});
 };
 
@@ -139,12 +122,8 @@ SteamCommunity.prototype.getAllGroupAnnouncements = function(gid, time, callback
 	this.httpRequest({
 		"uri": "https://steamcommunity.com/gid/" + gid.getSteamID64() + "/rss/" 
 	}, function(err, response, body) {
-
-		if(self._checkHttpError(err, response, callback)) {
-			return;
-		}
-
-		if(self._checkCommunityError(body, callback)) {
+		if (err) {
+			callback(err);
 			return;
 		}
 
@@ -196,15 +175,7 @@ SteamCommunity.prototype.postGroupAnnouncement = function(gid, headline, content
 			return;
 		}
 
-		if(self._checkHttpError(err, response, callback)) {
-			return;
-		}
-
-		if(self._checkCommunityError(body, callback)) {
-			return;
-		}
-
-		callback(null);
+		callback(err || null);
 	}, "steamcommunity");
 };
 
@@ -227,22 +198,14 @@ SteamCommunity.prototype.editGroupAnnouncement = function(gid, aid, headline, co
 			"languages[0][body]": content,
 			"languages[0][updated]": 1
 		}
-	}
+	};
 
 	this.httpRequestPost(submitData, function(err, response, body) {
 		if(!callback) {
 			return;
 		}
 
-		if(self._checkHttpError(err, response, callback)) {
-			return;
-		}
-
-		if(self._checkCommunityError(body, callback)) {
-			return;
-		}
-
-		callback(null);
+		callback(err || null);
 	}, "steamcommunity");
 };
 
@@ -262,15 +225,7 @@ SteamCommunity.prototype.deleteGroupAnnouncement = function(gid, aid, callback) 
 			return;
 		}
 
-		if(self._checkHttpError(err, response, callback)) {
-			return;
-		}
-
-		if(self._checkCommunityError(body, callback)) {
-			return;
-		}
-
-		callback(null);
+		callback(err || null);
 	}, "steamcommunity");
 };
 
@@ -327,16 +282,7 @@ SteamCommunity.prototype.scheduleGroupEvent = function(gid, name, type, descript
 			return;
 		}
 
-		if(err || response.statusCode >= 400) {
-			callback(err || new Error("HTTP error " + response.statusCode));
-			return;
-		}
-
-		if(self._checkCommunityError(body, callback)) {
-			return;
-		}
-
-		callback(null);
+		callback(err || null);
 	}, "steamcommunity");
 };
 
@@ -406,16 +352,7 @@ SteamCommunity.prototype.kickGroupMember = function(gid, steamID, callback) {
 			return;
 		}
 
-		if(err || response.statusCode >= 400) {
-			callback(err || new Error("HTTP error " + response.statusCode));
-			return;
-		}
-
-		if(self._checkCommunityError(body, callback)) {
-			return;
-		}
-
-		callback(null);
+		callback(err || null);
 	}, "steamcommunity");
 };
 
@@ -431,11 +368,8 @@ SteamCommunity.prototype.getGroupHistory = function(gid, page, callback) {
 
 	var self = this;
 	this.httpRequest("https://steamcommunity.com/gid/" + gid.getSteamID64() + "/history?p=" + page, function(err, response, body) {
-		if(self._checkHttpError(err, response, callback)) {
-			return;
-		}
-
-		if(self._checkCommunityError(body, callback)) {
+		if (err) {
+			callback(err);
 			return;
 		}
 

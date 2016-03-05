@@ -4,9 +4,11 @@ var Cheerio = require('cheerio');
 SteamCommunity.prototype.getMarketApps = function(callback) {
 	var self = this;
 	this.httpRequest('https://steamcommunity.com/market/', function (err, response, body) {
-		if(self._checkHttpError(err, response, callback)) {
+		if (err) {
+			callback(err);
 			return;
 		}
+
 		var $ = Cheerio.load(body);
 		if ($('.market_search_game_button_group')) {
 			apps = {};

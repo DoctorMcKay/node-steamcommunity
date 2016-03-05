@@ -28,7 +28,8 @@ SteamCommunity.prototype.enableTwoFactor = function(callback) {
 			},
 			"json": true
 		}, function(err, response, body) {
-			if(self._checkHttpError(err, response, callback)) {
+			if (err) {
+				callback(err);
 				return;
 			}
 
@@ -77,7 +78,8 @@ SteamCommunity.prototype.finalizeTwoFactor = function(secret, activationCode, ca
 			},
 			"json": true
 		}, function(err, response, body) {
-			if(self._checkHttpError(err, response, callback)) {
+			if (err) {
+				callback(err);
 				return;
 			}
 
@@ -127,7 +129,8 @@ SteamCommunity.prototype.disableTwoFactor = function(revocationCode, callback) {
 			},
 			"json": true
 		}, function(err, response, body) {
-			if(self._checkHttpError(err, response, callback)) {
+			if (err) {
+				callback(err);
 				return;
 			}
 

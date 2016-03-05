@@ -118,7 +118,8 @@ SteamCommunity.prototype.chatMessage = function(recipient, text, type, callback)
 			return;
 		}
 		
-		if(self._checkHttpError(err, response, callback)) {
+		if (err) {
+			callback(err);
 			return;
 		}
 		

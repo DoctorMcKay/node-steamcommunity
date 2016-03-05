@@ -153,7 +153,8 @@ function request(community, url, key, time, tag, params, json, callback) {
 		"qs": params,
 		"json": !!json
 	}, function(err, response, body) {
-		if(community._checkHttpError(err, response, callback)) {
+		if (err) {
+			callback(err);
 			return;
 		}
 

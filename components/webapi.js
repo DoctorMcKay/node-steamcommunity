@@ -6,7 +6,8 @@ SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
 		"uri": "https://steamcommunity.com/dev/apikey",
 		"followRedirect": false
 	}, function(err, response, body) {
-		if(self._checkHttpError(err, response, callback)) {
+		if (err) {
+			callback(err);
 			return;
 		}
 
@@ -28,7 +29,8 @@ SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
 					"Submit": "Register"
 				}
 			}, function(err, response, body) {
-				if(self._checkHttpError(err, response, callback)) {
+				if (err) {
+					callback(err);
 					return;
 				}
 
@@ -47,11 +49,8 @@ SteamCommunity.prototype.getWebApiOauthToken = function(callback) {
 
 	// Pull an oauth token from the webchat UI
 	this.httpRequest("https://steamcommunity.com/chat", function(err, response, body) {
-		if(self._checkHttpError(err, response, callback)) {
-			return;
-		}
-
-		if(self._checkCommunityError(body, callback)) {
+		if (err) {
+			callback(err);
 			return;
 		}
 

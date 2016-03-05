@@ -21,7 +21,8 @@ SteamCommunity.prototype.addFriend = function(userID, callback) {
 			return;
 		}
 
-		if(self._checkHttpError(err, response, callback)) {
+		if (err) {
+			callback(err);
 			return;
 		}
 
@@ -51,11 +52,7 @@ SteamCommunity.prototype.acceptFriendRequest = function(userID, callback) {
 			return;
 		}
 
-		if(self._checkHttpError(err, response, callback)) {
-			return;
-		}
-
-		callback(null);
+		callback(err || null);
 	}, "steamcommunity");
 };
 
@@ -76,11 +73,7 @@ SteamCommunity.prototype.removeFriend = function(userID, callback) {
 			return;
 		}
 
-		if(self._checkHttpError(err, response, callback)) {
-			return;
-		}
-
-		callback(null);
+		callback(err || null);
 	}, "steamcommunity");
 };
 
@@ -101,11 +94,7 @@ SteamCommunity.prototype.blockCommunication = function(userID, callback) {
 			return;
 		}
 
-		if(self._checkHttpError(err, response, callback)) {
-			return;
-		}
-
-		callback(null);
+		callback(err || null);
 	}, "steamcommunity");
 };
 
@@ -150,7 +139,8 @@ SteamCommunity.prototype.postUserComment = function(userID, message, callback) {
 			return;
 		}
 
-		if(self._checkHttpError(err, response, callback)) {
+		if (err) {
+			callback(err);
 			return;
 		}
 
@@ -185,7 +175,8 @@ SteamCommunity.prototype.inviteUserToGroup = function(userID, groupID, callback)
 			return;
 		}
 
-		if(self._checkHttpError(err, response, callback)) {
+		if (err) {
+			callback(err);
 			return;
 		}
 
@@ -216,7 +207,8 @@ SteamCommunity.prototype.getUserInventoryContexts = function(userID, callback) {
 
 	var self = this;
 	this.httpRequest("https://steamcommunity.com/profiles/" + userID.getSteamID64() + "/inventory/", function(err, response, body) {
-		if(self._checkHttpError(err, response, callback)) {
+		if (err) {
+			callback(err);
 			return;
 		}
 
@@ -257,7 +249,8 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 			},
 			"json": true
 		}, function(err, response, body) {
-			if(self._checkHttpError(err, response, callback)) {
+			if (err) {
+				callback(err);
 				return;
 			}
 

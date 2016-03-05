@@ -74,8 +74,9 @@ SteamCommunity.prototype.login = function(details, callback) {
 		"json": true
 	}, function(err, response, body) {
 		// Remove the mobile cookies
-		if (self._checkHttpError(err, response, callback)) {
+		if (err) {
 			deleteMobileCookies();
+			callback(err);
 			return;
 		}
 
@@ -110,7 +111,8 @@ SteamCommunity.prototype.login = function(details, callback) {
 		}, function(err, response, body) {
 			deleteMobileCookies();
 
-			if(self._checkHttpError(err, response, callback)) {
+			if (err) {
+				callback(err);
 				return;
 			}
 
@@ -183,7 +185,8 @@ SteamCommunity.prototype.oAuthLogin = function(steamguard, token, callback) {
 		},
 		"json": true
 	}, function(err, response, body) {
-		if(self._checkHttpError(err, response, callback)) {
+		if (err) {
+			callback(err);
 			return;
 		}
 
@@ -247,16 +250,19 @@ SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
 			return;
 		}
 		
-		if(self._checkHttpError(err, response, callback)) {
+		if (err) {
+			callback(err);
 			return;
 		}
 		
 		if(!body || typeof body.success !== 'boolean') {
-			return callback("Invalid response");
+			callback("Invalid response");
+			return;
 		}
 		
 		if(!body.success) {
-			return callback("Incorrect PIN");
+			callback("Incorrect PIN");
+			return;
 		}
 		
 		callback();
@@ -266,7 +272,8 @@ SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
 SteamCommunity.prototype.getNotifications = function(callback) {
 	var self = this;
 	this.httpRequestGet("https://steamcommunity.com/actions/RefreshNotificationArea", function(err, response, body) {
-		if(self._checkHttpError(err, response, callback)) {
+		if (err) {
+			callback(err);
 			return;
 		}
 		
@@ -305,12 +312,8 @@ SteamCommunity.prototype.resetItemNotifications = function(callback) {
 		if(!callback) {
 			return;
 		}
-		
-		if(self._checkHttpError(err, response, callback)) {
-			return;
-		}
-		
-		callback(null);
+
+		callback(err || null);
 	}, "steamcommunity");
 };
 

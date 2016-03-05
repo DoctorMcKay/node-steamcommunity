@@ -13,11 +13,8 @@ SteamCommunity.prototype.getSteamUser = function(id, callback) {
 	
 	var self = this;
 	this.httpRequest("http://steamcommunity.com/" + (typeof id === 'string' ? "id/" + id : "profiles/" + id.toString()) + "/?xml=1", function(err, response, body) {
-		if(self._checkHttpError(err, response, callback)) {
-			return;
-		}
-		
-		if(self._checkCommunityError(body, callback)) {
+		if (err) {
+			callback(err);
 			return;
 		}
 		

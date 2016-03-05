@@ -8,7 +8,8 @@ SteamCommunity.prototype.getMarketItem = function(appid, hashName, currency, cal
 	}
 	var self = this;
 	this.httpRequest("https://steamcommunity.com/market/listings/" + appid + "/" + encodeURIComponent(hashName), function(err, response, body) {
-		if(self._checkHttpError(err, response, callback)) {
+		if (err) {
+			callback(err);
 			return;
 		}
 		
@@ -107,7 +108,8 @@ CMarketItem.prototype.updatePriceForCommodity = function(currency, callback) {
 		"uri": "https://steamcommunity.com/market/itemordershistogram?country=US&language=english&currency=" + currency + "&item_nameid=" + this.commodityID,
 		"json": true
 	}, function(err, response, body) {
-		if(self._community._checkHttpError(err, response, callback)) {
+		if (err) {
+			callback(err);
 			return;
 		}
 		
@@ -153,7 +155,8 @@ CMarketItem.prototype.updatePriceForNonCommodity = function (currency, callback)
 			"/render/?query=&start=0&count=10&country=US&language=english&currency=" + currency,
 		"json": true
 	}, function(err, response, body) {
-		if (self._community._checkHttpError(err, response, callback)) {
+		if (err) {
+			callback(err);
 			return;
 		}
 

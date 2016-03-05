@@ -40,7 +40,8 @@ function performSearch(request, qs, results, callback) {
 		},
 		"json": true
 	}, function(err, response, body) {
-		if(self._checkHttpError(err, response, callback)) {
+		if (err) {
+			callback(err);
 			return;
 		}
 		
