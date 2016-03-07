@@ -318,7 +318,11 @@ SteamCommunity.prototype.resetItemNotifications = function(callback) {
 };
 
 SteamCommunity.prototype.loggedIn = function(callback) {
-	this.httpRequest("https://steamcommunity.com/my", {"followRedirect": false}, function(err, response, body) {
+	this.httpRequestGet({
+		"uri": "https://steamcommunity.com/my",
+		"followRedirect": false,
+		"checkHttpError": false
+	}, function(err, response, body) {
 		if(err || (response.statusCode != 302 && response.statusCode != 403)) {
 			callback(err || new Error("HTTP error " + response.statusCode));
 			return;
