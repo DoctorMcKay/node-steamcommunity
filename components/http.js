@@ -74,6 +74,10 @@ SteamCommunity.prototype.httpRequestPost = function() {
 	return this.httpRequest.apply(this, arguments);
 };
 
+SteamCommunity.prototype._notifySessionExpired = function(err) {
+	this.emit('sessionExpired', err);
+};
+
 SteamCommunity.prototype._checkHttpError = function(err, response, callback) {
 	if(err) {
 		callback(err);
@@ -83,6 +87,7 @@ SteamCommunity.prototype._checkHttpError = function(err, response, callback) {
 	if(response.statusCode >= 300 && response.statusCode <= 399 && response.headers.location.indexOf('/login') != -1) {
 		err = new Error("Not Logged In");
 		callback(err);
+		this._notifySessionExpired(err);
 		return err;
 	}
 
@@ -109,6 +114,7 @@ SteamCommunity.prototype._checkCommunityError = function(html, callback) {
 	if (html && html.match(/g_steamID = false;/) && html.match(/<h1>Sign In<\/h1>/)) {
 		err = new Error("Not Logged In");
 		callback(err);
+		this._notifySessionExpired(err);
 		return err;
 	}
 
