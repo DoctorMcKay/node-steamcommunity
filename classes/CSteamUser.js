@@ -1,9 +1,10 @@
 var SteamCommunity = require('../index.js');
+var Helpers = require('../components/helpers.js');
 var SteamID = require('steamid');
 var xml2js = require('xml2js');
 
 SteamCommunity.prototype.getSteamUser = function(id, callback) {
-	if(typeof id !== 'string' && !(typeof id === 'object' && id.__proto__ === SteamID.prototype)) {
+	if(typeof id !== 'string' && !Helpers.isSteamID(id)) {
 		throw new Error("id parameter should be a user URL string or a SteamID object");
 	}
 	
