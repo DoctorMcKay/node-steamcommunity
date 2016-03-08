@@ -9,12 +9,15 @@ This module provides an easy interface for the Steam Community website. This mod
 
 It supports Steam Guard and CAPTCHAs.
 
-# Installation
-
-Install it from npm:
-
-    $ npm install steamcommunity
+**Have a question about the module or coding in general? *Do not create a GitHub issue.* GitHub issues are for feature
+requests and bug reports. Instead, post in the [dedicated forum](https://dev.doctormckay.com/forum/8-node-steamcommunity/).
+Such issues may be ignored!**
 
 # Documentation
 
-As of version 1.0.0, documentation is on the [GitHub wiki](https://github.com/DoctorMcKay/node-steamcommunity/wiki).
+Documentation is available on the [GitHub wiki](https://github.com/DoctorMcKay/node-steamcommunity/wiki).
+
+# Support
+
+Report bugs on the [issue tracker](https://github.com/DoctorMcKay/node-steamcommunity/issues) or ask questions
+on the [dedicated forum](https://dev.doctormckay.com/forum/8-node-steamcommunity/).
