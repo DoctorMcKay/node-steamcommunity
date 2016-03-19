@@ -14,11 +14,12 @@ rl.question("Username: ", function(accountName) {
 	});
 });
 
-function doLogin(accountName, password, authCode) {
+function doLogin(accountName, password, authCode, captcha) {
 	community.login({
 		"accountName": accountName,
 		"password": password,
-		"authCode": authCode
+		"authCode": authCode,
+		"captcha": captcha
 	}, function(err, sessionID, cookies, steamguard) {
 		if(err) {
 			if(err.message == 'SteamGuardMobile') {
@@ -29,8 +30,17 @@ function doLogin(accountName, password, authCode) {
 
 			if(err.message == 'SteamGuard') {
 				console.log("An email has been sent to your address at " + err.emaildomain);
-				rl.question("Steam Guard Code: ", function(code) {
+				rl.question("Steam Guard Code: ", function (code) {
 					doLogin(accountName, password, code);
+				});
+
+				return;
+			}
+
+			if(err.message == 'CAPTCHA') {
+				console.log(err.captchaurl);
+				rl.question("CAPTCHA: ", function(captchaInput) {
+					doLogin(accountName, password, authCode, captchaInput);
 				});
 
 				return;
