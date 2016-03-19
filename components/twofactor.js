@@ -144,14 +144,8 @@ SteamCommunity.prototype.disableTwoFactor = function(revocationCode, callback) {
 				return;
 			}
 
-			if(body.response.status == 1) {
-				callback(null);
-				return;
-			}
-
-			var error = new Error("Cannot remove authenticator (" + body.response.status + ")");
-			error.eresult = body.response.status;
-			callback(error);
+			// success = true means it worked
+			callback(null);
 		}, "steamcommunity");
 	});
 };
