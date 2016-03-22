@@ -15,7 +15,7 @@
 	"dependencies": {
 		"request": "^2.61.0",
 		"node-bignumber": "^1.2.1",
-		"steamid": "^0.3.1",
+		"steamid": "^1.0.0",
 		"xml2js": "^0.4.11",
 		"cheerio": "^0.20.0",
 		"async": "^1.4.2",
