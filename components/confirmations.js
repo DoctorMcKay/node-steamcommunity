@@ -18,10 +18,10 @@ SteamCommunity.prototype.getConfirmations = function(time, key, callback) {
 		if(err) {
 			if (err.message == "Invalid protocol: steammobile:") {
 				err.message = "Not Logged In";
+				self._notifySessionExpired(err);
 			}
 
 			callback(err);
-			self._notifySessionExpired(err);
 			return;
 		}
 
