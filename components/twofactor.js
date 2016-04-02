@@ -61,7 +61,15 @@ SteamCommunity.prototype.finalizeTwoFactor = function(secret, activationCode, ca
 			return;
 		}
 
-		finalize(token);
+		SteamTotp.getTimeOffset(function(err, offset, latency) {
+			if (err) {
+				callback(err);
+				return;
+			}
+
+			diff = offset;
+			finalize(token);
+		});
 	});
 
 	function finalize(token) {
