@@ -135,6 +135,8 @@ SteamCommunity.prototype.login = function(details, callback) {
 				callback(error);
 			} else if(!body.success) {
 				callback(new Error(body.message || "Unknown error"));
+			} else if(!body.oauth) {
+				callback(new Error("Malformed response"));
 			} else {
 				var sessionID = generateSessionID();
 				var oAuth = JSON.parse( body.oauth );
