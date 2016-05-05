@@ -341,20 +341,34 @@ SteamCommunity.prototype.loggedIn = function(callback) {
 
 SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 	var self = this;
-	this.httpRequest("https://steamcommunity.com/my", {"followRedirect": false}, function(err, response, body) {
-		if(err || response.statusCode != 302) {
-			callback(err || "HTTP error " + response.statusCode);
-			return;
-		}
-		
-		var match = response.headers.location.match(/steamcommunity\.com(\/(id|profiles)\/[^\/]+)\/?/);
-		if(!match) {
-			callback(new Error("Can't get profile URL"));
-			return;
-		}
 
+	if (this._profileURL) {
+		completeRequest(this._profileURL);
+	} else {
+		this.httpRequest("https://steamcommunity.com/my", {"followRedirect": false}, function(err, response, body) {
+			if(err || response.statusCode != 302) {
+				callback(err || "HTTP error " + response.statusCode);
+				return;
+			}
+
+			var match = response.headers.location.match(/steamcommunity\.com(\/(id|profiles)\/[^\/]+)\/?/);
+			if(!match) {
+				callback(new Error("Can't get profile URL"));
+				return;
+			}
+
+			self._profileURL = match[1];
+			setTimeout(function () {
+				delete self._profileURL; // delete the cache
+			}, 60000);
+
+			completeRequest(match[1]);
+		}, "steamcommunity");
+	}
+
+	function completeRequest(url) {
 		var options = {
-			"uri": "https://steamcommunity.com" + match[1] + "/" + endpoint,
+			"uri": "https://steamcommunity.com" + url + "/" + endpoint,
 			"method": "GET"
 		};
 
@@ -364,9 +378,8 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 		}
 
 		self.httpRequest(options, callback, "steamcommunity");
-	}, "steamcommunity");
+	}
 };
-
 
 require('./components/http.js');
 require('./components/chat.js');

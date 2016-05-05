@@ -114,6 +114,10 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 		}
 		
 		self._myProfile("edit", values, function(err, response, body) {
+			if (values.customURL) {
+				delete self._profileURL;
+			}
+
 			if(err || response.statusCode != 200) {
 				if(callback) {
 					callback(err || new Error("HTTP error " + response.statusCode));
