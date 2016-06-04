@@ -130,7 +130,7 @@ SteamCommunity.prototype._checkTradeError = function(html, callback) {
 	var match = html.match(/<div id="error_msg">\s*([^<]+)\s*<\/div>/);
 	if (match) {
 		var err = new Error(match[1].trim());
-		callback(new Error(err));
+		callback(err);
 		return err;
 	}
 
