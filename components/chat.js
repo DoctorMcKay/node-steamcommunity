@@ -181,8 +181,8 @@ SteamCommunity.prototype._chatPoll = function() {
 			return;
 		}
 		
-		if(body.error != 'OK') {
-			self.emit('debug', 'Error in chat poll: ' + body.error);
+		if(!body || body.error != 'OK') {
+			self.emit('debug', 'Error in chat poll: ' + (body && body.error ? body.error : "Malformed response"));
 			return;
 		}
 		
