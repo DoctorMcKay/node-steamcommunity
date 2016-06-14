@@ -42,9 +42,17 @@ SteamCommunity.prototype.chatLogon = function(interval, uiMode) {
 	var self = this;
 	this.getWebApiOauthToken(function(err, token) {
 		if(err) {
+			var fatal = err.message.indexOf('not authorized') != -1;
+
+			if (!fatal) {
+				self.chatState = SteamCommunity.ChatState.LogOnFailed;
+				setTimeout(self.chatLogon.bind(self), 5000);
+			} else {
+				self.chatState = SteamCommunity.ChatState.Offline;
+			}
+
+			self.emit('chatLogOnFailed', err, fatal);
 			self.emit('debug', "Cannot get oauth token: " + err.message);
-			self.chatState = SteamCommunity.ChatState.LogOnFailed;
-			setTimeout(self.chatLogon.bind(self), 5000);
 			return;
 		}
 		
@@ -57,15 +65,17 @@ SteamCommunity.prototype.chatLogon = function(interval, uiMode) {
 			"json": true
 		}, function(err, response, body) {
 			if(err || response.statusCode != 200) {
-				self.emit('debug', 'Error logging into webchat: ' + (err ? err.message : "HTTP error " + response.statusCode));
 				self.chatState = SteamCommunity.ChatState.LogOnFailed;
+				self.emit('chatLogOnFailed', err ? err : new Error("HTTP error " + response.statusCode), false);
+				self.emit('debug', 'Error logging into webchat: ' + (err ? err.message : "HTTP error " + response.statusCode));
 				setTimeout(self.chatLogon.bind(self), 5000);
 				return;
 			}
 			
 			if(body.error != 'OK') {
-				self.emit('debug', 'Error logging into webchat: ' + body.error);
 				self.chatState = SteamCommunity.ChatState.LogOnFailed;
+				self.emit('chatLogOnFailed', new Error(body.error), false);
+				self.emit('debug', 'Error logging into webchat: ' + body.error);
 				setTimeout(self.chatLogon.bind(self), 5000);
 				return;
 			}
