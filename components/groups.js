@@ -120,7 +120,7 @@ SteamCommunity.prototype.getAllGroupAnnouncements = function(gid, time, callback
 
 	var self = this;
 	this.httpRequest({
-		"uri": "https://steamcommunity.com/gid/" + gid.getSteamID64() + "/rss/" 
+		"uri": "https://steamcommunity.com/gid/" + gid.getSteamID64() + "/rss/"
 	}, function(err, response, body) {
 		if (err) {
 			callback(err);
@@ -242,7 +242,7 @@ SteamCommunity.prototype.scheduleGroupEvent = function(gid, name, type, descript
 		server = {"ip": "", "password": ""};
 	} else if(typeof server === 'string') {
 		server = {"ip": server, "password": ""};
-	} else {
+	} else if(typeof server !== 'object') {
 		server = {"ip": "", "password": ""};
 	}
 
@@ -260,6 +260,64 @@ SteamCommunity.prototype.scheduleGroupEvent = function(gid, name, type, descript
 	};
 
 	if(time === null) {
+		form.startDate = 'MM/DD/YY';
+		form.startHour = '12';
+		form.startMinute = '00';
+		form.startAMPM = 'PM';
+		form.timeChoice = 'quick';
+	} else {
+		form.startDate = (time.getMonth() + 1 < 10 ? '0' : '') + (time.getMonth() + 1) + '/' + (time.getDate() < 10 ? '0' : '') + time.getDate() + '/' + time.getFullYear().toString().substring(2);
+		form.startHour = (time.getHours() === 0 ? '12' : (time.getHours() > 12 ? time.getHours() - 12 : time.getHours()));
+		form.startMinute = (time.getMinutes() < 10 ? '0' : '') + time.getMinutes();
+		form.startAMPM = (time.getHours() <= 12 ? 'AM' : 'PM');
+		form.timeChoice = 'specific';
+	}
+
+	var self = this;
+	this.httpRequestPost({
+		"uri": "https://steamcommunity.com/gid/" + gid.toString() + "/eventEdit",
+		"form": form
+	}, function(err, response, body) {
+		if(!callback) {
+			return;
+		}
+
+		callback(err || null);
+	}, "steamcommunity");
+};
+
+SteamCommunity.prototype.editGroupEvent = function (gid, id, name, type, description, time, server, callback) {
+	if (typeof gid === 'string') {
+		gid = new SteamID(gid);
+	}
+
+	// Event types: ChatEvent - Chat, OtherEvent - A lil somethin somethin, PartyEvent - Party!, MeetingEvent - Important meeting, SpecialCauseEvent - Special cause (charity ball?), MusicAndArtsEvent - Music or Art type thing, SportsEvent - Sporting endeavor, TripEvent - Out of town excursion
+	// Passing a number for type will make it a game event for that appid
+
+	if (typeof server === 'function') {
+		callback = server;
+		server = {"ip": "", "password": ""};
+	} else if (typeof server === 'string') {
+		server = {"ip": server, "password": ""};
+	} else if (typeof server !== 'object') {
+		server = {"ip": "", "password": ""};
+	}
+
+	var form = {
+		"sessionid": this.getSessionID(),
+		"action": "updateEvent",
+		"eventID": id,
+		"tzOffset": new Date().getTimezoneOffset() * -60,
+		"name": name,
+		"type": (typeof type === 'number' || !isNaN(parseInt(type, 10)) ? "GameEvent" : type),
+		"appID": (typeof type === 'number' || !isNaN(parseInt(type, 10)) ? type : ''),
+		"serverIP": server.ip,
+		"serverPassword": server.password,
+		"notes": description,
+		"eventQuickTime": "now"
+	};
+
+	if (time === null) {
 		form.startDate = 'MM/DD/YY';
 		form.startHour = '12';
 		form.startMinute = '00';

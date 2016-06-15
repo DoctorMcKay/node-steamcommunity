@@ -7,24 +7,24 @@ SteamCommunity.prototype.getSteamGroup = function(id, callback) {
 	if(typeof id !== 'string' && !Helpers.isSteamID(id)) {
 		throw new Error("id parameter should be a group URL string or a SteamID object");
 	}
-	
+
 	if(typeof id === 'object' && (id.universe != SteamID.Universe.PUBLIC || id.type != SteamID.Type.CLAN)) {
 		throw new Error("SteamID must stand for a clan account in the public universe");
 	}
-	
+
 	var self = this;
 	this.httpRequest("https://steamcommunity.com/" + (typeof id === 'string' ? "groups/" + id : "gid/" + id.toString()) + "/memberslistxml/?xml=1", function(err, response, body) {
 		if (err) {
 			callback(err);
 			return;
 		}
-		
+
 		xml2js.parseString(body, function(err, result) {
 			if(err) {
 				callback(err);
 				return;
 			}
-			
+
 			callback(null, new CSteamGroup(self, result.memberList));
 		});
 	}, "steamcommunity");
@@ -32,7 +32,7 @@ SteamCommunity.prototype.getSteamGroup = function(id, callback) {
 
 function CSteamGroup(community, groupData) {
 	this._community = community;
-	
+
 	this.steamID = new SteamID(groupData.groupID64[0]);
 	this.name = groupData.groupDetails[0].groupName[0];
 	this.url = groupData.groupDetails[0].groupURL[0];
@@ -48,7 +48,7 @@ function CSteamGroup(community, groupData) {
 CSteamGroup.prototype.getAvatarURL = function(size, protocol) {
 	size = size || '';
 	protocol = protocol || 'http://';
-	
+
 	var url = protocol + "steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/" + this.avatarHash.substring(0, 2) + "/" + this.avatarHash;
 	if(size == 'full' || size == 'medium') {
 		return url + "_" + size + ".jpg";
@@ -62,7 +62,7 @@ CSteamGroup.prototype.getMembers = function(addresses, callback) {
 		callback = addresses;
 		addresses = null;
 	}
-	
+
 	this._community.getGroupMembers(this.steamID, callback, null, null, addresses, 0);
 };
 
@@ -92,6 +92,10 @@ CSteamGroup.prototype.deleteAnnouncement = function(annoucementID, callback) {
 
 CSteamGroup.prototype.scheduleEvent = function(name, type, description, time, server, callback) {
 	this._community.scheduleGroupEvent(this.steamID, name, type, description, time, server, callback);
+};
+
+CSteamGroup.prototype.editEvent = function(id, name, type, description, time, server, callback) {
+	this._community.editGroupEvent(this.steamID, id, name, type, description, time, server, callback);
 };
 
 CSteamGroup.prototype.setPlayerOfTheWeek = function(steamID, callback) {
