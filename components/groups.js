@@ -242,7 +242,7 @@ SteamCommunity.prototype.scheduleGroupEvent = function(gid, name, type, descript
 		server = {"ip": "", "password": ""};
 	} else if(typeof server === 'string') {
 		server = {"ip": server, "password": ""};
-	} else {
+	} else if(typeof server !== 'object') {
 		server = {"ip": "", "password": ""};
 	}
 
@@ -299,7 +299,7 @@ SteamCommunity.prototype.editGroupEvent = function (gid, id, name, type, descrip
 		server = {"ip": "", "password": ""};
 	} else if (typeof server === 'string') {
 		server = {"ip": server, "password": ""};
-	} else {
+	} else if (typeof server !== 'object') {
 		server = {"ip": "", "password": ""};
 	}
 
