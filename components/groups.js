@@ -344,6 +344,30 @@ SteamCommunity.prototype.editGroupEvent = function (gid, id, name, type, descrip
 	}, "steamcommunity");
 };
 
+SteamCommunity.prototype.deleteGroupEvent = function(gid, id, callback) {
+	if (typeof gid === 'string') {
+		gid = new SteamID(gid);
+	}
+
+	var form = {
+		"sessionid": this.getSessionID(),
+		"action": "deleteEvent",
+		"eventID": id
+	};
+
+	var self = this;
+	this.httpRequestPost({
+		"uri": "https://steamcommunity.com/gid/" + gid.toString() + "/eventEdit",
+		"form": form
+	}, function(err, response, body) {
+		if(!callback) {
+			return;
+		}
+
+		callback(err || null);
+	}, "steamcommunity");
+};
+
 SteamCommunity.prototype.setGroupPlayerOfTheWeek = function(gid, steamID, callback) {
 	if(typeof gid === 'string') {
 		gid = new SteamID(gid);
