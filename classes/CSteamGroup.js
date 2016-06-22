@@ -98,6 +98,10 @@ CSteamGroup.prototype.editEvent = function(id, name, type, description, time, se
 	this._community.editGroupEvent(this.steamID, id, name, type, description, time, server, callback);
 };
 
+CSteamGroup.prototype.deleteEvent = function (id, callback) {
+	this._community.deleteGroupEvent(this.steamID, id, callback);
+};
+
 CSteamGroup.prototype.setPlayerOfTheWeek = function(steamID, callback) {
 	this._community.setGroupPlayerOfTheWeek(this.steamID, steamID, callback);
 };
