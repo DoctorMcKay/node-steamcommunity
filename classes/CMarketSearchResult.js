@@ -27,53 +27,55 @@ SteamCommunity.prototype.marketSearch = function(options, callback) {
 	qs.count = 100;
 	qs.sort_column = 'price';
 	qs.sort_dir = 'asc';
-	performSearch.call(this, this.httpRequest, qs, [], callback);
-};
 
-function performSearch(request, qs, results, callback) {
 	var self = this;
-	request({
-		"uri": "https://steamcommunity.com/market/search/render/",
-		"qs": qs,
-		"headers": {
-			"referer": "https://steamcommunity.com/market/search"
-		},
-		"json": true
-	}, function(err, response, body) {
-		if (err) {
-			callback(err);
-			return;
-		}
-		
-		if(!body.success) {
-			callback(new Error("Success is not true"));
-			return;
-		}
-		
-		if(!body.results_html) {
-			callback(new Error("No results_html in response"));
-			return;
-		}
-		
-		var $ = Cheerio.load(body.results_html);
-		if($('.market_listing_table_message').length > 0) {
-			callback(new Error($('.market_listing_table_message').text()));
-			return;
-		}
-		
-		var rows = $('.market_listing_row_link');
-		for(var i = 0; i < rows.length; i++) {
-			results.push(new CMarketSearchResult($(rows[i])));
-		}
-		
-		if(body.start + body.pagesize >= body.total_count) {
-			callback(null, results);
-		} else {
-			qs.start += body.pagesize;
-			performSearch.call(self, request, qs, results, callback);
-		}
-	}, "steamcommunity");
-}
+	var results = [];
+	performSearch();
+
+	function performSearch() {
+		self.httpRequest({
+			"uri": "https://steamcommunity.com/market/search/render/",
+			"qs": qs,
+			"headers": {
+				"referer": "https://steamcommunity.com/market/search"
+			},
+			"json": true
+		}, function(err, response, body) {
+			if (err) {
+				callback(err);
+				return;
+			}
+
+			if(!body.success) {
+				callback(new Error("Success is not true"));
+				return;
+			}
+
+			if(!body.results_html) {
+				callback(new Error("No results_html in response"));
+				return;
+			}
+
+			var $ = Cheerio.load(body.results_html);
+			if($('.market_listing_table_message').length > 0) {
+				callback(new Error($('.market_listing_table_message').text()));
+				return;
+			}
+
+			var rows = $('.market_listing_row_link');
+			for(var i = 0; i < rows.length; i++) {
+				results.push(new CMarketSearchResult($(rows[i])));
+			}
+
+			if(body.start + body.pagesize >= body.total_count) {
+				callback(null, results);
+			} else {
+				qs.start += body.pagesize;
+				performSearch();
+			}
+		}, "steamcommunity");
+	}
+};
 
 function CMarketSearchResult(row) {
 	var match = row.attr('href').match(/\/market\/listings\/(\d+)\/(.+)/);
