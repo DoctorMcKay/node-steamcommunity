@@ -80,19 +80,25 @@ SteamCommunity.prototype._notifySessionExpired = function(err) {
 };
 
 SteamCommunity.prototype._checkHttpError = function(err, response, callback) {
-	if(err) {
+	if (err) {
 		callback(err);
 		return err;
 	}
 
-	if(response.statusCode >= 300 && response.statusCode <= 399 && response.headers.location.indexOf('/login') != -1) {
+	if (response.statusCode >= 300 && response.statusCode <= 399 && response.headers.location.indexOf('/login') != -1) {
 		err = new Error("Not Logged In");
 		callback(err);
 		this._notifySessionExpired(err);
 		return err;
 	}
 
-	if(response.statusCode >= 400) {
+	if (response.statusCode == 403 && response.body && response.body.match(/<div id="parental_notice_instructions">Enter your PIN below to exit Family View.<\/div>/)) {
+		err = new Error("Family View Restricted");
+		callback(err);
+		return err;
+	}
+
+	if (response.statusCode >= 400) {
 		err = new Error("HTTP error " + response.statusCode);
 		err.code = response.statusCode;
 		callback(err);
