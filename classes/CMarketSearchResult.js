@@ -79,7 +79,7 @@ SteamCommunity.prototype.marketSearch = function(options, callback) {
 };
 
 function CMarketSearchResult(row) {
-	var match = row.attr('href').match(/\/market\/listings\/(\d+)\/(.+)/);
+	var match = row.attr('href').match(/\/market\/listings\/(\d+)\/([^\?\/]+)/);
 	
 	this.appid = parseInt(match[1], 10);
 	this.market_hash_name = decodeURIComponent(match[2]);
