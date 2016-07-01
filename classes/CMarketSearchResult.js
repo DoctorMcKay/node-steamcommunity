@@ -57,8 +57,9 @@ SteamCommunity.prototype.marketSearch = function(options, callback) {
 			}
 
 			var $ = Cheerio.load(body.results_html);
-			if($('.market_listing_table_message').length > 0) {
-				callback(new Error($('.market_listing_table_message').text()));
+			var $errorMsg = $('.market_listing_table_message');
+			if($errorMsg.length > 0) {
+				callback(new Error($errorMsg.text()));
 				return;
 			}
 
@@ -83,6 +84,6 @@ function CMarketSearchResult(row) {
 	this.appid = parseInt(match[1], 10);
 	this.market_hash_name = decodeURIComponent(match[2]);
 	this.image = row.find('.market_listing_item_img').attr('src').match(/^https?:\/\/[^\/]+\/economy\/image\/[^\/]+\//)[0];
-	this.price = parseInt(row.find('.market_listing_their_price .market_table_value span').text().replace(/[^\d]+/g, ''), 10);
+	this.price = parseInt(row.find('.market_listing_their_price .market_table_value span.normal_price').text().replace(/[^\d]+/g, ''), 10);
 	this.quantity = parseInt(row.find('.market_listing_num_listings_qty').text().replace(/[^\d]+/g, ''), 10);
 }
