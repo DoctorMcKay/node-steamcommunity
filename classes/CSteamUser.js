@@ -150,6 +150,10 @@ CSteamUser.prototype.inviteToGroup = function(groupID, callback) {
 	this._community.inviteUserToGroup(this.steamID, groupID, callback);
 };
 
+CSteamUser.prototype.getAliases = function(callback) {
+	this._community.getUserAliases(this.steamID, callback);
+};
+
 CSteamUser.prototype.getInventoryContexts = function(callback) {
 	this._community.getUserInventoryContexts(this.steamID, callback);
 };
