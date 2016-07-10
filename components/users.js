@@ -1,6 +1,7 @@
 var SteamCommunity = require('../index.js');
 var SteamID = require('steamid');
 var CEconItem = require('../classes/CEconItem.js');
+var Helpers = require('./helpers.js');
 
 SteamCommunity.prototype.addFriend = function(userID, callback) {
 	if(typeof userID === 'string') {
@@ -191,15 +192,12 @@ SteamCommunity.prototype.inviteUserToGroup = function(userID, groupID, callback)
 };
 
 SteamCommunity.prototype.getUserAliases = function(userID, callback) {
-	if(typeof userID === 'string') {
+	if (typeof userID === 'string') {
 		userID = new SteamID(userID);
 	}
 
-	var endpoint = "/profiles/" + userID.getSteamID64();
-
-	var self = this;
 	this.httpRequestGet({
-		"uri": "https://steamcommunity.com" + endpoint + "/ajaxaliases",
+		"uri": "https://steamcommunity.com/profiles/" + userID.getSteamID64() + "/ajaxaliases",
 		"json": true
 	}, function(err, response, body) {
 		if (err) {
@@ -207,12 +205,15 @@ SteamCommunity.prototype.getUserAliases = function(userID, callback) {
 			return;
 		}
 
-		if(typeof body !== 'object') {
+		if (typeof body !== 'object') {
 			callback(new Error("Malformed response"));
 			return;
 		}
 
-		callback(null, body);
+		callback(null, body.map(function(entry) {
+			entry.timechanged = Helpers.decodeSteamTime(entry.timechanged);
+			return entry;
+		}));
 	}, "steamcommunity");
 };
 
