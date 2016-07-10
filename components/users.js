@@ -190,6 +190,32 @@ SteamCommunity.prototype.inviteUserToGroup = function(userID, groupID, callback)
 	}, "steamcommunity");
 };
 
+SteamCommunity.prototype.getUserAliases = function(userID, callback) {
+	if(typeof userID === 'string') {
+		userID = new SteamID(userID);
+	}
+
+	var endpoint = "/profiles/" + userID.getSteamID64();
+
+	var self = this;
+	this.httpRequestGet({
+		"uri": "https://steamcommunity.com" + endpoint + "/ajaxaliases",
+		"json": true
+	}, function(err, response, body) {
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if(typeof body !== 'object') {
+			callback(new Error("Malformed response"));
+			return;
+		}
+
+		callback(null, body);
+	}, "steamcommunity");
+};
+
 SteamCommunity.prototype.getUserInventoryContexts = function(userID, callback) {
 	if(typeof userID === 'string') {
 		userID = new SteamID(userID);
