@@ -108,15 +108,15 @@ SteamCommunity.prototype.getConfirmationOfferID = function(confID, time, key, ca
 
 /**
  * Confirm or cancel a given confirmation.
- * @param {int} confID - The ID of the confirmation in question
- * @param {string} confKey - The confirmation key associated with the confirmation in question (not a TOTP key, the `key` property of CConfirmation)
+ * @param {int|int[]} confID - The ID of the confirmation in question, or an array of confirmation IDs
+ * @param {string|string[]} confKey - The confirmation key associated with the confirmation in question (or an array of them) (not a TOTP key, the `key` property of CConfirmation)
  * @param {int} time - The unix timestamp with which the following key was generated
  * @param {string} key - The confirmation key that was generated using the preceeding time and the tag "allow" (if accepting) or "cancel" (if not accepting)
  * @param {boolean} accept - true if you want to accept the confirmation, false if you want to cancel it
  * @param {SteamCommunity~genericErrorCallback} callback - Called when the request is complete
  */
 SteamCommunity.prototype.respondToConfirmation = function(confID, confKey, time, key, accept, callback) {
-	request(this, "ajaxop", key, time, accept ? "allow" : "cancel", {
+	request(this, (confID instanceof Array) ? "multiajaxop" : "ajaxop", key, time, accept ? "allow" : "cancel", {
 		"op": accept ? "allow" : "cancel",
 		"cid": confID,
 		"ck": confKey
@@ -153,11 +153,19 @@ function request(community, url, key, time, tag, params, json, callback) {
 	params.m = "android";
 	params.tag = tag;
 
-	community.httpRequestGet({
+	var req = {
+		"method": url == 'multiajaxop' ? 'POST' : 'GET',
 		"uri": "https://steamcommunity.com/mobileconf/" + url,
-		"qs": params,
 		"json": !!json
-	}, function(err, response, body) {
+	};
+
+	if (req.method == "GET") {
+		req.qs = params;
+	} else {
+		req.form = params;
+	}
+
+	community.httpRequest(req, function(err, response, body) {
 		if (err) {
 			callback(err);
 			return;
