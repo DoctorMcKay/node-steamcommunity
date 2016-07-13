@@ -144,6 +144,31 @@ SteamCommunity.prototype.respondToConfirmation = function(confID, confKey, time,
 	});
 };
 
+SteamCommunity.prototype.acceptAllConfirmations = function(time, confKey, allowKey, callback) {
+	var self = this;
+
+	this.getConfirmations(time, confKey, function(err, confs) {
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (confs.length == 0) {
+			callback(null, []);
+			return;
+		}
+
+		self.respondToConfirmation(confs.map(function(conf) { return conf.id; }), confs.map(function(conf) { return conf.key; }), time, allowKey, true, function(err) {
+			if (err) {
+				callback(err);
+				return;
+			}
+
+			callback(err, confs);
+		});
+	});
+};
+
 function request(community, url, key, time, tag, params, json, callback) {
 	params = params || {};
 	params.p = SteamTotp.getDeviceID(community.steamID);
