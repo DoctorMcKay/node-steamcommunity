@@ -84,7 +84,8 @@ SteamCommunity.prototype.chatLogon = function(interval, uiMode) {
 				"umqid": body.umqid,
 				"message": body.message,
 				"accessToken": token,
-				"interval": interval
+				"interval": interval,
+				"uiMode": uiMode
 			};
 			
 			self.chatFriends = {};
@@ -188,11 +189,19 @@ SteamCommunity.prototype._chatPoll = function() {
 		
 		if(err || response.statusCode != 200) {
 			self.emit('debug', 'Error in chat poll: ' + (err ? err.message : "HTTP error " + response.statusCode));
+			if (err.message == "Not Logged On") {
+				self._relogWebChat();
+			}
+
 			return;
 		}
 		
 		if(!body || body.error != 'OK') {
 			self.emit('debug', 'Error in chat poll: ' + (body && body.error ? body.error : "Malformed response"));
+			if (body && body.error && body.error == "Not Logged On") {
+				self._relogWebChat();
+			}
+
 			return;
 		}
 		
@@ -223,6 +232,13 @@ SteamCommunity.prototype._chatPoll = function() {
 			}
 		});
 	}, "steamcommunity");
+};
+
+SteamCommunity.prototype._relogWebChat = function() {
+	this.emit('debug', "Relogging web chat");
+	clearTimeout(this._chat.timer);
+	this.chatState = SteamCommunity.ChatState.Offline;
+	this.chatLogon(this._chat.interval, this._chat.uiMode);
 };
 
 SteamCommunity.prototype._chatUpdatePersona = function(steamID) {
