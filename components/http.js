@@ -50,16 +50,22 @@ SteamCommunity.prototype.httpRequest = function(uri, options, callback, source) 
 			var httpError = options.checkHttpError !== false && self._checkHttpError(err, response, callback);
 			var communityError = !options.json && options.checkCommunityError !== false && self._checkCommunityError(body, httpError ? function () {} : callback); // don't fire the callback if hasHttpError did it already
 			var tradeError = !options.json && options.checkTradeError !== false && self._checkTradeError(body, httpError || communityError ? function () {} : callback); // don't fire the callback if either of the previous already did
+			var jsonError = options.json && !body ? new Error("Malformed JSON response") : null;
 
-			self.emit('postHttpRequest', requestID, source, options, httpError || communityError || tradeError || null, response, body, {
+			self.emit('postHttpRequest', requestID, source, options, httpError || communityError || tradeError || jsonError || null, response, body, {
 				"hasCallback": hasCallback,
 				"httpError": httpError,
 				"communityError": communityError,
-				"tradeError": tradeError
+				"tradeError": tradeError,
+				"jsonError": jsonError
 			});
 
-			if(hasCallback && !(httpError || communityError || tradeError)) {
-				callback.apply(self, arguments);
+			if (hasCallback) {
+				if (jsonError) {
+					callback.call(self, jsonError, response);
+				} else if (!(httpError || communityError || tradeError)) {
+					callback.apply(self, arguments);
+				}
 			}
 		});
 	}
