@@ -60,10 +60,10 @@ SteamCommunity.prototype.httpRequest = function(uri, options, callback, source) 
 				"jsonError": jsonError
 			});
 
-			if (hasCallback) {
+			if (hasCallback && !(httpError || communityError || tradeError)) {
 				if (jsonError) {
 					callback.call(self, jsonError, response);
-				} else if (!(httpError || communityError || tradeError)) {
+				} else {
 					callback.apply(self, arguments);
 				}
 			}
