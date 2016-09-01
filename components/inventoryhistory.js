@@ -64,7 +64,7 @@ SteamCommunity.prototype.getInventoryHistory = function(options, callback) {
 
 			time = (timeMatch[1] < 10 ? '0' : '') + timeMatch[1] + ':' + timeMatch[2] + ':00';
 
-			trade.date = new Date(item.find('.tradehistory_date').html() + ' ' + time);
+			trade.date = new Date(item.find('.tradehistory_date').html() + ' ' + time + ' UTC');
 			trade.partnerName = item.find('.tradehistory_event_description a').html();
 			trade.partnerSteamID = null;
 			trade.partnerVanityURL = null;
