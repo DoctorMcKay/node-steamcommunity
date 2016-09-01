@@ -5,15 +5,40 @@ var request = require('request');
 var Cheerio = require('cheerio');
 var Async = require('async');
 
+/*
+ * Inventory history in a nutshell.
+ *
+ * There are no more page numbers. Now you have to request after_time and optionally after_trade.
+ * Without "prev" set, you will request 30 trades that were completed FURTHER IN THE PAST than after_time (and optionally after_trade)
+ * With "prev" set, you will request 30 trades that were completed MORE RECENTLY than after_time (and optionally after_trade)
+ */
+
 SteamCommunity.prototype.getInventoryHistory = function(options, callback) {
 	if (typeof options === 'function') {
 		callback = options;
 		options = {};
 	}
+	
+	options.direction = options.direction || "past";
 
-	options.page = options.page || 1;
+	var qs = "?l=english";
+	if (options.startTime) {
+		if (options.startTime instanceof Date) {
+			options.startTime = Math.floor(options.startTime.getTime() / 1000);
+		}
 
-	this.httpRequest("https://steamcommunity.com/my/inventoryhistory?l=english&p=" + options.page, function(err, response, body) {
+		qs += "&after_time=" + options.startTime;
+
+		if (options.startTrade) {
+			qs += "&after_trade=" + options.startTrade;
+		}
+	}
+
+	if (options.direction == "future") {
+		qs += "&prev=1";
+	}
+
+	this._myProfile("inventoryhistory" + qs, null, function(err, response, body) {
 		if (err) {
 			callback(err);
 			return;
@@ -23,17 +48,10 @@ SteamCommunity.prototype.getInventoryHistory = function(options, callback) {
 		var vanityURLs = [];
 
 		var $ = Cheerio.load(body);
-		var html = $('.inventory_history_pagingrow').html();
-		if (!html) {
+		if (!$('.inventory_history_pagingrow').html()) {
 			callback("Malformed page: no paging row found");
 			return;
 		}
-
-		var match = html.match(/(\d+) - (\d+) of (\d+) History Items/);
-
-		output.first = parseInt(match[1], 10);
-		output.last = parseInt(match[2], 10);
-		output.totalTrades = parseInt(match[3], 10);
 
 		// Load the inventory item data
 		var match2 = body.match(/var g_rgHistoryInventory = (.*);/);
@@ -41,13 +59,35 @@ SteamCommunity.prototype.getInventoryHistory = function(options, callback) {
 			callback(new Error("Malformed page: no trade found"));
 			return;
 		}
-		var historyInventory = JSON.parse(match2[1]);
+
+		try {
+			var historyInventory = JSON.parse(match2[1]);
+		} catch (ex) {
+			callback(new Error("Malformed page: no well-formed trade data found"));
+			return;
+		}
+
+		var i;
+
+		// See if we've got paging buttons
+		var $paging = $('.inventory_history_nextbtn .pagebtn:not(.disabled)');
+		var href;
+		for (i = 0; i < $paging.length; i++) {
+			href = $paging[i].attribs.href;
+			if (href.match(/prev=1/)) {
+				output.firstTradeTime = new Date(href.match(/after_time=(\d+)/)[1] * 1000);
+				output.firstTradeID = href.match(/after_trade=(\d+)/)[1];
+			} else {
+				output.lastTradeTime = new Date(href.match(/after_time=(\d+)/)[1] * 1000);
+				output.lastTradeID = href.match(/after_trade=(\d+)/)[1];
+			}
+		}
 
 		output.trades = [];
 		var trades = $('.tradehistoryrow');
 
 		var item, trade, profileLink, items, j, econItem, timeMatch, time;
-		for (var i = 0; i < trades.length; i++) {
+		for (i = 0; i < trades.length; i++) {
 			item = $(trades[i]);
 			trade = {};
 
