@@ -3,7 +3,7 @@ var SteamCommunity = require('../index.js');
 SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
 	var self = this;
 	this.httpRequest({
-		"uri": "https://steamcommunity.com/dev/apikey",
+		"uri": "https://steamcommunity.com/dev/apikey?l=english",
 		"followRedirect": false
 	}, function(err, response, body) {
 		if (err) {
@@ -21,7 +21,7 @@ SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
 			callback(null, match[1]);
 		} else {
 			// We need to register a new API key
-			self.httpRequestPost('https://steamcommunity.com/dev/registerkey', {
+			self.httpRequestPost('https://steamcommunity.com/dev/registerkey?l=english', {
 				"form": {
 					"domain": domain,
 					"agreeToTerms": "agreed",
