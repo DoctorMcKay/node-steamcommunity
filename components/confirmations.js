@@ -52,6 +52,8 @@ SteamCommunity.prototype.getConfirmations = function(time, key, callback) {
 			var img = conf.find('.mobileconf_list_entry_icon img');
 			confs.push(new CConfirmation(self, {
 				"id": conf.data('confid'),
+				"type": conf.data('type'),
+				"creator": conf.data('creator'),
 				"key": conf.data('key'),
 				"title": conf.find('.mobileconf_list_entry_description>div:nth-of-type(1)').text().trim(),
 				"receiving": conf.find('.mobileconf_list_entry_description>div:nth-of-type(2)').text().trim(),
@@ -294,24 +296,13 @@ SteamCommunity.prototype.checkConfirmations = function() {
 				return; // No new ones
 			}
 
-			// We have new confirmations! Grab a key to get details.
-			self._confirmationCheckerGetKey('details', function(err, key) {
-				newOnes.forEach(function(conf) {
-					self._knownConfirmations[conf.id] = conf; // Add it to our list of known confirmations
-
-					if(err) {
-						self._confirmationQueue.push(conf);
-					} else {
-						// Get its offer ID, if we can
-						conf.getOfferID(key.time, key.key, function(err, offerID) {
-							conf.offerID = offerID ? offerID : null;
-							self._confirmationQueue.push(conf);
-						});
-					}
-				});
-
-				resetTimer();
+			// We have new confirmations!
+			newOnes.forEach(function(conf) {
+				self._knownConfirmations[conf.id] = conf; // Add it to our list of known confirmations
+				self._confirmationQueue.push(conf);
 			});
+
+			resetTimer();
 		});
 	});
 
