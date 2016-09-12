@@ -164,6 +164,8 @@ SteamCommunity.prototype.login = function(details, callback) {
 						break;
 					}
 				}
+
+				self.setCookies(cookies);
 				
 				callback(null, sessionID, cookies, steamguard, oAuth.oauth_token);
 			}
@@ -217,6 +219,7 @@ SteamCommunity.prototype.oAuthLogin = function(steamguard, token, callback) {
 
 SteamCommunity.prototype._setCookie = function(cookie, secure) {
 	var protocol = secure ? "https" : "http";
+	cookie.secure = !!secure;
 
 	this._jar.setCookie(cookie.clone(), protocol + "://steamcommunity.com");
 	this._jar.setCookie(cookie.clone(), protocol + "://store.steampowered.com");
