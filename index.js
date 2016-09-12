@@ -49,16 +49,16 @@ function SteamCommunity(options) {
 	this.request = this.request.defaults(defaults);
 
 	// English
-	this._jar.setCookie(Request.cookie('Steam_Language=english'), 'https://steamcommunity.com');
+	this._setCookie(Request.cookie('Steam_Language=english'));
 
 	// UTC
-	this._jar.setCookie(Request.cookie('timezoneOffset=0,0'), 'https://steamcommunity.com');
+	this._setCookie(Request.cookie('timezoneOffset=0,0'));
 }
 
 SteamCommunity.prototype.login = function(details, callback) {
 	if(details.steamguard) {
 		var parts = details.steamguard.split('||');
-		this._jar.setCookie(Request.cookie('steamMachineAuth' + parts[0] + '=' + encodeURIComponent(parts[1])), 'https://steamcommunity.com');
+		this._setCookie(Request.cookie('steamMachineAuth' + parts[0] + '=' + encodeURIComponent(parts[1])), true);
 	}
 	
 	var self = this;
@@ -71,8 +71,8 @@ SteamCommunity.prototype.login = function(details, callback) {
 		"Accept": "text/javascript, text/html, application/xml, text/xml, */*"
 	};
 
-	this._jar.setCookie(Request.cookie("mobileClientVersion=0 (2.1.3)"), "https://steamcommunity.com");
-	this._jar.setCookie(Request.cookie("mobileClient=android"), "https://steamcommunity.com");
+	this._setCookie(Request.cookie("mobileClientVersion=0 (2.1.3)"));
+	this._setCookie(Request.cookie("mobileClient=android"));
 	
 	this.httpRequestPost("https://steamcommunity.com/login/getrsakey/", {
 		"form": {"username": details.accountName},
@@ -146,7 +146,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 			} else {
 				var sessionID = generateSessionID();
 				var oAuth = JSON.parse( body.oauth );
-				self._jar.setCookie(Request.cookie('sessionid=' + sessionID), 'http://steamcommunity.com');
+				self._setCookie(Request.cookie('sessionid=' + sessionID));
 				
 				self.steamID = new SteamID(oAuth.steamid);
 				self.oAuthToken = oAuth.oauth_token;
@@ -173,11 +173,11 @@ SteamCommunity.prototype.login = function(details, callback) {
 	function deleteMobileCookies() {
 		var cookie = Request.cookie('mobileClientVersion=');
 		cookie.expires = new Date(0);
-		self._jar.setCookie(cookie, "https://steamcommunity.com");
+		self._setCookie(cookie);
 
 		cookie = Request.cookie('mobileClient=');
 		cookie.expires = new Date(0);
-		self._jar.setCookie(cookie, "https://steamcommunity.com");
+		self._setCookie(cookie);
 	}
 };
 
@@ -215,6 +215,14 @@ SteamCommunity.prototype.oAuthLogin = function(steamguard, token, callback) {
 	}, "steamcommunity");
 };
 
+SteamCommunity.prototype._setCookie = function(cookie, secure) {
+	var protocol = secure ? "https" : "http";
+
+	this._jar.setCookie(cookie, protocol + "://steamcommunity.com");
+	this._jar.setCookie(cookie, protocol + "://store.steampowered.com");
+	this._jar.setCookie(cookie, protocol + "://help.steampowered.com");
+};
+
 SteamCommunity.prototype.setCookies = function(cookies) {
 	var self = this;
 	cookies.forEach(function(cookie) {
@@ -222,8 +230,8 @@ SteamCommunity.prototype.setCookies = function(cookies) {
 		if(cookieName == 'steamLogin') {
 			self.steamID = new SteamID(cookie.match(/=(\d+)/)[1]);
 		}
-		
-		self._jar.setCookie(Request.cookie(cookie), (cookieName.match(/^steamMachineAuth/) || cookieName.match(/Secure$/) ? "https://" : "http://") + "steamcommunity.com");
+
+		self._setCookie(Request.cookie(cookie), !!(cookieName.match(/^steamMachineAuth/) || cookieName.match(/Secure$/)));
 	});
 };
 
@@ -237,7 +245,7 @@ SteamCommunity.prototype.getSessionID = function() {
 	}
 	
 	var sessionID = generateSessionID();
-	this._jar.setCookie(Request.cookie('sessionid=' + sessionID), "http://steamcommunity.com");
+	this._setCookie(Request.cookie('sessionid=' + sessionID));
 	return sessionID;
 };
 
