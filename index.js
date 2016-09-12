@@ -218,9 +218,9 @@ SteamCommunity.prototype.oAuthLogin = function(steamguard, token, callback) {
 SteamCommunity.prototype._setCookie = function(cookie, secure) {
 	var protocol = secure ? "https" : "http";
 
-	this._jar.setCookie(cookie, protocol + "://steamcommunity.com");
-	this._jar.setCookie(cookie, protocol + "://store.steampowered.com");
-	this._jar.setCookie(cookie, protocol + "://help.steampowered.com");
+	this._jar.setCookie(cookie.clone(), protocol + "://steamcommunity.com");
+	this._jar.setCookie(cookie.clone(), protocol + "://store.steampowered.com");
+	this._jar.setCookie(cookie.clone(), protocol + "://help.steampowered.com");
 };
 
 SteamCommunity.prototype.setCookies = function(cookies) {
