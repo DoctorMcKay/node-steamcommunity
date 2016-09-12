@@ -287,37 +287,34 @@ SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
 
 SteamCommunity.prototype.getNotifications = function(callback) {
 	var self = this;
-	this.httpRequestGet("https://steamcommunity.com/actions/RefreshNotificationArea", function(err, response, body) {
+	this.httpRequestGet({
+		"uri": "https://steamcommunity.com/actions/GetNotificationCounts",
+		"json": true
+	}, function(err, response, body) {
 		if (err) {
 			callback(err);
 			return;
 		}
-		
-		var notifications = {
-			"comments": 0,
-			"items": 0,
-			"invites": 0,
-			"gifts": 0,
-			"chat": 0,
-			"trades": 0
-		};
-		
-		var items = {
-			"comments": /(\d+) new comments?/,
-			"items": /(\d+) new items? in your inventory/,
-			"invites": /(\d+) new invites?/,
-			"gifts": /(\d+) new gifts?/,
-			"chat": /(\d+) unread chat messages?/,
-			"trades": /(\d+) new trade notifications?/
-		};
-		
-		var match;
-		for(var i in items) {
-			if(match = body.match(items[i])) {
-				notifications[i] = parseInt(match[1], 10);
-			}
+
+		if (!body || !body.notifications) {
+			callback(new Error("Malformed response"));
+			return;
 		}
 		
+		var notifications = {
+			"trades": body.notifications[1] || 0,
+			"gameTurns": body.notifications[2] || 0,
+			"moderatorMessages": body.notifications[3] || 0,
+			"comments": body.notifications[4] || 0,
+			"items": body.notifications[5] || 0,
+			"invites": body.notifications[6] || 0,
+			// dunno about 7
+			"gifts": body.notifications[8] || 0,
+			"chat": body.notifications[9] || 0,
+			"helpRequestReplies": body.notifications[10] || 0
+			// dunno about 11
+		};
+
 		callback(null, notifications);
 	}, "steamcommunity");
 };
