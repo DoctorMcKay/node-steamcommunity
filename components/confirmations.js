@@ -113,7 +113,7 @@ SteamCommunity.prototype.getConfirmationOfferID = function(confID, time, key, ca
  * @param {int|int[]} confID - The ID of the confirmation in question, or an array of confirmation IDs
  * @param {string|string[]} confKey - The confirmation key associated with the confirmation in question (or an array of them) (not a TOTP key, the `key` property of CConfirmation)
  * @param {int} time - The unix timestamp with which the following key was generated
- * @param {string} key - The confirmation key that was generated using the preceeding time and the tag "allow" (if accepting) or "cancel" (if not accepting)
+ * @param {string} key - The confirmation key that was generated using the preceding time and the tag "allow" (if accepting) or "cancel" (if not accepting)
  * @param {boolean} accept - true if you want to accept the confirmation, false if you want to cancel it
  * @param {SteamCommunity~genericErrorCallback} callback - Called when the request is complete
  */
@@ -146,6 +146,61 @@ SteamCommunity.prototype.respondToConfirmation = function(confID, confKey, time,
 	});
 };
 
+/**
+ * Accept a confirmation for a given object (trade offer or market listing) automatically.
+ * @param {string} identitySecret
+ * @param {number|string} objectID
+ * @param {SteamCommunity~genericErrorCallback} callback
+ */
+SteamCommunity.prototype.acceptConfirmationForObject = function(identitySecret, objectID, callback) {
+	var self = this;
+	this._usedConfTimes = this._usedConfTimes || [];
+
+	SteamTotp.getTimeOffset(function(err, offset) {
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		var time = SteamTotp.time(offset);
+		self.getConfirmations(time, SteamTotp.getConfirmationKey(identitySecret, time, "conf"), function(err, confs) {
+			if (err) {
+				callback(err);
+				return;
+			}
+
+			var conf = confs.filter(function(conf) { return conf.creator == objectID; });
+			if (conf.length == 0) {
+				callback(new Error("Could not find confirmation for object " + objectID));
+				return;
+			}
+
+			conf = conf[0];
+
+			// make sure we don't reuse the same time
+			var localOffset = 0;
+			do {
+				time = SteamTotp.time(offset) + localOffset++;
+			} while (self._usedConfTimes.indexOf(time) != -1);
+
+			self._usedConfTimes.push(time);
+			if (self._usedConfTimes.length > 60) {
+				self._usedConfTimes.splice(0, self._usedConfTimes.length - 60); // we don't need to save more than 60 entries
+			}
+
+			conf.respond(time, SteamTotp.getConfirmationKey(identitySecret, time, "allow"), true, callback);
+		});
+	});
+};
+
+/**
+ * Send a single request to Steam to accept all outstanding confirmations (after loading the list). If one fails, the
+ * entire request will fail and there will be no way to know which failed without loading the list again.
+ * @param {number} time
+ * @param {string} confKey
+ * @param {string} allowKey
+ * @param {function} callback
+ */
 SteamCommunity.prototype.acceptAllConfirmations = function(time, confKey, allowKey, callback) {
 	var self = this;
 
