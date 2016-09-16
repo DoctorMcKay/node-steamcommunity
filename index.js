@@ -314,8 +314,8 @@ SteamCommunity.prototype.getNotifications = function(callback) {
 			// dunno about 7
 			"gifts": body.notifications[8] || 0,
 			"chat": body.notifications[9] || 0,
-			"helpRequestReplies": body.notifications[10] || 0
-			// dunno about 11
+			"helpRequestReplies": body.notifications[10] || 0,
+			"accountAlerts": body.notifications[11] || 0
 		};
 
 		callback(null, notifications);
