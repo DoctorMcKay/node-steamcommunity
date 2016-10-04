@@ -63,6 +63,9 @@ SteamCommunity.prototype.login = function(details, callback) {
 	
 	var self = this;
 
+	// Delete the cache
+	delete self._profileURL;
+
 	// headers required to convince steam that we're logging in from a mobile device so that we can get the oAuth data
 	var mobileHeaders = {
 		"X-Requested-With": "com.valvesoftware.android.steam.community",
