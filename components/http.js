@@ -50,7 +50,7 @@ SteamCommunity.prototype.httpRequest = function(uri, options, callback, source) 
 			var httpError = options.checkHttpError !== false && self._checkHttpError(err, response, callback);
 			var communityError = !options.json && options.checkCommunityError !== false && self._checkCommunityError(body, httpError ? function () {} : callback); // don't fire the callback if hasHttpError did it already
 			var tradeError = !options.json && options.checkTradeError !== false && self._checkTradeError(body, httpError || communityError ? function () {} : callback); // don't fire the callback if either of the previous already did
-			var jsonError = options.json && !body ? new Error("Malformed JSON response") : null;
+			var jsonError = options.json && options.checkJsonError !== false && !body ? new Error("Malformed JSON response") : null;
 
 			self.emit('postHttpRequest', requestID, source, options, httpError || communityError || tradeError || jsonError || null, response, body, {
 				"hasCallback": hasCallback,
