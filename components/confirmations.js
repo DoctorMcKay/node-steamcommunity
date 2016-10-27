@@ -313,8 +313,9 @@ SteamCommunity.prototype.checkConfirmations = function() {
 				// We should accept this
 				self.emit('debug', "Accepting confirmation #" + conf.id);
 				var time = Math.floor(Date.now() / 1000);
-				conf.respond(time, SteamTotp.getConfirmationKey(self._identitySecret, time, "allow"), true, function() {
+				conf.respond(time, SteamTotp.getConfirmationKey(self._identitySecret, time, "allow"), true, function(err) {
 					// If there was an error and it wasn't actually accepted, we'll pick it up again
+					if (!err) self.emit('confirmationAccepted', conf);
 					delete self._knownConfirmations[conf.id];
 					setTimeout(callback, 1000); // Call the callback in 1 second, to make sure the time changes
 				});
