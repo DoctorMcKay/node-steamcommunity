@@ -313,8 +313,9 @@ SteamCommunity.prototype.checkConfirmations = function() {
 				// We should accept this
 				self.emit('debug', "Accepting confirmation #" + conf.id);
 				var time = Math.floor(Date.now() / 1000);
-				conf.respond(time, SteamTotp.getConfirmationKey(self._identitySecret, time, "allow"), true, function() {
+				conf.respond(time, SteamTotp.getConfirmationKey(self._identitySecret, time, "allow"), true, function(err) {
 					// If there was an error and it wasn't actually accepted, we'll pick it up again
+					if (!err) self.emit('confirmationAccepted', conf);
 					delete self._knownConfirmations[conf.id];
 					setTimeout(callback, 1000); // Call the callback in 1 second, to make sure the time changes
 				});
@@ -365,28 +366,6 @@ SteamCommunity.prototype.checkConfirmations = function() {
 		if(self._confirmationPollInterval) {
 			self._confirmationTimer = setTimeout(self.checkConfirmations.bind(self), self._confirmationPollInterval);
 		}
-	}
-
-	function handleNewConfirmation(conf, handleNumber) {
-		self._knownConfirmations[conf.id] = conf;
-
-		// Delay them by 1 second per new confirmation that we see, so that keys won't be the same.
-		setTimeout(function() {
-			if(self._identitySecret) {
-				self.emit('debug', 'Accepting confirmation #' + conf.id);
-				var time = Math.floor(Date.now() / 1000);
-				conf.respond(time, SteamTotp.getConfirmationKey(self._identitySecret, time, "allow"), true, function(err) {
-					if (err) {
-						self.emit('debug', "Can't accept confirmation #" + conf.id + ": " + err.message);
-					}
-
-					// We'll just retry next time we poll
-					delete self._knownConfirmations[conf.id];
-				});
-			} else {
-				self.emit('newConfirmation', conf);
-			}
-		}, handleNumber * 1000);
 	}
 };
 
