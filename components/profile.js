@@ -108,6 +108,13 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 					}
 					
 					break;
+				case 'showcase':
+					if(typeof settings[i] === "object"){
+						for(var caseid = 0;c<=settings[i].length-1;caseid++) values["profile_showcase["+caseid+"]"] = settings[i][caseid];
+					}else{
+						values["profile_showcase[]"] = settings[i];
+					}
+					break;
 				
 				// TODO: profile showcases
 			}
