@@ -19,6 +19,11 @@ SteamCommunity.prototype.httpRequest = function(uri, options, callback, source) 
 		delete this._httpRequestConvenienceMethod;
 	}
 
+	if(this.proxy){
+		options.proxy = this.proxy;
+	}
+
+
 	var requestID = ++this._httpRequestID;
 	source = source || "";
 

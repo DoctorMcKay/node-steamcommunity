@@ -24,6 +24,7 @@ function SteamCommunity(options) {
 	this._captchaGid = -1;
 	this._httpRequestID = 0;
 	this.chatState = SteamCommunity.ChatState.Offline;
+	this.proxy = null;
 
 	var defaults = {
 		"jar": this._jar,
