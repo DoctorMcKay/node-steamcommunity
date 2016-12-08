@@ -156,12 +156,28 @@ SteamCommunity.prototype.acceptConfirmationForObject = function(identitySecret, 
 	var self = this;
 	this._usedConfTimes = this._usedConfTimes || [];
 
-	SteamTotp.getTimeOffset(function(err, offset) {
-		if (err) {
-			callback(err);
-			return;
-		}
+	if (typeof this._timeOffset !== 'undefined') {
+		// time offset is already known and saved
+		doConfirmation();
+	} else {
+		SteamTotp.getTimeOffset(function(err, offset) {
+			if (err) {
+				callback(err);
+				return;
+			}
 
+			self._timeOffset = offset;
+			doConfirmation();
+
+			setTimeout(function() {
+				// Delete the saved time offset after 12 hours because why not
+				delete self._timeOffset;
+			}, 1000 * 60 * 60 * 12);
+		});
+	}
+
+	function doConfirmation() {
+		var offset = self._timeOffset;
 		var time = SteamTotp.time(offset);
 		self.getConfirmations(time, SteamTotp.getConfirmationKey(identitySecret, time, "conf"), function(err, confs) {
 			if (err) {
@@ -190,7 +206,7 @@ SteamCommunity.prototype.acceptConfirmationForObject = function(identitySecret, 
 
 			conf.respond(time, SteamTotp.getConfirmationKey(identitySecret, time, "allow"), true, callback);
 		});
-	});
+	}
 };
 
 /**
