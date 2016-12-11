@@ -1,6 +1,6 @@
 module.exports = CEconItem;
 
-function CEconItem(item, descriptions) {
+function CEconItem(item, descriptions, contextID) {
 	var thing;
 	for(thing in item) {
 		if(item.hasOwnProperty(thing)) {
