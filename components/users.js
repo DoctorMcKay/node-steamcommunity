@@ -292,8 +292,10 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 			}
 
 			for(var i = 0; i < body.assets.length; i++) {
-				if(!tradableOnly || body.descriptions[i].tradable) {
-					inventory.push(new CEconItem(body.assets[i], body.descriptions[i], contextID));
+				var description = getDescription(body.descriptions, body.assets[i].classid, body.assets[i].instanceid)
+				
+				if(!tradableOnly || description && description.tradable) {
+					inventory.push(new CEconItem(body.assets[i], description, contextID));
 				}
 			}
 			
@@ -307,3 +309,13 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 		}, "steamcommunity");
 	}
 };
+
+function getDescription(descriptions, classID, instanceID) {
+	for(var i = 0; i < descriptions.length; i++) {
+		if(descriptions[i].classid == classID && descriptions[i].instanceid == instanceID) {
+			return descriptions[i];
+		}
+	}
+	
+	return;
+}
