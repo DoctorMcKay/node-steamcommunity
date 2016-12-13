@@ -15,12 +15,9 @@ function CEconItem(item, descriptions, contextID) {
 
 	// Merge the description
 	if(descriptions) {
-		var description = descriptions[this.classid + '_' + this.instanceid];
-		if(description) {
-			for(thing in description) {
-				if(description.hasOwnProperty(thing)) {
-					this[thing] = description[thing];
-				}
+		for(thing in descriptions) {
+			if(descriptions.hasOwnProperty(thing)) {
+				this[thing] = descriptions[thing];
 			}
 		}
 	}

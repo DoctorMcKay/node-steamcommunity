@@ -263,16 +263,16 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 	if(typeof userID === 'string') {
 		userID = new SteamID(userID);
 	}
+	
+	get([], [], 1);
 
-	var endpoint = "/profiles/" + userID.getSteamID64();
-	get([], []);
-
-	function get(inventory, currency, start) {
+	function get(inventory, currency, step, start) {
 		self.httpRequest({
-			"uri": "https://steamcommunity.com" + endpoint + "/inventory/json/" + appID + "/" + contextID,
+			"uri": "https://steamcommunity.com/inventory/" + userID.getSteamID64() + "/" + appID + "/" + contextID,
 			"qs": {
-				"start": start,
-				"trading": tradableOnly ? 1 : undefined
+				"l": "english", // Default language
+				"count": 5000, // Max items per 'page'
+				"start_assetid": start,
 			},
 			"json": true
 		}, function(err, response, body) {
@@ -281,9 +281,9 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 				return;
 			}
 
-			if(!body || !body.success || !body.rgInventory || !body.rgDescriptions || !body.rgCurrency) {
+			if(!body || !body.success || !body.assets || !body.descriptions) {
 				if(body) {
-					callback(new Error(body.Error || "Malformed response"));
+					callback(new Error(body.error || "Malformed response"));
 				} else {
 					callback(new Error("Malformed response"));
 				}
@@ -291,33 +291,31 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 				return;
 			}
 
-			var i;
-			for(i in body.rgInventory) {
-				if(!body.rgInventory.hasOwnProperty(i)) {
-					continue;
+			for(var i = 0; i < body.assets.length; i++) {
+				var description = getDescription(body.descriptions, body.assets[i].classid, body.assets[i].instanceid)
+				
+				if(!tradableOnly || description && description.tradable) {
+					inventory.push(new CEconItem(body.assets[i], description, contextID));
 				}
-
-				inventory.push(new CEconItem(body.rgInventory[i], body.rgDescriptions, contextID));
 			}
+			
+			// Dunno how to handle currencies now
 
-			for(i in body.rgCurrency) {
-				if(!body.rgCurrency.hasOwnProperty(i)) {
-					continue;
-				}
-
-				currency.push(new CEconItem(body.rgInventory[i], body.rgDescriptions, contextID));
-			}
-
-			if(body.more) {
-				var match = response.request.uri.href.match(/\/(profiles|id)\/([^\/]+)\//);
-				if(match) {
-					endpoint = "/" + match[1] + "/" + match[2];
-				}
-
-				get(inventory, currency, body.more_start);
+			if(body.total_inventory_count > 5000 * step) {
+				get(inventory, currency, step + 1, body.assets[body.assets.length - 1].assetid);
 			} else {
 				callback(null, inventory, currency);
 			}
 		}, "steamcommunity");
 	}
 };
+
+function getDescription(descriptions, classID, instanceID) {
+	for(var i = 0; i < descriptions.length; i++) {
+		if(descriptions[i].classid == classID && descriptions[i].instanceid == instanceID) {
+			return descriptions[i];
+		}
+	}
+	
+	return;
+}
