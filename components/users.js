@@ -272,18 +272,25 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 			"qs": {
 				"l": "english", // Default language
 				"count": 5000, // Max items per 'page'
-				"start_assetid": start,
+				"start_assetid": start
 			},
 			"json": true
 		}, function(err, response, body) {
 			if (err) {
+				if (err.message == "HTTP error 403" && body === null) {
+					// 403 with a body of "null" means the inventory/profile is private.
+					callback(new Error("This profile is private."));
+					return;
+				}
+
 				callback(err);
 				return;
 			}
 
-			if(!body || !body.success || !body.assets || !body.descriptions) {
-				if(body) {
-					callback(new Error(body.error || "Malformed response"));
+			if (!body || !body.success || !body.assets || !body.descriptions) {
+				if (body) {
+					// Dunno if the error/Error property even exists on this new endpoint
+					callback(new Error(body.error || body.Error || "Malformed response"));
 				} else {
 					callback(new Error("Malformed response"));
 				}
@@ -291,31 +298,40 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 				return;
 			}
 
-			for(var i = 0; i < body.assets.length; i++) {
-				var description = getDescription(body.descriptions, body.assets[i].classid, body.assets[i].instanceid)
+			for (var i = 0; i < body.assets.length; i++) {
+				var description = getDescription(body.descriptions, body.assets[i].classid, body.assets[i].instanceid);
 				
-				if(!tradableOnly || description && description.tradable) {
-					inventory.push(new CEconItem(body.assets[i], description, contextID));
+				if (!tradableOnly || (description && description.tradable)) {
+					(body.assets[i].currencyid ? currency : inventory).push(new CEconItem(body.assets[i], description, contextID));
 				}
 			}
-			
-			// Dunno how to handle currencies now
 
 			if(body.total_inventory_count > 5000 * step) {
 				get(inventory, currency, step + 1, body.assets[body.assets.length - 1].assetid);
 			} else {
-				callback(null, inventory, currency);
+				callback(null, inventory, currency, body.total_inventory_count);
 			}
 		}, "steamcommunity");
 	}
-};
 
-function getDescription(descriptions, classID, instanceID) {
-	for(var i = 0; i < descriptions.length; i++) {
-		if(descriptions[i].classid == classID && descriptions[i].instanceid == instanceID) {
-			return descriptions[i];
+	// A bit of optimization; objects are hash tables so it's more efficient to look up by key than to iterate an array
+	var quickDescriptionLookup = {};
+
+	function getDescription(descriptions, classID, instanceID) {
+		instanceID = instanceID || '0'; // instanceID can be undefined, in which case it's 0.
+
+		var key = classID + '_' + instanceID;
+
+		if (quickDescriptionLookup[key]) {
+			return quickDescriptionLookup[key];
+		}
+
+		for (var i = 0; i < descriptions.length; i++) {
+			quickDescriptionLookup[key] = descriptions[i];
+
+			if (descriptions[i].classid == classID && descriptions[i].instanceid == instanceID) {
+				return descriptions[i];
+			}
 		}
 	}
-	
-	return;
-}
+};
