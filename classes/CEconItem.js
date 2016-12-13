@@ -1,6 +1,6 @@
 module.exports = CEconItem;
 
-function CEconItem(item, descriptions, contextID) {
+function CEconItem(item, description, contextID) {
 	var thing;
 	for (thing in item) {
 		if (item.hasOwnProperty(thing)) {
@@ -21,10 +21,15 @@ function CEconItem(item, descriptions, contextID) {
 	this.contextid = this.contextid || contextID.toString();
 
 	// Merge the description
-	if (descriptions) {
-		for (thing in descriptions) {
-			if (descriptions.hasOwnProperty(thing)) {
-				this[thing] = descriptions[thing];
+	if (description) {
+		// Is this a listing of descriptions?
+		if (description[this.classid + '_' + this.instanceid]) {
+			description = description[this.classid + '_' + this.instanceid];
+		}
+
+		for (thing in description) {
+			if (description.hasOwnProperty(thing)) {
+				this[thing] = description[thing];
 			}
 		}
 	}
@@ -41,6 +46,25 @@ function CEconItem(item, descriptions, contextID) {
 	if (this.owner && JSON.stringify(this.owner) == '{}') {
 		this.owner = null;
 	}
+
+	// Restore old property names of tags
+	if (this.tags) {
+		this.tags = this.tags.map(function(tag) {
+			return {
+				"internal_name": tag.internal_name,
+				"name": tag.localized_tag_name || tag.name,
+				"category": tag.category,
+				"color": tag.color || "",
+				"category_name": tag.localized_category_name || tag.category_name
+			};
+		});
+	}
+
+	if (this.actions === "") {
+		this.actions = [];
+	}
+
+	 delete this.currency;
 }
 
 CEconItem.prototype.getImageURL = function() {
@@ -56,12 +80,12 @@ CEconItem.prototype.getLargeImageURL = function() {
 };
 
 CEconItem.prototype.getTag = function(category) {
-	if(!this.tags) {
+	if (!this.tags) {
 		return null;
 	}
 
-	for(var i = 0; i < this.tags.length; i++) {
-		if(this.tags[i].category == category) {
+	for (var i = 0; i < this.tags.length; i++) {
+		if (this.tags[i].category == category) {
 			return this.tags[i];
 		}
 	}
