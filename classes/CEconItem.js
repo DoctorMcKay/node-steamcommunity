@@ -8,7 +8,7 @@ function CEconItem(item, descriptions, contextID) {
 		}
 	}
 
-	var isCurrency = (typeof this.is_currency !== 'undefined') ? (!!this.is_currency) : (typeof this.currencyid !== 'undefined'); // I don't want to put this on the object yet; it's nice to have the ids at the top of printed output
+	var isCurrency = !!(this.is_currency || this.currency) || typeof this.currencyid !== 'undefined'; // I don't want to put this on the object yet; it's nice to have the ids at the top of printed output
 
 	if (isCurrency) {
 		this.currencyid = this.id = (this.id || this.currencyid);
