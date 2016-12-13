@@ -1,6 +1,6 @@
 {
 	"name": "steamcommunity",
-	"version": "3.28.0",
+	"version": "3.29.0",
 	"description": "Provides an interface for logging into and interacting with the Steam Community website",
 	"keywords": ["steam", "steam community"],
 	"homepage": "https://github.com/DoctorMcKay/node-steamcommunity",
