@@ -269,6 +269,9 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 	function get(inventory, currency, step, start) {
 		self.httpRequest({
 			"uri": "https://steamcommunity.com/inventory/" + userID.getSteamID64() + "/" + appID + "/" + contextID,
+			"headers": {
+				"Referer": "https://steamcommunity.com/profiles/" + userID.getSteamID64() + "/inventory"
+			},
 			"qs": {
 				"l": "english", // Default language
 				"count": 5000, // Max items per 'page'
