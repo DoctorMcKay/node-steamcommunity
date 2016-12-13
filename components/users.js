@@ -350,7 +350,7 @@ SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, cont
 	}
 
 	var pos = 1;
-	get([], [], 1);
+	get([], []);
 
 	function get(inventory, currency, start) {
 		self.httpRequest({
