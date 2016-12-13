@@ -263,7 +263,8 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 	if(typeof userID === 'string') {
 		userID = new SteamID(userID);
 	}
-	
+
+	var pos = 1;
 	get([], [], 1);
 
 	function get(inventory, currency, step, start) {
@@ -305,6 +306,7 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 				var description = getDescription(body.descriptions, body.assets[i].classid, body.assets[i].instanceid);
 				
 				if (!tradableOnly || (description && description.tradable)) {
+					body.assets[i].pos = pos++;
 					(body.assets[i].currencyid ? currency : inventory).push(new CEconItem(body.assets[i], description, contextID));
 				}
 			}
