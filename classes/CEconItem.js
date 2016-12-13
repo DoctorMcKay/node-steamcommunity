@@ -2,27 +2,34 @@ module.exports = CEconItem;
 
 function CEconItem(item, descriptions, contextID) {
 	var thing;
-	for(thing in item) {
-		if(item.hasOwnProperty(thing)) {
+	for (thing in item) {
+		if (item.hasOwnProperty(thing)) {
 			this[thing] = item[thing];
 		}
 	}
 
-	this.assetid = this.id = (this.id || this.assetid);
+	var isCurrency = (typeof this.is_currency !== 'undefined') ? (!!this.is_currency) : (typeof this.currencyid !== 'undefined'); // I don't want to put this on the object yet; it's nice to have the ids at the top of printed output
+
+	if (isCurrency) {
+		this.currencyid = this.id = (this.id || this.currencyid);
+	} else {
+		this.assetid = this.id = (this.id || this.assetid);
+	}
+
 	this.instanceid = this.instanceid || '0';
 	this.amount = parseInt(this.amount, 10);
 	this.contextid = this.contextid || contextID.toString();
 
 	// Merge the description
-	if(descriptions) {
-		for(thing in descriptions) {
-			if(descriptions.hasOwnProperty(thing)) {
+	if (descriptions) {
+		for (thing in descriptions) {
+			if (descriptions.hasOwnProperty(thing)) {
 				this[thing] = descriptions[thing];
 			}
 		}
 	}
 
-	this.is_currency = !!this.is_currency;
+	this.is_currency = isCurrency;
 	this.tradable = !!this.tradable;
 	this.marketable = !!this.marketable;
 	this.commodity = !!this.commodity;
@@ -31,7 +38,7 @@ function CEconItem(item, descriptions, contextID) {
 	this.fraudwarnings = this.fraudwarnings || [];
 	this.descriptions = this.descriptions || [];
 
-	if(this.owner && JSON.stringify(this.owner) == '{}') {
+	if (this.owner && JSON.stringify(this.owner) == '{}') {
 		this.owner = null;
 	}
 }
