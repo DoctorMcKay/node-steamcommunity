@@ -158,6 +158,25 @@ CSteamUser.prototype.getInventoryContexts = function(callback) {
 	this._community.getUserInventoryContexts(this.steamID, callback);
 };
 
+/**
+ * Get the contents of a user's inventory context.
+ * @deprecated Use CSteamUser#getInventoryContents instead
+ * @param {int} appID - The Steam application ID of the game for which you want an inventory
+ * @param {int} contextID - The ID of the "context" within the game you want to retrieve
+ * @param {boolean} tradableOnly - true to get only tradable items and currencies
+ * @param callback
+ */
 CSteamUser.prototype.getInventory = function(appID, contextID, tradableOnly, callback) {
 	this._community.getUserInventory(this.steamID, appID, contextID, tradableOnly, callback);
+};
+
+/**
+ * Get the contents of a user's inventory context.
+ * @param {int} appID - The Steam application ID of the game for which you want an inventory
+ * @param {int} contextID - The ID of the "context" within the game you want to retrieve
+ * @param {boolean} tradableOnly - true to get only tradable items and currencies
+ * @param callback
+ */
+CSteamUser.prototype.getInventoryContents = function(appID, contextID, tradableOnly, callback) {
+	this._community.getUserInventoryContents(this.steamID, appID, contextID, tradableOnly, callback);
 };

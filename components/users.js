@@ -257,7 +257,92 @@ SteamCommunity.prototype.getUserInventoryContexts = function(userID, callback) {
 	}, "steamcommunity");
 };
 
+/**
+ * Get the contents of a user's inventory context.
+ * @deprecated Use getUserInventoryContents instead
+ * @param {SteamID|string} userID - The user's SteamID as a SteamID object or a string which can parse into one
+ * @param {int} appID - The Steam application ID of the game for which you want an inventory
+ * @param {int} contextID - The ID of the "context" within the game you want to retrieve
+ * @param {boolean} tradableOnly - true to get only tradable items and currencies
+ * @param {function} callback
+ */
 SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, tradableOnly, callback) {
+	var self = this;
+
+	if (typeof userID === 'string') {
+		userID = new SteamID(userID);
+	}
+
+	var endpoint = "/profiles/" + userID.getSteamID64();
+	get([], []);
+
+	function get(inventory, currency, start) {
+		self.httpRequest({
+			"uri": "https://steamcommunity.com" + endpoint + "/inventory/json/" + appID + "/" + contextID,
+			"headers": {
+				"Referer": "https://steamcommunity.com" + endpoint + "/inventory"
+			},
+			"qs": {
+				"start": start,
+				"trading": tradableOnly ? 1 : undefined
+			},
+			"json": true
+		}, function(err, response, body) {
+			if (err) {
+				callback(err);
+				return;
+			}
+
+			if (!body || !body.success || !body.rgInventory || !body.rgDescriptions || !body.rgCurrency) {
+				if (body) {
+					callback(new Error(body.Error || "Malformed response"));
+				} else {
+					callback(new Error("Malformed response"));
+				}
+
+				return;
+			}
+
+			var i;
+			for (i in body.rgInventory) {
+				if (!body.rgInventory.hasOwnProperty(i)) {
+					continue;
+				}
+
+				inventory.push(new CEconItem(body.rgInventory[i], body.rgDescriptions, contextID));
+			}
+
+			for (i in body.rgCurrency) {
+				if (!body.rgCurrency.hasOwnProperty(i)) {
+					continue;
+				}
+
+				currency.push(new CEconItem(body.rgInventory[i], body.rgDescriptions, contextID));
+			}
+
+			if (body.more) {
+				var match = response.request.uri.href.match(/\/(profiles|id)\/([^\/]+)\//);
+				if(match) {
+					endpoint = "/" + match[1] + "/" + match[2];
+				}
+
+				get(inventory, currency, body.more_start);
+			} else {
+				callback(null, inventory, currency);
+			}
+		}, "steamcommunity");
+	}
+};
+
+/**
+ * Get the contents of a user's inventory context.
+ * @param {SteamID|string} userID - The user's SteamID as a SteamID object or a string which can parse into one
+ * @param {int} appID - The Steam application ID of the game for which you want an inventory
+ * @param {int} contextID - The ID of the "context" within the game you want to retrieve
+ * @param {boolean} tradableOnly - true to get only tradable items and currencies
+ * @param {function} callback
+ */
+SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, contextID, tradableOnly, callback) {
 	var self = this;
 
 	if(typeof userID === 'string') {
