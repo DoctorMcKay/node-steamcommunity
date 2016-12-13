@@ -267,7 +267,7 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 	var pos = 1;
 	get([], [], 1);
 
-	function get(inventory, currency, step, start) {
+	function get(inventory, currency, start) {
 		self.httpRequest({
 			"uri": "https://steamcommunity.com/inventory/" + userID.getSteamID64() + "/" + appID + "/" + contextID,
 			"headers": {
@@ -311,8 +311,8 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 				}
 			}
 
-			if(body.total_inventory_count > 5000 * step) {
-				get(inventory, currency, step + 1, body.assets[body.assets.length - 1].assetid);
+			if (body.more_items) {
+				get(inventory, currency, body.last_assetid);
 			} else {
 				callback(null, inventory, currency, body.total_inventory_count);
 			}
