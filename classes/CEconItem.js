@@ -60,6 +60,12 @@ function CEconItem(item, description, contextID) {
 		});
 	}
 
+	// Restore market_fee_app, if applicable
+	var match;
+	if (this.appid == 753 && this.contextid == 6 && this.market_hash_name && (match = this.market_hash_name.match(/^(\d+)\-/))) {
+		this.market_fee_app = parseInt(match[1], 10);
+	}
+
 	if (this.actions === "") {
 		this.actions = [];
 	}
