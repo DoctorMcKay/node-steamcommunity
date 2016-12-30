@@ -368,6 +368,11 @@ SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, cont
 			if (err) {
 				if (err.message == "HTTP error 403" && body === null) {
 					// 403 with a body of "null" means the inventory/profile is private.
+					if(userID.getSteamID64() == self.steamID.getSteamID64()) {
+						// We can never get private profile error for our own inventory!
+						self._notifySessionExpired(err);
+					}
+					
 					callback(new Error("This profile is private."));
 					return;
 				}
