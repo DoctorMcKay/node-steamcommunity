@@ -56,7 +56,11 @@ function SteamCommunity(options) {
 }
 
 SteamCommunity.prototype.login = function(details, callback) {
-	if(details.steamguard) {
+	if (!details.accountName || !details.password) {
+		throw new Error("Missing either accountName or password to login; both are needed");
+	}
+
+	if (details.steamguard) {
 		var parts = details.steamguard.split('||');
 		this._setCookie(Request.cookie('steamMachineAuth' + parts[0] + '=' + encodeURIComponent(parts[1])), true);
 	}
