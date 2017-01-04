@@ -108,6 +108,8 @@ function CSteamUser(community, userData, customurl) {
 CSteamUser.getAvatarURL = function(hash, size, protocol) {
 	size = size || '';
 	protocol = protocol || 'http://';
+
+	hash = hash || "72f78b4c8cc1f62323f8a33f6d53e27db57c2252"; // The default "?" avatar
 	
 	var url = protocol + "steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/" + hash.substring(0, 2) + "/" + hash;
 	if(size == 'full' || size == 'medium') {
