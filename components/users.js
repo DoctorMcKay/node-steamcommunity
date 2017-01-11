@@ -303,7 +303,7 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 						callback(new Error("Malformed response"));
 					}
 						
-					callback(new Error(body.Error || "Malformed response"));
+					callback(new Error("Malformed response"));
 				} else {
 					callback(new Error("Malformed response"));
 				}
