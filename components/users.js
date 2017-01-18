@@ -377,7 +377,25 @@ SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, cont
 					return;
 				}
 
+				if (err.message == "HTTP error 500" && body && body.error) {
+					err = new Error(body.error);
+
+					var match = body.error.match(/^(.+) \((\d+)\)$/);
+					if (match) {
+						err.message = match[1];
+						err.eresult = match[2];
+						callback(err);
+						return;
+					}
+				}
+
 				callback(err);
+				return;
+			}
+
+			if (body && body.success && body.total_inventory_count === 0) {
+				// Empty inventory
+				callback(null, [], [], 0);
 				return;
 			}
 
