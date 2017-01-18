@@ -49,7 +49,7 @@ SteamCommunity.prototype.getInventoryHistory = function(options, callback) {
 
 		var $ = Cheerio.load(body);
 		if (!$('.inventory_history_pagingrow').html()) {
-			callback("Malformed page: no paging row found");
+			callback(new Error("Malformed page: no paging row found"));
 			return;
 		}
 
