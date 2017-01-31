@@ -113,3 +113,7 @@ CSteamGroup.prototype.kick = function(steamID, callback) {
 CSteamGroup.prototype.getHistory = function(page, callback) {
 	this._community.getGroupHistory(this.steamID, page, callback);
 };
+
+CSteamGroup.prototype.getAllComments = function(from, count, callback) {
+	this._community.getAllGroupComments(this.steamID, from, count, callback);
+};

@@ -517,3 +517,44 @@ SteamCommunity.prototype.getGroupHistory = function(gid, page, callback) {
 		callback(null, output);
 	}, "steamcommunity");
 };
+
+SteamCommunity.prototype.getAllGroupComments = function(gid, from, count, callback) {
+	var options = {};
+	options.uri = "http://steamcommunity.com/comment/Clan/render/" + gid.getSteamID64() + "/-1/";
+	options.method = "POST";
+	options.body = "start=" + from + "&count=" + count;
+
+	var self = this;
+	this.httpRequest(options, function(err, response, body) {
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		var comments = [];
+
+		body = JSON.parse(body);
+		body = body.comments_html;
+
+		$ = Cheerio.load(body);
+
+		$(".commentthread_comment_content").each(function () {
+			var comment = {};
+			var cachedSelector;
+
+			cachedSelector = $(this).find(".commentthread_author_link");
+			comment.authorName = $(cachedSelector).find("bdi").text();
+			comment.authorId = $(cachedSelector).attr('href').replace("http://steamcommunity.com/id/", "");
+			comment.date = $(this).find(".commentthread_comment_timestamp").text().trim();
+
+			cachedSelector = $(this).find(".commentthread_comment_text");
+
+			comment.commentId = $(cachedSelector).attr('id').replace("comment_content_", "");
+			comment.text = $(cachedSelector).text().trim();
+
+			comments.push(comment);
+		});
+
+		callback(null, comments);
+	}, "steamcommunity");
+};
