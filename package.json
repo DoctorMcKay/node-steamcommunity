@@ -19,7 +19,8 @@
 		"xml2js": "^0.4.11",
 		"cheerio": "0.22.0",
 		"async": "^2.1.4",
-		"steam-totp": "^1.3.0"
+		"steam-totp": "^1.3.0",
+		"chrono-node": "^1.2.5"
 	},
 	"engines": {
 		"node": ">=4.0.0"
