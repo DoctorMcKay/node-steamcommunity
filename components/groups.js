@@ -534,10 +534,7 @@ SteamCommunity.prototype.getAllGroupComments = function(gid, from, count, callba
 
 		var comments = [];
 
-		body = JSON.parse(body);
-		body = body.comments_html;
-
-		$ = Cheerio.load(body);
+		$ = Cheerio.load(JSON.parse(body).comments_html);
 
 		$(".commentthread_comment_content").each(function () {
 			var comment = {};
@@ -545,11 +542,10 @@ SteamCommunity.prototype.getAllGroupComments = function(gid, from, count, callba
 
 			cachedSelector = $(this).find(".commentthread_author_link");
 			comment.authorName = $(cachedSelector).find("bdi").text();
-			comment.authorId = $(cachedSelector).attr('href').replace("http://steamcommunity.com/id/", "");
+			comment.authorId = $(cachedSelector).attr('href').replace(/http:\/\/steamcommunity.com\/(id|profiles)\//, "");
 			comment.date = chrono.parseDate($(this).find(".commentthread_comment_timestamp").text().trim());
 
 			cachedSelector = $(this).find(".commentthread_comment_text");
-
 			comment.commentId = $(cachedSelector).attr('id').replace("comment_content_", "");
 			comment.text = $(cachedSelector).text().trim();
 
