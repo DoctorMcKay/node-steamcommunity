@@ -522,6 +522,9 @@ SteamCommunity.prototype.getGroupHistory = function(gid, page, callback) {
 SteamCommunity.prototype.getAllGroupComments = function(gid, from, count, callback) {
 	var options = {};
 	options.uri = "http://steamcommunity.com/comment/Clan/render/" + gid.getSteamID64() + "/-1/";
+	options.headers = {
+		"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+	};
 	options.method = "POST";
 	options.body = "start=" + from + "&count=" + count;
 
@@ -540,14 +543,14 @@ SteamCommunity.prototype.getAllGroupComments = function(gid, from, count, callba
 			var comment = {};
 			var cachedSelector;
 
-			cachedSelector = $(this).find(".commentthread_author_link");
-			comment.authorName = $(cachedSelector).find("bdi").text();
-			comment.authorId = $(cachedSelector).attr('href').replace(/http:\/\/steamcommunity.com\/(id|profiles)\//, "");
+			var $selector = $(this).find(".commentthread_author_link");
+			comment.authorName = $($selector).find("bdi").text();
+			comment.authorId = $($selector).attr("href").replace(/http:\/\/steamcommunity.com\/(id|profiles)\//, "");
 			comment.date = chrono.parseDate($(this).find(".commentthread_comment_timestamp").text().trim());
 
-			cachedSelector = $(this).find(".commentthread_comment_text");
-			comment.commentId = $(cachedSelector).attr('id').replace("comment_content_", "");
-			comment.text = $(cachedSelector).text().trim();
+			$selector = $(this).find(".commentthread_comment_text");
+			comment.commentId = $($selector).attr("id").replace("comment_content_", "");
+			comment.text = $($selector).text().trim();
 
 			comments.push(comment);
 		});
