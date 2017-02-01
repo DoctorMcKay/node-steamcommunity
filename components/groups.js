@@ -2,6 +2,7 @@ var SteamCommunity = require('../index.js');
 var SteamID = require('steamid');
 var xml2js = require('xml2js');
 var Cheerio = require('cheerio');
+var Helpers = require('./helpers.js');
 
 SteamCommunity.prototype.getGroupMembers = function(gid, callback, members, link, addresses, addressIdx) {
 	members = members || [];
@@ -545,7 +546,7 @@ SteamCommunity.prototype.getAllGroupComments = function(gid, from, count, callba
 			var $selector = $(this).find(".commentthread_author_link");
 			comment.authorName = $($selector).find("bdi").text();
 			comment.authorId = $($selector).attr("href").replace(/http:\/\/steamcommunity.com\/(id|profiles)\//, "");
-			comment.date = $(this).find(".commentthread_comment_timestamp").text().trim();
+			comment.date = Helpers.decodeSteamTime($(this).find(".commentthread_comment_timestamp").text().trim());
 
 			$selector = $(this).find(".commentthread_comment_text");
 			comment.commentId = $($selector).attr("id").replace("comment_content_", "");
