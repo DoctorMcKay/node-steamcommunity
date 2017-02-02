@@ -550,7 +550,7 @@ SteamCommunity.prototype.getAllGroupComments = function(gid, from, count, callba
 
 			$selector = $(this).find(".commentthread_comment_text");
 			comment.commentId = $($selector).attr("id").replace("comment_content_", "");
-			comment.text = $($selector).text().trim();
+			comment.text = $($selector).html().trim();
 
 			comments.push(comment);
 		});
