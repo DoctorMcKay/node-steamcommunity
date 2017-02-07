@@ -520,13 +520,14 @@ SteamCommunity.prototype.getGroupHistory = function(gid, page, callback) {
 };
 
 SteamCommunity.prototype.getAllGroupComments = function(gid, from, count, callback) {
-	var options = {};
-	options.uri = "http://steamcommunity.com/comment/Clan/render/" + gid.getSteamID64() + "/-1/";
-	options.headers = {
-		"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+	var options = {
+		uri: "http://steamcommunity.com/comment/Clan/render/" + gid.getSteamID64() + "/-1/",
+		method: "POST",
+		form: {
+			start: from,
+			count: count
+		}
 	};
-	options.method = "POST";
-	options.body = "start=" + from + "&count=" + count;
 
 	var self = this;
 	this.httpRequest(options, function(err, response, body) {
