@@ -559,3 +559,26 @@ SteamCommunity.prototype.getAllGroupComments = function(gid, from, count, callba
 		callback(null, comments);
 	}, "steamcommunity");
 };
+
+SteamCommunity.prototype.deleteGroupComment = function(gid, cid, callback) {
+	if(Number.isInteger(cid)) {
+		callback("Pass the comment id as a string");
+	}
+
+	var options = {
+		uri: "http://steamcommunity.com/comment/Clan/delete/" + gid.getSteamID64() + "/-1/",
+		form: {
+			sessionid: this.getSessionID(),
+			gidcomment: cid
+		}
+	};
+
+	var self = this;
+	this.httpRequestPost(options, function(err, response, body) {
+		if(!callback) {
+			return;
+		}
+
+		callback(err || null);
+	}, "steamcommunity");
+};

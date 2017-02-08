@@ -117,3 +117,7 @@ CSteamGroup.prototype.getHistory = function(page, callback) {
 CSteamGroup.prototype.getAllComments = function(from, count, callback) {
 	this._community.getAllGroupComments(this.steamID, from, count, callback);
 };
+
+CSteamGroup.prototype.deleteComment = function(cid, callback) {
+	this._community.deleteGroupComment(this.steamID, cid, callback);
+};
