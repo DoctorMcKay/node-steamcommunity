@@ -562,7 +562,8 @@ SteamCommunity.prototype.getAllGroupComments = function(gid, from, count, callba
 
 SteamCommunity.prototype.deleteGroupComment = function(gid, cid, callback) {
 	if(Number.isInteger(cid)) {
-		callback("Pass the comment id as a string");
+		callback(new Error("Pass the comment id as a string"));
+		return;
 	}
 
 	var options = {
