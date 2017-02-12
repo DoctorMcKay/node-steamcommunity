@@ -45,7 +45,7 @@ function SteamCommunity(options) {
 		defaults.localAddress = options.localAddress;
 	}
 
-	this.request = options.request || Request.defaults();
+	this.request = options.request || Request.defaults({"forever": true}); // "forever" indicates that we want a keep-alive agent
 	this.request = this.request.defaults(defaults);
 
 	// English
