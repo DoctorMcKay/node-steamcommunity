@@ -410,6 +410,7 @@ require('./components/groups.js');
 require('./components/users.js');
 require('./components/inventoryhistory.js');
 require('./components/webapi.js');
+require('./components/gslt.js');
 require('./components/twofactor.js');
 require('./components/confirmations.js');
 require('./classes/CMarketItem.js');
