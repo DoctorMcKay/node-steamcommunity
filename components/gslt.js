@@ -2,7 +2,6 @@ var SteamCommunity = require('../index.js');
 var Cheerio = require('cheerio');
 
 SteamCommunity.prototype.getGSLTs = function(callback) {
-	var self = this;
 	this.httpRequestGet({
 		"uri": "https://steamcommunity.com/dev/managegameservers?l=english",
 		"followRedirect": false
@@ -35,11 +34,11 @@ SteamCommunity.prototype.getGSLTs = function(callback) {
 };
 
 SteamCommunity.prototype.createGSLT = function(appId, memo, callback){
-	self.httpRequestPost('https://steamcommunity.com/dev/creategsaccount?l=english', {
+	this.httpRequestPost('https://steamcommunity.com/dev/creategsaccount?l=english', {
 		"form": {
 			"appid": appId,
 			"memo": memo,
-			"sessionid": self.getSessionID()
+			"sessionid": this.getSessionID()
 		}
 	}, function(err, response, body) {
 		if (err) {
@@ -56,11 +55,11 @@ SteamCommunity.prototype.createGSLT = function(appId, memo, callback){
 };
 
 SteamCommunity.prototype.updateGSLTMemo = function(steamId, memo, callback){
-	self.httpRequestPost('https://steamcommunity.com/dev/updategsmemo?l=english', {
+	this.httpRequestPost('https://steamcommunity.com/dev/updategsmemo?l=english', {
 		"form": {
 			"steamid": steamId,
 			"memo": memo,
-			"sessionid": self.getSessionID()
+			"sessionid": this.getSessionID()
 		}
 	}, function(err, response, body) {
 		if (err) {
@@ -77,10 +76,10 @@ SteamCommunity.prototype.updateGSLTMemo = function(steamId, memo, callback){
 };
 
 SteamCommunity.prototype.regenerateGSLTToken = function(steamId, callback){
-	self.httpRequestPost('https://steamcommunity.com/dev/resetgstoken?l=english', {
+	this.httpRequestPost('https://steamcommunity.com/dev/resetgstoken?l=english', {
 		"form": {
 			"steamid": steamId,
-			"sessionid": self.getSessionID()
+			"sessionid": this.getSessionID()
 		}
 	}, function(err, response, body) {
 		if (err) {
@@ -93,10 +92,10 @@ SteamCommunity.prototype.regenerateGSLTToken = function(steamId, callback){
 };
 
 SteamCommunity.prototype.deleteGSLT = function(steamId, callback) {
-	self.httpRequestPost('https://steamcommunity.com/dev/deletegsaccount?l=english', {
+	this.httpRequestPost('https://steamcommunity.com/dev/deletegsaccount?l=english', {
 		"form": {
 			"steamid": steamId,
-			"sessionid": self.getSessionID()
+			"sessionid": this.getSessionID()
 		}
 	}, function(err, response, body) {
 		if (err) {
