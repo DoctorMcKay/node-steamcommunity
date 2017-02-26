@@ -98,7 +98,7 @@ SteamCommunity.prototype._checkHttpError = function(err, response, callback, bod
 		return err;
 	}
 
-	if (response.statusCode == 403 && response.body && response.body.match(/<div id="parental_notice_instructions">Enter your PIN below to exit Family View.<\/div>/)) {
+	if (response.statusCode == 403 && typeof response.body === 'string' && response.body.match(/<div id="parental_notice_instructions">Enter your PIN below to exit Family View.<\/div>/)) {
 		err = new Error("Family View Restricted");
 		callback(err, response, body);
 		return err;
