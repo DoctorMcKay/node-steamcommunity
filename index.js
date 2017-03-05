@@ -281,13 +281,25 @@ SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
 			return;
 		}
 		
-		if(!body || typeof body.success !== 'boolean') {
+		if (!body || typeof body.success !== 'boolean') {
 			callback("Invalid response");
 			return;
 		}
 		
-		if(!body.success) {
-			callback("Incorrect PIN");
+		if (!body.success) {
+			switch (body.eresult) {
+				case 15:
+					callback("Incorrect PIN");
+					break;
+
+				case 25:
+					callback("Too many invalid PIN attempts");
+					break;
+
+				default:
+					callback("Error " + body.eresult);
+			}
+
 			return;
 		}
 		
