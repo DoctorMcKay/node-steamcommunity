@@ -522,7 +522,6 @@ SteamCommunity.prototype.getGroupHistory = function(gid, page, callback) {
 SteamCommunity.prototype.getAllGroupComments = function(gid, from, count, callback) {
 	var options = {
 		uri: "http://steamcommunity.com/comment/Clan/render/" + gid.getSteamID64() + "/-1/",
-		method: "POST",
 		form: {
 			start: from,
 			count: count
@@ -530,7 +529,7 @@ SteamCommunity.prototype.getAllGroupComments = function(gid, from, count, callba
 	};
 
 	var self = this;
-	this.httpRequest(options, function(err, response, body) {
+	this.httpRequestPost(options, function(err, response, body) {
 		if (err) {
 			callback(err);
 			return;
@@ -538,7 +537,7 @@ SteamCommunity.prototype.getAllGroupComments = function(gid, from, count, callba
 
 		var comments = [];
 
-		$ = Cheerio.load(JSON.parse(body).comments_html);
+		var $ = Cheerio.load(JSON.parse(body).comments_html);
 
 		$(".commentthread_comment_content").each(function () {
 			var comment = {};
@@ -561,7 +560,8 @@ SteamCommunity.prototype.getAllGroupComments = function(gid, from, count, callba
 };
 
 SteamCommunity.prototype.deleteGroupComment = function(gid, cid, callback) {
-	if(Number.isInteger(cid)) {
+
+	if(typeof cid !== 'string') {
 		cid = cid.toString();
 	}
 
