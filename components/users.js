@@ -218,16 +218,16 @@ SteamCommunity.prototype.getUserAliases = function(userID, callback) {
 };
 
 SteamCommunity.prototype.getUserInventoryContexts = function(userID, callback) {
-	if(typeof userID === 'string') {
+	if (typeof userID === 'string') {
 		userID = new SteamID(userID);
 	}
 
-	if(typeof userID === 'function') {
+	if (typeof userID === 'function') {
 		callback = userID;
 		userID = this.steamID;
 	}
 
-	if(!userID) {
+	if (!userID) {
 		callback(new Error("No SteamID specified and not logged in"));
 		return;
 	}
@@ -240,8 +240,8 @@ SteamCommunity.prototype.getUserInventoryContexts = function(userID, callback) {
 		}
 
 		var match = body.match(/var g_rgAppContextData = ([^\n]+);\r?\n/);
-		if(!match) {
-			callback(new Error("Malformed response"));
+		if (!match) {
+			callback(new Error(body.match(/inventory is currently private\./) ? "Private inventory" : "Malformed response"));
 			return;
 		}
 
