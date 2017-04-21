@@ -441,10 +441,8 @@ SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, cont
 
 		for (var i = 0; i < descriptions.length; i++) {
 			quickDescriptionLookup[key] = descriptions[i];
-
-			if (descriptions[i].classid == classID && descriptions[i].instanceid == instanceID) {
-				return descriptions[i];
-			}
 		}
+		
+		return quickDescriptionLookup[key];
 	}
 };
