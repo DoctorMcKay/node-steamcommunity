@@ -431,20 +431,16 @@ SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, cont
 	var quickDescriptionLookup = {};
 
 	function getDescription(descriptions, classID, instanceID) {
-		instanceID = instanceID || '0'; // instanceID can be undefined, in which case it's 0.
-
-		var key = classID + '_' + instanceID;
+		var key = classID + '_' + (instanceID || '0'); // instanceID can be undefined, in which case it's 0.
 
 		if (quickDescriptionLookup[key]) {
 			return quickDescriptionLookup[key];
 		}
 
 		for (var i = 0; i < descriptions.length; i++) {
-			quickDescriptionLookup[key] = descriptions[i];
-
-			if (descriptions[i].classid == classID && descriptions[i].instanceid == instanceID) {
-				return descriptions[i];
-			}
+			quickDescriptionLookup[descriptions[i].classid + '_' + (descriptions[i].instanceid || '0')] = descriptions[i];
 		}
+		
+		return quickDescriptionLookup[key];
 	}
 };
