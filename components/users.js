@@ -295,7 +295,15 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 
 			if (!body || !body.success || !body.rgInventory || !body.rgDescriptions || !body.rgCurrency) {
 				if (body) {
-					callback(new Error(body.Error || "Malformed response"));
+					if (body.Error) {
+						callback(new Error(body.Error));
+					} else if (body.total_inventory_count == 0) {
+						callback(new Error("Empty inventory"));
+					} else {
+						callback(new Error("Malformed response"));
+					}
+						
+					callback(new Error("Malformed response"));
 				} else {
 					callback(new Error("Malformed response"));
 				}
