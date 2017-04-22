@@ -402,7 +402,11 @@ SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, cont
 			if (!body || !body.success || !body.assets || !body.descriptions) {
 				if (body) {
 					// Dunno if the error/Error property even exists on this new endpoint
-					callback(new Error(body.error || body.Error || "Malformed response"));
+					if(body.total_inventory_count == 0) {
+						callback(new Error("Empty inventory"));
+					} else {
+						callback(new Error(body.error || body.Error || "Malformed response"));
+					}
 				} else {
 					callback(new Error("Malformed response"));
 				}
