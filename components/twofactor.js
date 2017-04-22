@@ -7,6 +7,105 @@ var ETwoFactorTokenType = {
 	"ThirdParty": 2             // Tokens generated using literally everyone else's standard charset (6 digits, numeric). This is disabled.
 };
 
+function validateCookies(community) {
+	// copy steamcommunity cookies to steampowered
+	if (community._jar.getCookies("https://store.steampowered.com").length == 0) {
+		var cookies = community._jar.getCookies("https://steamcommunity.com");
+		if (cookies.length == 0)
+			return false;
+
+		for (var i in cookies) {
+			var cookie = cookies[i];
+			var c = String(cookie);
+			c.domain = "store.steampowered.com";
+			community._jar.setCookie(c, "https://store.steampowered.com");
+		}
+	}
+
+	return true;
+}
+
+SteamCommunity.prototype.validatePhoneNumber = function (nr, callback) {
+	var self = this;
+
+	if (!validateCookies(this))
+		return callback(new Error("invalid cookies"));
+
+	self.request.get({
+		"uri": "https://store.steampowered.com/phone/validate",
+		"qs": {
+			"phoneNumber": nr,
+		},
+		json: true,
+	}, function(err, response, body) {
+		if (err)
+			return callback(err);
+
+		if (self._checkHttpError(err, response, callback))
+			return;
+
+		callback(body.success ? null : new Error("invalid phone number"));
+	});
+}
+
+SteamCommunity.prototype.addPhoneNumber = function(nr, callback) {
+	var self = this;
+
+	if (!validateCookies(this))
+		return callback(new Error("Invalid cookies"));
+
+	self.request.get({
+		"url": "https://store.steampowered.com/phone/add_ajaxop",
+		"qs": {
+			"op": "get_phone_number",
+			"input": nr,
+			"sessionID": self.getSessionID(),
+			"confirmed": 0,
+		},
+		"json": true
+	}, function(err, response, body) {
+		if (err)
+			return callback(err);
+
+		if (self._checkHttpError(err, response, callback))
+			return;
+
+		if (!body.success)
+			return callback(new Error(body.errorText));
+
+		callback(body.state == "get_sms_code" ? null : new Error(body.errorText));
+	});
+}
+
+SteamCommunity.prototype.verifyPhoneNumber = function(code, callback) {
+	var self = this;
+
+	if (!validateCookies(this))
+		return callback(new Error("Invalid cookies"));
+
+	self.request.get({
+		"uri": "https://store.steampowered.com//phone/add_ajaxop",
+		"qs": {
+			"op": "get_sms_code",
+			"input": parseInt(code, 10),
+			"sessionID": self.getSessionID(),
+			"confirmed": 0,
+		},
+		"json": true
+	}, function(err, response, body) {
+		if (err)
+			return callback(err);
+
+		if (self._checkHttpError(err, response, callback))
+			return;
+
+		if (!body.success)
+			return callback(body.errorText);
+
+		callback(body.state == "done" ? null : body.errorText);
+	});
+}
+
 SteamCommunity.prototype.enableTwoFactor = function(callback) {
 	var self = this;
 
