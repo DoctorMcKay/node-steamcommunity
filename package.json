@@ -13,7 +13,7 @@
 		"url": "https://github.com/DoctorMcKay/node-steamcommunity.git"
 	},
 	"dependencies": {
-		"request": "^2.61.0",
+		"request": "^2.81.0",
 		"node-bignumber": "^1.2.1",
 		"steamid": "^1.0.0",
 		"xml2js": "^0.4.11",
