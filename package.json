@@ -2,7 +2,10 @@
 	"name": "steamcommunity",
 	"version": "3.30.7",
 	"description": "Provides an interface for logging into and interacting with the Steam Community website",
-	"keywords": ["steam", "steam community"],
+	"keywords": [
+		"steam",
+		"steam community"
+	],
 	"homepage": "https://github.com/DoctorMcKay/node-steamcommunity",
 	"bugs": {
 		"url": "https://github.com/DoctorMcKay/node-steamcommunity/issues"
