@@ -241,7 +241,18 @@ SteamCommunity.prototype.getUserInventoryContexts = function(userID, callback) {
 
 		var match = body.match(/var g_rgAppContextData = ([^\n]+);\r?\n/);
 		if (!match) {
-			callback(new Error(body.match(/inventory is currently private\./) ? "Private inventory" : "Malformed response"));
+			var errorMessage = "Malformed response";
+
+			if(body.match(/0 items in their inventory\./)){
+				callback(null, {});
+				return;
+			}else if(body.match(/inventory is currently private\./)){
+				errorMessage = "Private inventory";
+			}else if(body.match(/profile\_private\_info/)){
+				errorMessage = "Private profile";
+			}
+
+			callback(new Error(errorMessage));
 			return;
 		}
 
