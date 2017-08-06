@@ -113,3 +113,30 @@ CSteamGroup.prototype.kick = function(steamID, callback) {
 CSteamGroup.prototype.getHistory = function(page, callback) {
 	this._community.getGroupHistory(this.steamID, page, callback);
 };
+
+/**
+ * Get requests to join this restricted group.
+ * @param {function} callback - First argument is null/Error, second is array of SteamID objects
+ */
+CSteamGroup.prototype.getJoinRequests = function(callback) {
+	this._community.getGroupJoinRequests(this.steamID, callback);
+};
+
+/**
+ * Respond to one or more join requests to this restricted group.
+ * @param {SteamID|string|SteamID[]|string[]} steamIDs - The SteamIDs of the users you want to approve or deny membership for (or a single value)
+ * @param {boolean} approve - True to put them in the group, false to deny their membership
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+CSteamGroup.prototype.respondToJoinRequests = function(steamIDs, approve, callback) {
+	this._community.respondToGroupJoinRequests(this.steamID, steamIDs, approve, callback);
+};
+
+/**
+ * Respond to *ALL* pending group-join requests for this group.
+ * @param {boolean} approve - True to allow everyone who requested into the group, false to not
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+CSteamGroup.prototype.respondToAllJoinRequests = function(approve, callback) {
+	this._community.respondToAllGroupJoinRequests(this.steamID, approve, callback);
+};
