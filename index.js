@@ -12,12 +12,8 @@ require('util').inherits(SteamCommunity, require('events').EventEmitter);
 module.exports = SteamCommunity;
 
 SteamCommunity.SteamID = SteamID;
-SteamCommunity.ConfirmationType = {
-	// 1 is unknown, possibly "Invalid"
-	"Trade": 2,
-	"MarketListing": 3
-	// 4 is opt-out or other like account confirmation?
-};
+SteamCommunity.ConfirmationType = require('./resources/EConfirmationType.js');
+SteamCommunity.EResult = require('./resources/EResult.js');
 
 function SteamCommunity(options) {
 	options = options || {};

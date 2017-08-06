@@ -1,32 +1,9 @@
 var SteamCommunity = require('../index.js');
 var SteamID = require('steamid');
 
-SteamCommunity.ChatState = {
-	"Offline": 0,
-	"LoggingOn": 1,
-	"LogOnFailed": 2,
-	"LoggedOn": 3
-};
-
-SteamCommunity.PersonaState = {
-	"Offline": 0,
-	"Online": 1,
-	"Busy": 2,
-	"Away": 3,
-	"Snooze": 4,
-	"LookingToTrade": 5,
-	"LookingToPlay": 6,
-	"Max": 7
-};
-
-SteamCommunity.PersonaStateFlag = {
-	"HasRichPresence": 1,
-	"InJoinableGame": 2,
-	
-	"OnlineUsingWeb": 256,
-	"OnlineUsingMobile": 512,
-	"OnlineUsingBigPicture": 1024
-};
+SteamCommunity.ChatState = require('../resources/EChatState.js');
+SteamCommunity.PersonaState = require('../resources/EPersonaState.js');
+SteamCommunity.PersonaStateFlag = require('../resources/EPersonaStateFlag.js');
 
 SteamCommunity.prototype.chatLogon = function(interval, uiMode) {
 	if(this.chatState == SteamCommunity.ChatState.LoggingOn || this.chatState == SteamCommunity.ChatState.LoggedOn) {
