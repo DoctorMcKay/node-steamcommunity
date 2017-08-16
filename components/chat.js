@@ -158,7 +158,7 @@ SteamCommunity.prototype._chatPoll = function() {
 		},
 		"json": true
 	}, function(err, response, body) {
-		if(self.chatState == SteamCommunity.ChatState.Offline) {
+		if (self.chatState == SteamCommunity.ChatState.Offline) {
 			return;
 		}
 		
@@ -219,12 +219,20 @@ SteamCommunity.prototype._relogWebChat = function() {
 };
 
 SteamCommunity.prototype._chatUpdatePersona = function(steamID) {
+	if (!this.chatFriends || self.chatState == SteamCommunity.ChatState.Offline) {
+		return; // we no longer care
+	}
+
 	this.emit('debug', 'Updating persona data for ' + steamID);
 	var self = this;
 	this.httpRequest({
 		"uri": "https://steamcommunity.com/chat/friendstate/" + steamID.accountid,
 		"json": true
 	}, function(err, response, body) {
+		if (!self.chatFriends || self.chatState == SteamCommunity.ChatState.Offline) {
+			return; // welp
+		}
+
 		if(err || response.statusCode != 200) {
 			self.emit('debug', 'Chat update persona error: ' + (err ? err.message : "HTTP error " + response.statusCode));
 			setTimeout(function() {
