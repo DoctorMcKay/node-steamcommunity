@@ -219,7 +219,7 @@ SteamCommunity.prototype._relogWebChat = function() {
 };
 
 SteamCommunity.prototype._chatUpdatePersona = function(steamID) {
-	if (!this.chatFriends || self.chatState == SteamCommunity.ChatState.Offline) {
+	if (!this.chatFriends || this.chatState == SteamCommunity.ChatState.Offline) {
 		return; // we no longer care
 	}
 
