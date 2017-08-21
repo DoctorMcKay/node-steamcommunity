@@ -1,8 +1,11 @@
 {
 	"name": "steamcommunity",
-	"version": "3.30.6",
+	"version": "3.32.2",
 	"description": "Provides an interface for logging into and interacting with the Steam Community website",
-	"keywords": ["steam", "steam community"],
+	"keywords": [
+		"steam",
+		"steam community"
+	],
 	"homepage": "https://github.com/DoctorMcKay/node-steamcommunity",
 	"bugs": {
 		"url": "https://github.com/DoctorMcKay/node-steamcommunity/issues"
@@ -13,7 +16,8 @@
 		"url": "https://github.com/DoctorMcKay/node-steamcommunity.git"
 	},
 	"dependencies": {
-		"request": "^2.61.0",
+		"@doctormckay/stats-reporter": "^1.0.2",
+		"request": "^2.81.0",
 		"node-bignumber": "^1.2.1",
 		"steamid": "^1.0.0",
 		"xml2js": "^0.4.11",

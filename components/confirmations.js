@@ -243,6 +243,10 @@ SteamCommunity.prototype.acceptAllConfirmations = function(time, confKey, allowK
 };
 
 function request(community, url, key, time, tag, params, json, callback) {
+	if (!community.steamID) {
+		throw new Error("Must be logged in before trying to do anything with confirmations");
+	}
+
 	params = params || {};
 	params.p = SteamTotp.getDeviceID(community.steamID);
 	params.a = community.steamID.getSteamID64();

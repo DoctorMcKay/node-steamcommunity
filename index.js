@@ -1,3 +1,5 @@
+require('@doctormckay/stats-reporter').setup(require('./package.json'));
+
 var Request = require('request');
 var RSA = require('node-bignumber').Key;
 var hex2b64 = require('node-bignumber').hex2b64;
@@ -10,12 +12,8 @@ require('util').inherits(SteamCommunity, require('events').EventEmitter);
 module.exports = SteamCommunity;
 
 SteamCommunity.SteamID = SteamID;
-SteamCommunity.ConfirmationType = {
-	// 1 is unknown, possibly "Invalid"
-	"Trade": 2,
-	"MarketListing": 3
-	// 4 is opt-out or other like account confirmation?
-};
+SteamCommunity.ConfirmationType = require('./resources/EConfirmationType.js');
+SteamCommunity.EResult = require('./resources/EResult.js');
 
 function SteamCommunity(options) {
 	options = options || {};
@@ -281,13 +279,25 @@ SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
 			return;
 		}
 		
-		if(!body || typeof body.success !== 'boolean') {
+		if (!body || typeof body.success !== 'boolean') {
 			callback("Invalid response");
 			return;
 		}
 		
-		if(!body.success) {
-			callback("Incorrect PIN");
+		if (!body.success) {
+			switch (body.eresult) {
+				case 15:
+					callback("Incorrect PIN");
+					break;
+
+				case 25:
+					callback("Too many invalid PIN attempts");
+					break;
+
+				default:
+					callback("Error " + body.eresult);
+			}
+
 			return;
 		}
 		

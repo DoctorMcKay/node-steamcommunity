@@ -3,6 +3,7 @@ var SteamID = require('steamid');
 var xml2js = require('xml2js');
 var Cheerio = require('cheerio');
 var Helpers = require('./helpers.js');
+var EResult = SteamCommunity.EResult;
 
 SteamCommunity.prototype.getGroupMembers = function(gid, callback, members, link, addresses, addressIdx) {
 	members = members || [];
@@ -153,7 +154,7 @@ SteamCommunity.prototype.getAllGroupAnnouncements = function(gid, time, callback
 			return callback(null, announcements);
 		});
 	}, "steamcommunity");
-}
+};
 
 SteamCommunity.prototype.postGroupAnnouncement = function(gid, headline, content, callback) {
 	if(typeof gid === 'string') {
@@ -580,5 +581,110 @@ SteamCommunity.prototype.deleteGroupComment = function(gid, cid, callback) {
 		}
 
 		callback(err || null);
+	}, "steamcommunity");
+};
+
+/**
+ * Get requests to join a restricted group.
+ * @param {SteamID|string} gid - The SteamID of the group you want to manage
+ * @param {function} callback - First argument is null/Error, second is array of SteamID objects
+ */
+SteamCommunity.prototype.getGroupJoinRequests = function(gid, callback) {
+	if (typeof gid === 'string') {
+		gid = new SteamID(gid);
+	}
+
+	this.httpRequestGet("https://steamcommunity.com/gid/" + gid.getSteamID64() + "/joinRequestsManage", (err, res, body) => {
+		if (!body) {
+			callback(new Error("Malformed response"));
+			return;
+		}
+
+		var matches = body.match(/JoinRequests_ApproveDenyUser\(\W*['"](\d+)['"],\W0\W\)/g);
+		if (!matches) {
+			// no pending requests
+			callback(null, []);
+			return;
+		}
+
+		var requests = [];
+		for (var i = 0; i < matches.length; i++) {
+			requests.push(new SteamID("[U:1:" + matches[i].match(/JoinRequests_ApproveDenyUser\(\W*['"](\d+)['"],\W0\W\)/)[1] + "]"));
+		}
+
+		callback(null, requests);
+	}, "steamcommunity");
+};
+
+/**
+ * Respond to one or more join requests to a restricted group.
+ * @param {SteamID|string} gid - The SteamID of the group you want to manage
+ * @param {SteamID|string|SteamID[]|string[]} steamIDs - The SteamIDs of the users you want to approve or deny membership for (or a single value)
+ * @param {boolean} approve - True to put them in the group, false to deny their membership
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+SteamCommunity.prototype.respondToGroupJoinRequests = function(gid, steamIDs, approve, callback) {
+	if (typeof gid === 'string') {
+		gid = new SteamID(gid);
+	}
+	
+	var rgAccounts = (!Array.isArray(steamIDs) ? [steamIDs] : steamIDs).map(sid => sid.toString());
+
+	this.httpRequestPost({
+		"uri": "https://steamcommunity.com/gid/" + gid.getSteamID64() + "/joinRequestsManage",
+		"form": {
+			"rgAccounts": rgAccounts,
+			"bapprove": approve ? "1" : "0",
+			"json": "1",
+			"sessionID": this.getSessionID()
+		},
+		"json": true
+	}, (err, res, body) => {
+		if (!callback) {
+			return;
+		}
+
+		if (body != EResult.OK) {
+			var err = new Error(EResult[body] || ("Error " + body));
+			err.eresult = body;
+			callback(err);
+		} else {
+			callback(null);
+		}
+	}, "steamcommunity");
+};
+
+/**
+ * Respond to *ALL* pending group-join requests for a particular group.
+ * @param {SteamID|string} gid - The SteamID of the group you want to manage
+ * @param {boolean} approve - True to allow everyone who requested into the group, false to not
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+SteamCommunity.prototype.respondToAllGroupJoinRequests = function(gid, approve, callback) {
+	if (typeof gid === 'string') {
+		gid = new SteamID(gid);
+	}
+
+	this.httpRequestPost({
+		"uri": "https://steamcommunity.com/gid/" + gid.getSteamID64() + "/joinRequestsManage",
+		"form": {
+			"bapprove": approve ? "1" : "0",
+			"json": "1",
+			"action": "bulkrespond",
+			"sessionID": this.getSessionID()
+		},
+		"json": true
+	}, (err, res, body) => {
+		if (!callback) {
+			return;
+		}
+
+		if (body != EResult.OK) {
+			var err = new Error(EResult[body] || ("Error " + body));
+			err.eresult = body;
+			callback(err);
+		} else {
+			callback(null);
+		}
 	}, "steamcommunity");
 };

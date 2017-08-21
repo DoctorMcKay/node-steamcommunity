@@ -218,16 +218,16 @@ SteamCommunity.prototype.getUserAliases = function(userID, callback) {
 };
 
 SteamCommunity.prototype.getUserInventoryContexts = function(userID, callback) {
-	if(typeof userID === 'string') {
+	if (typeof userID === 'string') {
 		userID = new SteamID(userID);
 	}
 
-	if(typeof userID === 'function') {
+	if (typeof userID === 'function') {
 		callback = userID;
 		userID = this.steamID;
 	}
 
-	if(!userID) {
+	if (!userID) {
 		callback(new Error("No SteamID specified and not logged in"));
 		return;
 	}
@@ -240,8 +240,19 @@ SteamCommunity.prototype.getUserInventoryContexts = function(userID, callback) {
 		}
 
 		var match = body.match(/var g_rgAppContextData = ([^\n]+);\r?\n/);
-		if(!match) {
-			callback(new Error("Malformed response"));
+		if (!match) {
+			var errorMessage = "Malformed response";
+
+			if(body.match(/0 items in their inventory\./)){
+				callback(null, {});
+				return;
+			}else if(body.match(/inventory is currently private\./)){
+				errorMessage = "Private inventory";
+			}else if(body.match(/profile\_private\_info/)){
+				errorMessage = "Private profile";
+			}
+
+			callback(new Error(errorMessage));
 			return;
 		}
 
@@ -340,13 +351,19 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
  * @param {int} appID - The Steam application ID of the game for which you want an inventory
  * @param {int} contextID - The ID of the "context" within the game you want to retrieve
  * @param {boolean} tradableOnly - true to get only tradable items and currencies
+ * @param {string} [language] - The language of item descriptions to return. Omit for default (which may either be English or your account's chosen language)
  * @param {function} callback
  */
-SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, contextID, tradableOnly, callback) {
+SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, contextID, tradableOnly, language, callback) {
 	var self = this;
 
-	if(typeof userID === 'string') {
+	if (typeof userID === 'string') {
 		userID = new SteamID(userID);
+	}
+
+	if (typeof language === 'function') {
+		callback = language;
+		language = "english";
 	}
 
 	var pos = 1;
@@ -359,7 +376,7 @@ SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, cont
 				"Referer": "https://steamcommunity.com/profiles/" + userID.getSteamID64() + "/inventory"
 			},
 			"qs": {
-				"l": "english", // Default language
+				"l": language, // Default language
 				"count": 5000, // Max items per 'page'
 				"start_assetid": start
 			},
@@ -368,7 +385,7 @@ SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, cont
 			if (err) {
 				if (err.message == "HTTP error 403" && body === null) {
 					// 403 with a body of "null" means the inventory/profile is private.
-					if(userID.getSteamID64() == self.steamID.getSteamID64()) {
+					if (self.steamID && userID.getSteamID64() == self.steamID.getSteamID64()) {
 						// We can never get private profile error for our own inventory!
 						self._notifySessionExpired(err);
 					}
@@ -431,20 +448,16 @@ SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, cont
 	var quickDescriptionLookup = {};
 
 	function getDescription(descriptions, classID, instanceID) {
-		instanceID = instanceID || '0'; // instanceID can be undefined, in which case it's 0.
-
-		var key = classID + '_' + instanceID;
+		var key = classID + '_' + (instanceID || '0'); // instanceID can be undefined, in which case it's 0.
 
 		if (quickDescriptionLookup[key]) {
 			return quickDescriptionLookup[key];
 		}
 
 		for (var i = 0; i < descriptions.length; i++) {
-			quickDescriptionLookup[key] = descriptions[i];
-
-			if (descriptions[i].classid == classID && descriptions[i].instanceid == instanceID) {
-				return descriptions[i];
-			}
+			quickDescriptionLookup[descriptions[i].classid + '_' + (descriptions[i].instanceid || '0')] = descriptions[i];
 		}
+		
+		return quickDescriptionLookup[key];
 	}
 };
