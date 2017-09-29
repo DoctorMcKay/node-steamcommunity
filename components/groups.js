@@ -494,7 +494,7 @@ SteamCommunity.prototype.getGroupHistory = function(gid, page, callback) {
 				sid.universe = SteamID.Universe.PUBLIC;
 				sid.type = SteamID.Type.INDIVIDUAL;
 				sid.instance = SteamID.Instance.DESKTOP;
-				sid.accountid = $(users[0]).data('miniprofile');
+				sid.accountid = $(users[1]).data('miniprofile');
 				data.actor = sid;
 			}
 
