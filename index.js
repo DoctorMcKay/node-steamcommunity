@@ -370,6 +370,18 @@ SteamCommunity.prototype.loggedIn = function(callback) {
 	}, "steamcommunity");
 };
 
+SteamCommunity.prototype.getTradeURL = function(callback) {
+	this._myProfile("/tradeoffers/privacy", null, (err, response, body) => {
+		var match = body.match(/https?:\/\/(www.)?steamcommunity.com\/tradeoffer\/new\/?\?partner=\d+(&|&amp;)token=([a-zA-Z0-9-_]+)/);
+		if (match) {
+			var token = match[3];
+			callback(null, match[0], token);
+		} else {
+			callback(new Error("Malformed response"));
+		}
+	}, "tradeoffermanager");
+};
+
 SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 	var self = this;
 
