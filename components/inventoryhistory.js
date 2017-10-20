@@ -13,6 +13,11 @@ var Async = require('async');
  * With "prev" set, you will request 30 trades that were completed MORE RECENTLY than after_time (and optionally after_trade)
  */
 
+/**
+ * @deprecated Use GetTradeHistory instead: https://lab.xpaw.me/steam_api_documentation.html#IEconService_GetTradeHistory_v1
+ * @param {object} options
+ * @param {function} callback
+ */
 SteamCommunity.prototype.getInventoryHistory = function(options, callback) {
 	if (typeof options === 'function') {
 		callback = options;
