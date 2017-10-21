@@ -143,7 +143,7 @@ SteamCommunity.prototype.getAllGroupAnnouncements = function(gid, time, callback
 					headline: announcement.title[0],
 					content:  announcement.description[0],
 					date:     new Date(announcement.pubDate[0]),
-					author:   announcement.author[0],
+					author:   (typeof announcement.author === 'undefined') ? null : announcement.author[0],
 					aid:      splitLink[splitLink.length - 1]
 				}
 			}).filter(function(announcement) {
