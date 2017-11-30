@@ -372,6 +372,11 @@ SteamCommunity.prototype.loggedIn = function(callback) {
 
 SteamCommunity.prototype.getTradeURL = function(callback) {
 	this._myProfile("/tradeoffers/privacy", null, (err, response, body) => {
+		if (err) {
+			callback(err);
+			return;
+		}
+
 		var match = body.match(/https?:\/\/(www.)?steamcommunity.com\/tradeoffer\/new\/?\?partner=\d+(&|&amp;)token=([a-zA-Z0-9-_]+)/);
 		if (match) {
 			var token = match[3];
