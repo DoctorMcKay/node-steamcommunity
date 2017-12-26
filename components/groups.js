@@ -521,11 +521,15 @@ SteamCommunity.prototype.getGroupHistory = function(gid, page, callback) {
 };
 
 SteamCommunity.prototype.getAllGroupComments = function(gid, from, count, callback) {
+	if (typeof gid === 'string') {
+		gid = new SteamID(gid);
+	}
+
 	var options = {
-		uri: "http://steamcommunity.com/comment/Clan/render/" + gid.getSteamID64() + "/-1/",
-		form: {
-			start: from,
-			count: count
+		"uri": "https://steamcommunity.com/comment/Clan/render/" + gid.getSteamID64() + "/-1/",
+		"form": {
+			"start": from,
+			"count": count
 		}
 	};
 
@@ -546,7 +550,7 @@ SteamCommunity.prototype.getAllGroupComments = function(gid, from, count, callba
 
 			var $selector = $(this).find(".commentthread_author_link");
 			comment.authorName = $($selector).find("bdi").text();
-			comment.authorId = $($selector).attr("href").replace(/http:\/\/steamcommunity.com\/(id|profiles)\//, "");
+			comment.authorId = $($selector).attr("href").replace(/https?:\/\/steamcommunity.com\/(id|profiles)\//, "");
 			comment.date = Helpers.decodeSteamTime($(this).find(".commentthread_comment_timestamp").text().trim());
 
 			$selector = $(this).find(".commentthread_comment_text");
@@ -561,16 +565,19 @@ SteamCommunity.prototype.getAllGroupComments = function(gid, from, count, callba
 };
 
 SteamCommunity.prototype.deleteGroupComment = function(gid, cid, callback) {
+	if (typeof gid === 'string') {
+		gid = new SteamID(gid);
+	}
 
-	if(typeof cid !== 'string') {
+	if (typeof cid !== 'string') {
 		cid = cid.toString();
 	}
 
 	var options = {
-		uri: "http://steamcommunity.com/comment/Clan/delete/" + gid.getSteamID64() + "/-1/",
-		form: {
-			sessionid: this.getSessionID(),
-			gidcomment: cid
+		uri: "https://steamcommunity.com/comment/Clan/delete/" + gid.getSteamID64() + "/-1/",
+		"form": {
+			"sessionid": this.getSessionID(),
+			"gidcomment": cid
 		}
 	};
 
