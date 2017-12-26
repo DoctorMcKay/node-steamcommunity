@@ -114,6 +114,14 @@ CSteamGroup.prototype.getHistory = function(page, callback) {
 	this._community.getGroupHistory(this.steamID, page, callback);
 };
 
+
+CSteamGroup.prototype.getAllComments = function(from, count, callback) {
+	this._community.getAllGroupComments(this.steamID, from, count, callback);
+};
+
+CSteamGroup.prototype.deleteComment = function(cid, callback) {
+	this._community.deleteGroupComment(this.steamID, cid, callback);
+
 /**
  * Get requests to join this restricted group.
  * @param {function} callback - First argument is null/Error, second is array of SteamID objects

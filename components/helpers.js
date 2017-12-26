@@ -13,11 +13,26 @@ exports.isSteamID = function(input) {
 };
 
 exports.decodeSteamTime = function(time) {
-	var parts = time.split('@');
-	if (!parts[0].match(/,/)) {
-		// no year, assume current year
-		parts[0] += ", " + (new Date()).getFullYear();
+	var date = new Date();
+
+	if (time.includes("@")) {
+		var parts = time.split('@');
+		if (!parts[0].includes(",")) {
+			// no year, assume current year
+			parts[0] += ", " + date.getFullYear();
+		}
+
+		date = new Date(parts.join('@').replace(/(am|pm)/, ' $1') + " UTC");  // add a space so JS can decode it
+	} else {
+		// Relative date
+		var amount = time.replace(/(\d) (minutes|hour|hours) ago/, "$1");
+
+		if(time.includes("minutes")) {
+			date.setMinutes(date.getMinutes() - amount);
+		} else if(time.match(/hour|hours/)) {
+			date.setHours(date.getHours() - amount);
+		}
 	}
 
-	return new Date(parts.join('@').replace(/(am|pm)/, ' $1') + " UTC"); // add a space so JS can decode it
+	return date;
 };

@@ -2,6 +2,7 @@ var SteamCommunity = require('../index.js');
 var SteamID = require('steamid');
 var xml2js = require('xml2js');
 var Cheerio = require('cheerio');
+var Helpers = require('./helpers.js');
 var EResult = SteamCommunity.EResult;
 
 SteamCommunity.prototype.getGroupMembers = function(gid, callback, members, link, addresses, addressIdx) {
@@ -516,6 +517,70 @@ SteamCommunity.prototype.getGroupHistory = function(gid, page, callback) {
 		});
 
 		callback(null, output);
+	}, "steamcommunity");
+};
+
+SteamCommunity.prototype.getAllGroupComments = function(gid, from, count, callback) {
+	var options = {
+		uri: "http://steamcommunity.com/comment/Clan/render/" + gid.getSteamID64() + "/-1/",
+		form: {
+			start: from,
+			count: count
+		}
+	};
+
+	var self = this;
+	this.httpRequestPost(options, function(err, response, body) {
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		var comments = [];
+
+		var $ = Cheerio.load(JSON.parse(body).comments_html);
+
+		$(".commentthread_comment_content").each(function () {
+			var comment = {};
+			var cachedSelector;
+
+			var $selector = $(this).find(".commentthread_author_link");
+			comment.authorName = $($selector).find("bdi").text();
+			comment.authorId = $($selector).attr("href").replace(/http:\/\/steamcommunity.com\/(id|profiles)\//, "");
+			comment.date = Helpers.decodeSteamTime($(this).find(".commentthread_comment_timestamp").text().trim());
+
+			$selector = $(this).find(".commentthread_comment_text");
+			comment.commentId = $($selector).attr("id").replace("comment_content_", "");
+			comment.text = $($selector).html().trim();
+
+			comments.push(comment);
+		});
+
+		callback(null, comments);
+	}, "steamcommunity");
+};
+
+SteamCommunity.prototype.deleteGroupComment = function(gid, cid, callback) {
+
+	if(typeof cid !== 'string') {
+		cid = cid.toString();
+	}
+
+	var options = {
+		uri: "http://steamcommunity.com/comment/Clan/delete/" + gid.getSteamID64() + "/-1/",
+		form: {
+			sessionid: this.getSessionID(),
+			gidcomment: cid
+		}
+	};
+
+	var self = this;
+	this.httpRequestPost(options, function(err, response, body) {
+		if(!callback) {
+			return;
+		}
+
+		callback(err || null);
 	}, "steamcommunity");
 };
 
