@@ -121,6 +121,7 @@ CSteamGroup.prototype.getAllComments = function(from, count, callback) {
 
 CSteamGroup.prototype.deleteComment = function(cid, callback) {
 	this._community.deleteGroupComment(this.steamID, cid, callback);
+};
 
 /**
  * Get requests to join this restricted group.
