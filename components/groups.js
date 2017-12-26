@@ -574,7 +574,7 @@ SteamCommunity.prototype.deleteGroupComment = function(gid, cid, callback) {
 	}
 
 	var options = {
-		uri: "https://steamcommunity.com/comment/Clan/delete/" + gid.getSteamID64() + "/-1/",
+		"uri": "https://steamcommunity.com/comment/Clan/delete/" + gid.getSteamID64() + "/-1/",
 		"form": {
 			"sessionid": this.getSessionID(),
 			"gidcomment": cid
