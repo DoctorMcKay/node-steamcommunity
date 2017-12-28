@@ -413,6 +413,18 @@ SteamCommunity.prototype.getTradeURL = function(callback) {
 	}, "tradeoffermanager");
 };
 
+SteamCommunity.prototype.changeTradeURL = function (callback) {
+	this._myProfile("/tradeoffers/newtradeurl", {
+		"sessionid": this.getSessionID()
+	}, (err, response, body) => {
+		if (err || response.statusCode != 200)
+			return callback(err || "HTTP error " + response.statusCode);
+		if (!body || typeof body !== "string" || body.length < 3 || body.indexOf('"') !== 0)
+			return callback(new Error("Malformed response"));
+		return callback(null, body.replace(/\"/g, '')); //"t1o2k3e4n" => t1o2k3e4n
+	}, "tradeoffermanager");
+};
+
 SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 	var self = this;
 
