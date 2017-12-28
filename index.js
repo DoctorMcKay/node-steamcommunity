@@ -13,7 +13,8 @@ module.exports = SteamCommunity;
 
 SteamCommunity.SteamID = SteamID;
 SteamCommunity.ConfirmationType = require('./resources/EConfirmationType.js');
-SteamCommunity.EResult = require('./resources/EResult.js');
+SteamCommunity.EResult = require('./resources/EResult.js')
+
 
 function SteamCommunity(options) {
 	options = options || {};
@@ -410,19 +411,23 @@ SteamCommunity.prototype.getTradeURL = function(callback) {
 		} else {
 			callback(new Error("Malformed response"));
 		}
-	}, "tradeoffermanager");
+	}, "steamcommunity");
 };
 
-SteamCommunity.prototype.changeTradeURL = function (callback) {
-	this._myProfile("/tradeoffers/newtradeurl", {
-		"sessionid": this.getSessionID()
-	}, (err, response, body) => {
-		if (err || response.statusCode != 200)
-			return callback(err || "HTTP error " + response.statusCode);
-		if (!body || typeof body !== "string" || body.length < 3 || body.indexOf('"') !== 0)
-			return callback(new Error("Malformed response"));
-		return callback(null, body.replace(/\"/g, '')); //"t1o2k3e4n" => t1o2k3e4n
-	}, "tradeoffermanager");
+SteamCommunity.prototype.changeTradeURL = function(callback) {
+	this._myProfile("/tradeoffers/newtradeurl", {"sessionid": this.getSessionID()}, (err, response, body) => {
+		if (!callback) {
+			return;
+		}
+
+		if (!body || typeof body !== "string" || body.length < 3 || body.indexOf('"') !== 0) {
+			callback(new Error("Malformed response"));
+			return;
+		}
+
+		var newToken = body.replace(/"/g, ''); //"t1o2k3e4n" => t1o2k3e4n
+		callback(null, "https://steamcommunity.com/tradeoffer/new/?partner=" + this.steamID.accountid + "&token=" + newToken, newToken);
+	}, "steamcommunity");
 };
 
 SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
