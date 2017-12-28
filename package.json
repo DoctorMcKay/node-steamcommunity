@@ -11,6 +11,11 @@
 		"url": "https://github.com/DoctorMcKay/node-steamcommunity/issues"
 	},
 	"license": "MIT",
+	"author": {
+		"name": "Alex Corn",
+		"email": "mckay@doctormckay.com",
+		"url": "https://www.doctormckay.com"
+	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/DoctorMcKay/node-steamcommunity.git"
