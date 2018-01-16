@@ -79,7 +79,7 @@ function doLogin(accountName, password, authCode, captcha) {
 
 			console.log("Writing secrets to twofactor_" + community.steamID.getSteamID64() + ".json");
 			console.log("Revocation code: " + response.revocation_code);
-			fs.writeFile("twofactor_" + community.steamID.getSteamID64() + ".json", JSON.stringify(response, null, "\t"));
+			fs.writeFileSync("twofactor_" + community.steamID.getSteamID64() + ".json", JSON.stringify(response, null, "\t"));
 
 			promptActivationCode(response);
 		});
