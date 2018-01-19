@@ -1,6 +1,7 @@
 require('@doctormckay/stats-reporter').setup(require('./package.json'));
 
 var Request = require('request');
+var Cheerio = require('cheerio');
 var RSA = require('node-bignumber').Key;
 var hex2b64 = require('node-bignumber').hex2b64;
 var SteamID = require('steamid');
@@ -248,6 +249,48 @@ SteamCommunity.prototype.oAuthLogin = function(steamguard, token, callback) {
 		callback(null, self.getSessionID(), cookies);
 	}, "steamcommunity");
 };
+
+SteamCommunity.prototype.openidLogin = function(url, callback) {
+    var self = this;
+    self.loggedIn(function(err, loggedIn) {
+        if (err) {
+			callback(err);
+			return;
+        }
+
+        if(!loggedIn) {
+			callback(new Error("Not logged into Steam"));
+			return;
+        }
+
+        self.httpRequestGet({
+            "uri": url,
+            "followAllRedirects": true
+        }, function(err, response, body) {
+            if(err) {
+                callback(err);
+                return;
+            }
+
+            var $ = Cheerio.load(body);
+            var form = $("#openidForm");
+            if(!form) {
+                callback(new Error("Malformed response"));
+                return;
+            }
+            
+            var values = {};
+            form.serializeArray().forEach(function(item) {
+                values[item.name] = item.value;
+            });
+            
+            self.httpRequestPost("https://steamcommunity.com/openid/login/", {
+                "formData": values,
+                "followAllRedirects": true
+            }, callback);
+        });
+    });
+}
 
 SteamCommunity.prototype._setCookie = function(cookie, secure) {
 	var protocol = secure ? "https" : "http";
