@@ -175,7 +175,7 @@ CMarketItem.prototype.updatePriceForNonCommodity = function (currency, callback)
 		match = $(".market_listing_price.market_listing_price_with_fee");
 		if (match) {
 			for (var i = 0; i < match.length; i++) {
-				lowestPrice = parseFloat($(match[i]).text().replace(",", ".").replace(/[^\d.]/g, ''));
+				lowestPrice = parseFloat($(match[i]).text().replace(".", "").replace(/[^\d.]/g, ''));
 				if (!isNaN(lowestPrice)) {
 					self.lowestPrice = lowestPrice;
 					break;
