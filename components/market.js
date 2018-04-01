@@ -53,7 +53,7 @@ SteamCommunity.prototype.getGemValue = function(appid, assetid, callback) {
 			return;
 		}
 
-		if (body.success && body.success != 1) {
+		if (body.success && body.success != SteamCommunity.EResult.OK) {
 			let err = new Error(body.message || SteamCommunity.EResult[body.success]);
 			err.eresult = err.code = body.success;
 			callback(err);
@@ -93,7 +93,7 @@ SteamCommunity.prototype.turnItemIntoGems = function(appid, assetid, expectedGem
 			return;
 		}
 
-		if (body.success && body.success != 1) {
+		if (body.success && body.success != SteamCommunity.EResult.OK) {
 			let err = new Error(body.message || SteamCommunity.EResult[body.success]);
 			err.eresult = err.code = body.success;
 			callback(err);
@@ -107,4 +107,71 @@ SteamCommunity.prototype.turnItemIntoGems = function(appid, assetid, expectedGem
 
 		callback(null, {"gemsReceived": parseInt(body['goo_value_received '], 10), "totalGems": parseInt(body.goo_value_total, 10)});
 	})
+};
+
+/**
+ * Get details about a gift in your inventory.
+ * @param {string} giftID
+ * @param {function} callback
+ */
+SteamCommunity.prototype.getGiftDetails = function(giftID, callback) {
+	this.httpRequestPost({
+		"uri": "https://steamcommunity.com/gifts/" + giftID + "/validateunpack",
+		"form": {
+			"sessionid": this.getSessionID()
+		},
+		"json": true
+	}, (err, res, body) => {
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (body.success && body.success != SteamCommunity.EResult.OK) {
+			let err = new Error(body.message || SteamCommunity.EResult[body.success]);
+			err.eresult = err.code = body.success;
+			callback(err);
+			return;
+		}
+
+		if (!body.packageid || !body.gift_name) {
+			callback(new Error("Malformed response"));
+			return;
+		}
+
+		callback(null, {
+			"giftName": body.gift_name,
+			"packageID": parseInt(body.packageid, 10),
+			"owned": body.owned
+		});
+	});
+};
+
+/**
+ * Unpack a gift in your inventory to your library.
+ * @param {string} giftID
+ * @param {function} callback
+ */
+SteamCommunity.prototype.redeemGift = function(giftID, callback) {
+	this.httpRequestPost({
+		"uri": "https://steamcommunity.com/gifts/" + giftID + "/unpack",
+		"form": {
+			"sessionid": this.getSessionID()
+		},
+		"json": true
+	}, (err, res, body) => {
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (body.success && body.success != SteamCommunity.EResult.OK) {
+			let err = new Error(body.message || SteamCommunity.EResult[body.success]);
+			err.eresult = err.code = body.success;
+			callback(err);
+			return;
+		}
+
+		callback(null);
+	});
 };
