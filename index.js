@@ -458,10 +458,12 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 	}
 
 	function completeRequest(url) {
-		var options = {
-			"uri": "https://steamcommunity.com" + url + "/" + endpoint,
-			"method": "GET"
-		};
+		var options = {};
+		if (endpoint.endpoint) {
+			options = endpoint;
+			options.uri = "https://steamcommunity.com" + url + "/" + endpoint.endpoint;
+			options.method = "GET";
+		}
 
 		if (form) {
 			options.method = "POST";
