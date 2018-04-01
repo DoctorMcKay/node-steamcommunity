@@ -86,7 +86,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 	} else {
 		mobileHeaders = {"Referer": "https://steamcommunity.com/login"};
 	}
-	
+
 	this.httpRequestPost("https://steamcommunity.com/login/getrsakey/", {
 		"form": {"username": details.accountName},
 		"headers": mobileHeaders,
@@ -104,7 +104,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 			callback(new Error("Invalid RSA key received"));
 			return;
 		}
-		
+
 		var key = new RSA();
 		key.setPublic(body.publickey_mod, body.publickey_exp);
 
@@ -146,7 +146,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 				// Steam Guard (email)
 				error = new Error("SteamGuard");
 				error.emaildomain = body.emaildomain;
-				
+
 				callback(error);
 			} else if (!body.success && body.requires_twofactor) {
 				// Steam Guard (app)
@@ -154,9 +154,9 @@ SteamCommunity.prototype.login = function(details, callback) {
 			} else if (!body.success && body.captcha_needed && body.message.match(/Please verify your humanity/)) {
 				error = new Error("CAPTCHA");
 				error.captchaurl = "https://steamcommunity.com/login/rendercaptcha/?gid=" + body.captcha_gid;
-				
+
 				self._captchaGid = body.captcha_gid;
-				
+
 				callback(error);
 			} else if (!body.success) {
 				callback(new Error(body.message || "Unknown error"));
@@ -170,7 +170,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 				var cookies = self._jar.getCookieString("https://steamcommunity.com").split(';').map(function(cookie) {
 					return cookie.trim();
 				});
-				
+
 				if (!disableMobile){
 					oAuth = JSON.parse(body.oauth);
 					self.steamID = new SteamID(oAuth.steamid);
@@ -198,7 +198,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 				}
 
 				self.setCookies(cookies);
-				
+
 				callback(null, sessionID, cookies, steamguard, disableMobile ? null : oAuth.oauth_token);
 			}
 		}, "steamcommunity");
@@ -278,7 +278,7 @@ SteamCommunity.prototype.getSessionID = function() {
 			return decodeURIComponent(match[2]);
 		}
 	}
-	
+
 	var sessionID = generateSessionID();
 	this._setCookie(Request.cookie('sessionid=' + sessionID));
 	return sessionID;
@@ -300,17 +300,17 @@ SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
 		if(!callback) {
 			return;
 		}
-		
+
 		if (err) {
 			callback(err);
 			return;
 		}
-		
+
 		if (!body || typeof body.success !== 'boolean') {
 			callback("Invalid response");
 			return;
 		}
-		
+
 		if (!body.success) {
 			switch (body.eresult) {
 				case 15:
@@ -327,7 +327,7 @@ SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
 
 			return;
 		}
-		
+
 		callback();
 	}.bind(this), "steamcommunity");
 };
@@ -347,7 +347,7 @@ SteamCommunity.prototype.getNotifications = function(callback) {
 			callback(new Error("Malformed response"));
 			return;
 		}
-		
+
 		var notifications = {
 			"trades": body.notifications[1] || 0,
 			"gameTurns": body.notifications[2] || 0,
@@ -387,12 +387,12 @@ SteamCommunity.prototype.loggedIn = function(callback) {
 			callback(err || new Error("HTTP error " + response.statusCode));
 			return;
 		}
-		
+
 		if(response.statusCode == 403) {
 			callback(null, true, true);
 			return;
 		}
-		
+
 		callback(null, !!response.headers.location.match(/steamcommunity\.com(\/(id|profiles)\/[^\/]+)\/?/), false);
 	}, "steamcommunity");
 };
@@ -451,7 +451,7 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 			self._profileURL = match[1];
 			setTimeout(function () {
 				delete self._profileURL; // delete the cache
-			}, 60000);
+			}, 60000).unref();
 
 			completeRequest(match[1]);
 		}, "steamcommunity");
