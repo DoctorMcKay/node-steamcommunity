@@ -1,6 +1,10 @@
 var SteamCommunity = require('../index.js');
 var Cheerio = require('cheerio');
 
+/**
+ * Get a list of all apps on the market
+ * @param {function} callback - First argument is null|Error, second is an object of appid => name
+ */
 SteamCommunity.prototype.getMarketApps = function(callback) {
 	var self = this;
 	this.httpRequest('https://steamcommunity.com/market/', function (err, response, body) {
@@ -11,8 +15,8 @@ SteamCommunity.prototype.getMarketApps = function(callback) {
 
 		var $ = Cheerio.load(body);
 		if ($('.market_search_game_button_group')) {
-			apps = {};
-			$('.market_search_game_button_group > a').each(function (i, element) {
+			let apps = {};
+			$('.market_search_game_button_group a.game_button').each(function (i, element) {
 				var e = Cheerio.load(element);
 				var name = e('.game_button_game_name').text().trim();
 				var url = element.attribs.href;
