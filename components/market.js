@@ -31,7 +31,7 @@ SteamCommunity.prototype.getMarketApps = function(callback) {
 };
 
 /**
- *
+ * Check if an item is eligible to be turned into gems and if so, get its gem value
  * @param {int} appid
  * @param {int|string} assetid
  * @param {function} callback
@@ -69,6 +69,13 @@ SteamCommunity.prototype.getGemValue = function(appid, assetid, callback) {
 	});
 };
 
+/**
+ * Turn an eligible item into gems.
+ * @param {int} appid
+ * @param {int|string} assetid
+ * @param {int} expectedGemsValue
+ * @param {function} callback
+ */
 SteamCommunity.prototype.turnItemIntoGems = function(appid, assetid, expectedGemsValue, callback) {
 	this._myProfile({
 		"endpoint": "ajaxgrindintogoo/",
