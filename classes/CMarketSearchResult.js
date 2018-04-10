@@ -3,26 +3,26 @@ var Cheerio = require('cheerio');
 
 SteamCommunity.prototype.marketSearch = function(options, callback) {
 	var qs = {};
-	
+
 	if(typeof options === 'string') {
 		qs.query = options;
 	} else {
 		qs.query = options.query || '';
 		qs.appid = options.appid;
 		qs.search_descriptions = options.searchDescriptions ? 1 : 0;
-		
+
 		if(qs.appid) {
 			for(var i in options) {
 				if(['query', 'appid', 'searchDescriptions'].indexOf(i) != -1) {
 					continue;
 				}
-				
+
 				// This is a tag
 				qs['category_' + qs.appid + '_' + i + '[]'] = 'tag_' + options[i];
 			}
 		}
 	}
-	
+
 	qs.start = 0;
 	qs.count = 100;
 	qs.sort_column = 'price';
@@ -80,10 +80,10 @@ SteamCommunity.prototype.marketSearch = function(options, callback) {
 
 function CMarketSearchResult(row) {
 	var match = row.attr('href').match(/\/market\/listings\/(\d+)\/([^\?\/]+)/);
-	
+
 	this.appid = parseInt(match[1], 10);
 	this.market_hash_name = decodeURIComponent(match[2]);
-	this.image = row.find('.market_listing_item_img').attr('src').match(/^https?:\/\/[^\/]+\/economy\/image\/[^\/]+\//)[0];
+	this.image = ((row.find('.market_listing_item_img').attr('src') || "").match(/^https?:\/\/[^\/]+\/economy\/image\/[^\/]+\//) || [])[0];
 	this.price = parseInt(row.find('.market_listing_their_price .market_table_value span.normal_price').text().replace(/[^\d]+/g, ''), 10);
 	this.quantity = parseInt(row.find('.market_listing_num_listings_qty').text().replace(/[^\d]+/g, ''), 10);
 }
