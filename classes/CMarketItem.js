@@ -12,7 +12,7 @@ SteamCommunity.prototype.getMarketItem = function(appid, hashName, currency, cal
 			callback(err);
 			return;
 		}
-		
+
 		var $ = Cheerio.load(body);
 		if($('.market_listing_table_message') && $('.market_listing_table_message').text().trim() == 'There are no listings for this item.') {
 			callback(new Error("There are no listings for this item."));
@@ -35,7 +35,7 @@ function CMarketItem(appid, hashName, community, body, $) {
 	this._hashName = hashName;
 	this._community = community;
 	this._$ = $;
-	
+
 	this._country = "US";
 	var match = body.match(/var g_strCountryCode = "([^"]+)";/);
 	if(match) {
@@ -47,14 +47,14 @@ function CMarketItem(appid, hashName, community, body, $) {
 	if(match) {
 		this._language = match[1];
 	}
-	
+
 	this.commodity = false;
-	var match = body.match(/Market_LoadOrderSpread\(\s*(\d+)\s*\);/);
+	match = body.match(/Market_LoadOrderSpread\(\s*(\d+)\s*\);/);
 	if(match) {
 		this.commodity = true;
 		this.commodityID = parseInt(match[1], 10);
 	}
-	
+
 	this.medianSalePrices = null;
 	match = body.match(/var line1=([^;]+);/);
 	if(match) {
@@ -78,7 +78,8 @@ function CMarketItem(appid, hashName, community, body, $) {
 	if (match) {
 		try {
 			this.assets = JSON.parse(match[1]);
-			this.assets = this.assets['730']['2'];
+			this.assets = this.assets[appid];
+			this.assets = this.assets[Object.keys(this.assets)[0]];
 			this.firstAsset = this.assets[Object.keys(this.assets)[0]];
 		} catch (e) {
 			// ignore
@@ -112,29 +113,29 @@ CMarketItem.prototype.updatePriceForCommodity = function(currency, callback) {
 			callback(err);
 			return;
 		}
-		
+
 		if(body.success != 1) {
 			if(callback) {
 				callback(new Error("Error " + body.success));
 			}
-			
+
 			return;
 		}
-		
+
 		var match = (body.sell_order_summary || '').match(/<span class="market_commodity_orders_header_promote">(\d+)<\/span>/);
 		if(match) {
 			self.quantity = parseInt(match[1], 10);
 		}
-		
+
 		self.buyQuantity = 0;
 		match = (body.buy_order_summary || '').match(/<span class="market_commodity_orders_header_promote">(\d+)<\/span>/);
 		if(match) {
 			self.buyQuantity = parseInt(match[1], 10);
 		}
-		
+
 		self.lowestPrice = parseInt(body.lowest_sell_order, 10);
 		self.highestBuyOrder = parseInt(body.highest_buy_order, 10);
-		
+
 		// TODO: The tables?
 		if(callback) {
 			callback(null);
