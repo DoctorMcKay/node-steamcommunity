@@ -1,7 +1,10 @@
-var SteamCommunity = require('../index.js');
-var SteamID = require('steamid');
-var Cheerio = require('cheerio');
-var fs = require('fs');
+const Cheerio = require('cheerio');
+const FormData = require('form-data');
+const FS = require('fs');
+const SteamID = require('steamid');
+
+const Helpers = require('./helpers.js');
+const SteamCommunity = require('../index.js');
 
 SteamCommunity.PrivacyState = {
 	"Private": 1,
@@ -10,9 +13,9 @@ SteamCommunity.PrivacyState = {
 };
 
 var CommentPrivacyState = {
-	"1": "commentselfonly",
-	"2": "commentfriendsonly",
-	"3": "commentanyone"
+	"1": 2,         // private
+	"2": 0,         // friends only
+	"3": 1          // anyone
 };
 
 SteamCommunity.prototype.setupProfile = function(callback) {
@@ -148,10 +151,9 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 };
 
 SteamCommunity.prototype.profileSettings = function(settings, callback) {
-	var self = this;
-	this._myProfile("edit/settings", null, function(err, response, body) {
-		if(err || response.statusCode != 200) {
-			if(callback) {
+	this._myProfile("edit/settings", null, (err, response, body) => {
+		if (err || response.statusCode != 200) {
+			if (callback) {
 				callback(err || new Error("HTTP error " + response.statusCode));
 			}
 
@@ -159,8 +161,8 @@ SteamCommunity.prototype.profileSettings = function(settings, callback) {
 		}
 
 		var $ = Cheerio.load(body);
-		var form = $('#editForm');
-		if(!form) {
+		var existingSettings = $('.ProfileReactRoot[data-privacysettings]').data('privacysettings');
+		if (!existingSettings) {
 			if(callback) {
 				callback(new Error("Malformed response"));
 			}
@@ -168,46 +170,71 @@ SteamCommunity.prototype.profileSettings = function(settings, callback) {
 			return;
 		}
 
-		var values = {};
-		form.serializeArray().forEach(function(item) {
-			values[item.name] = item.value;
-		});
+		// PrivacySettings => {PrivacyProfile, PrivacyInventory, PrivacyInventoryGifts, PrivacyOwnedGames, PrivacyPlaytime}
+		// eCommentPermission
+		var privacy = existingSettings.PrivacySettings;
+		var commentPermission = existingSettings.eCommentPermission;
 
-		for(var i in settings) {
-			if(!settings.hasOwnProperty(i)) {
+		for (var i in settings) {
+			if (!settings.hasOwnProperty(i)) {
 				continue;
 			}
 
-			switch(i) {
+			switch (i) {
 				case 'profile':
-					values.privacySetting = settings[i];
+					privacy.PrivacyProfile = settings[i];
 					break;
 
 				case 'comments':
-					values.commentSetting = CommentPrivacyState[settings[i]];
+					commentPermission = CommentPrivacyState[settings[i]];
 					break;
 
 				case 'inventory':
-					values.inventoryPrivacySetting = settings[i];
+					privacy.PrivacyInventory = settings[i];
 					break;
 
 				case 'inventoryGifts':
-					values.inventoryGiftPrivacy = settings[i] ? 1 : 0;
+					privacy.PrivacyInventoryGifts = settings[i] ? SteamCommunity.PrivacyState.Private : SteamCommunity.PrivacyState.Public;
+					break;
+
+				case 'gameDetails':
+					privacy.PrivacyOwnedGames = settings[i];
+					break;
+
+				case 'playtime':
+					privacy.PrivacyPlaytime = settings[i] ? SteamCommunity.PrivacyState.Private : SteamCommunity.PrivacyState.Public;
 					break;
 			}
 		}
 
-		self._myProfile("edit/settings", values, function(err, response, body) {
-			if(err || response.statusCode != 200) {
-				if(callback) {
+		this._myProfile({
+			"method": "POST",
+			"endpoint": "ajaxsetprivacy/",
+			"json": true,
+			"formData": { // it's multipart because lolvalve
+				"sessionid": this.getSessionID(),
+				"Privacy": JSON.stringify(privacy),
+				"eCommentPermission": commentPermission
+			}
+		}, null, function(err, response, body) {
+			if (err || response.statusCode != 200) {
+				if (callback) {
 					callback(err || new Error("HTTP error " + response.statusCode));
 				}
 
 				return;
 			}
 
-			if(callback) {
-				callback(null);
+			if (body.success != 1) {
+				if (callback) {
+					callback(new Error(body.success ? "Error " + body.success : "Request was not successful"));
+				}
+
+				return;
+			}
+
+			if (callback) {
+				callback(null, body.Privacy);
 			}
 		});
 	});
@@ -256,7 +283,7 @@ SteamCommunity.prototype.uploadAvatar = function(image, format, callback) {
 			}
 		}
 
-		fs.readFile(image, function(err, file) {
+		FS.readFile(image, function(err, file) {
 			if(err) {
 				if(callback) {
 					callback(err);

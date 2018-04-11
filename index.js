@@ -1,9 +1,9 @@
 require('@doctormckay/stats-reporter').setup(require('./package.json'));
 
-var Request = require('request');
-var RSA = require('node-bignumber').Key;
-var hex2b64 = require('node-bignumber').hex2b64;
-var SteamID = require('steamid');
+const hex2b64 = require('node-bignumber').hex2b64;
+const Request = require('request');
+const RSA = require('node-bignumber').Key;
+const SteamID = require('steamid');
 
 const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36";
 
@@ -460,11 +460,12 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 	function completeRequest(url) {
 		var options = endpoint.endpoint ? endpoint : {};
 		options.uri = "https://steamcommunity.com" + url + "/" + (endpoint.endpoint || endpoint);
-		options.method = "GET";
 
 		if (form) {
 			options.method = "POST";
 			options.form = form;
+		} else if (!options.method) {
+			options.method = "GET";
 		}
 
 		self.httpRequest(options, callback, "steamcommunity");
