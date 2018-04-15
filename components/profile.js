@@ -1,5 +1,4 @@
 const Cheerio = require('cheerio');
-const FormData = require('form-data');
 const FS = require('fs');
 const SteamID = require('steamid');
 
