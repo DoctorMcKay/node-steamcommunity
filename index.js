@@ -464,6 +464,7 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 		if (form) {
 			options.method = "POST";
 			options.form = form;
+			options.followAllRedirects = true;
 		} else if (!options.method) {
 			options.method = "GET";
 		}
