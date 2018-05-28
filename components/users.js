@@ -217,6 +217,40 @@ SteamCommunity.prototype.getUserAliases = function(userID, callback) {
 	}, "steamcommunity");
 };
 
+/**
+ * Get the background URL of user's profile.
+ * @param {SteamID|string} userID - The user's SteamID as a SteamID object or a string which can parse into one
+ * @param {function} callback
+ */
+SteamCommunity.prototype.getProfileBackground = function(userID, callback) {
+	if (typeof userID === 'string') {
+		userID = new SteamID(userID);
+	}
+	
+	var self = this;
+	this.httpRequest("http://steamcommunity.com/profiles/" + userID.getSteamID64(), function (err, response, body) {
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		var $ = Cheerio.load(body);
+		
+		if ($('body').hasClass('has_profile_background')) {
+			var backgroundUrl = $('div.profile_background_image_content').css('background-image');
+			var matcher = backgroundUrl.match(/\(([^)]+)\)/);
+
+			if (matcher.length != 2 || !matcher[1].length) {
+				callback(new Error("Unknown error occurred"));
+			} else {
+				callback(null, matcher[1]);
+			}
+		} else {
+			callback("User does not have a background image");
+		}
+	}, "steamcommunity");
+};
+
 SteamCommunity.prototype.getUserInventoryContexts = function(userID, callback) {
 	if (typeof userID === 'string') {
 		userID = new SteamID(userID);
