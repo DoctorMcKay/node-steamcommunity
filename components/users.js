@@ -225,7 +225,7 @@ SteamCommunity.prototype.getUserAliases = function(userID, callback) {
  * @param {SteamID|string} userID - The user's SteamID as a SteamID object or a string which can parse into one
  * @param {function} callback
  */
-SteamCommunity.prototype.getProfileBackground = function(userID, callback) {
+SteamCommunity.prototype.getUserProfileBackground = function(userID, callback) {
 	if (typeof userID === 'string') {
 		userID = new SteamID(userID);
 	}
