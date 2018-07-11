@@ -5,7 +5,7 @@ const Request = require('request');
 const RSA = require('node-bignumber').Key;
 const SteamID = require('steamid');
 
-const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36";
+const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36";
 
 require('util').inherits(SteamCommunity, require('events').EventEmitter);
 
