@@ -259,14 +259,13 @@ SteamCommunity.prototype._setCookie = function(cookie, secure) {
 };
 
 SteamCommunity.prototype.setCookies = function(cookies) {
-	var self = this;
-	cookies.forEach(function(cookie) {
+	cookies.forEach((cookie) => {
 		var cookieName = cookie.match(/(.+)=/)[1];
-		if(cookieName == 'steamLogin') {
-			self.steamID = new SteamID(cookie.match(/=(\d+)/)[1]);
+		if (cookieName == 'steamLogin' || cookieName == 'steamLoginSecure') {
+			this.steamID = new SteamID(cookie.match(/=(\d+)/)[1]);
 		}
 
-		self._setCookie(Request.cookie(cookie), !!(cookieName.match(/^steamMachineAuth/) || cookieName.match(/Secure$/)));
+		this._setCookie(Request.cookie(cookie), !!(cookieName.match(/^steamMachineAuth/) || cookieName.match(/Secure$/)));
 	});
 };
 
