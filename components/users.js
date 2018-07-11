@@ -1,7 +1,10 @@
-var SteamCommunity = require('../index.js');
-var SteamID = require('steamid');
-var CEconItem = require('../classes/CEconItem.js');
-var Helpers = require('./helpers.js');
+const Cheerio = require('cheerio');
+const SteamID = require('steamid');
+
+const SteamCommunity = require('../index.js');
+
+const CEconItem = require('../classes/CEconItem.js');
+const Helpers = require('./helpers.js');
 
 SteamCommunity.prototype.addFriend = function(userID, callback) {
 	if(typeof userID === 'string') {
@@ -226,27 +229,32 @@ SteamCommunity.prototype.getProfileBackground = function(userID, callback) {
 	if (typeof userID === 'string') {
 		userID = new SteamID(userID);
 	}
-	
-	var self = this;
-	this.httpRequest("http://steamcommunity.com/profiles/" + userID.getSteamID64(), function (err, response, body) {
+
+	this.httpRequest("https://steamcommunity.com/profiles/" + userID.getSteamID64(), (err, response, body) => {
 		if (err) {
 			callback(err);
 			return;
 		}
 
 		var $ = Cheerio.load(body);
-		
+
+		var $privateProfileInfo = $('.profile_private_info');
+		if ($privateProfileInfo.length > 0) {
+			callback(new Error($privateProfileInfo.text().trim()));
+			return;
+		}
+
 		if ($('body').hasClass('has_profile_background')) {
 			var backgroundUrl = $('div.profile_background_image_content').css('background-image');
 			var matcher = backgroundUrl.match(/\(([^)]+)\)/);
 
 			if (matcher.length != 2 || !matcher[1].length) {
-				callback(new Error("Unknown error occurred"));
+				callback(new Error("Malformed response"));
 			} else {
 				callback(null, matcher[1]);
 			}
 		} else {
-			callback("User does not have a background image");
+			callback(null, null);
 		}
 	}, "steamcommunity");
 };
@@ -423,7 +431,7 @@ SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, cont
 						// We can never get private profile error for our own inventory!
 						self._notifySessionExpired(err);
 					}
-					
+
 					callback(new Error("This profile is private."));
 					return;
 				}
@@ -457,13 +465,13 @@ SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, cont
 				} else {
 					callback(new Error("Malformed response"));
 				}
-				
+
 				return;
 			}
 
 			for (var i = 0; i < body.assets.length; i++) {
 				var description = getDescription(body.descriptions, body.assets[i].classid, body.assets[i].instanceid);
-				
+
 				if (!tradableOnly || (description && description.tradable)) {
 					body.assets[i].pos = pos++;
 					(body.assets[i].currencyid ? currency : inventory).push(new CEconItem(body.assets[i], description, contextID));
@@ -491,7 +499,7 @@ SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, cont
 		for (var i = 0; i < descriptions.length; i++) {
 			quickDescriptionLookup[descriptions[i].classid + '_' + (descriptions[i].instanceid || '0')] = descriptions[i];
 		}
-		
+
 		return quickDescriptionLookup[key];
 	}
 };
