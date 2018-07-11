@@ -393,3 +393,68 @@ SteamCommunity.prototype.uploadAvatar = function(image, format, callback) {
 		}, "steamcommunity");
 	}
 };
+
+/**
+ * Post a new status to your profile activity feed.
+ * @param {string} statusText - The text of this status update
+ * @param {{appID: int}} [options] - Options for this status update. All are optional. If you don't pass any options, this can be omitted.
+ * @param {function} callback - err, postID
+ */
+SteamCommunity.prototype.postProfileStatus = function(statusText, options, callback) {
+	if (typeof options === 'function') {
+		callback = options;
+		options = {};
+	}
+
+	this._myProfile("ajaxpostuserstatus/", {
+		"appid": options.appID || 0,
+		"sessionid": this.getSessionID(),
+		"status_text": statusText
+	}, (err, res, body) => {
+		try {
+			body = JSON.parse(body);
+			if (body.message) {
+				callback(new Error(body.message));
+				return;
+			}
+
+			var match = body.blotter_html.match(/id="userstatus_(\d+)_/);
+			if (!match) {
+				callback(new Error("Malformed response"));
+				return;
+			}
+
+			callback(null, parseInt(match[1], 10));
+		} catch (ex) {
+			callback(ex);
+		}
+	});
+};
+
+/**
+ * Delete a previously-posted profile status update.
+ * @param {int} postID
+ * @param {function} [callback]
+ */
+SteamCommunity.prototype.deleteProfileStatus = function(postID, callback) {
+	this._myProfile("ajaxdeleteuserstatus/", {
+		"sessionid": this.getSessionID(),
+		"postid": postID
+	}, (err, res, body) => {
+		if (!callback) {
+			return;
+		}
+
+		try {
+			body = JSON.parse(body);
+			if (!body.success) {
+				callback(new Error("Malformed response"));
+				return;
+			}
+
+			callback(Helpers.eresultError(body.success));
+		} catch (ex) {
+			callback(ex);
+		}
+	});
+};

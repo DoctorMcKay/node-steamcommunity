@@ -1,3 +1,5 @@
+const EResult = require('../resources/EResult.js');
+
 exports.isSteamID = function(input) {
 	var keys = Object.keys(input);
 	if (keys.length != 4) {
@@ -35,4 +37,20 @@ exports.decodeSteamTime = function(time) {
 	}
 
 	return date;
+};
+
+/**
+ * Get an Error object for a particular EResult
+ * @param {int} eresult
+ * @returns {null|Error}
+ */
+exports.eresultError = function(eresult) {
+	if (eresult == EResult.OK) {
+		// no error
+		return null;
+	}
+
+	var err = new Error(EResult[eresult] || ("Error " + eresult));
+	err.eresult = eresult;
+	return err;
 };
