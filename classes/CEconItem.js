@@ -70,6 +70,16 @@ function CEconItem(item, description, contextID) {
 		this.actions = [];
 	}
 
+	if (!this.tradable && this.owner_descriptions) {
+		var tradableDescription = this.owner_descriptions.find((description) => {
+			return description.value && description.value.startsWith("Tradable After ");
+		});
+
+		if (tradableDescription) {
+			this.tradable_date = new Date(tradableDescription.value.replace(/[()]/g, ""));
+		}
+	}
+
 	 delete this.currency;
 }
 
