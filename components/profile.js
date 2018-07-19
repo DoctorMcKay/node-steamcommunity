@@ -64,408 +64,408 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 
 			switch(i) {
 				case 'name':
-          out[8] = {
-            "name": formd[8].name,
-            "value": settings[i]
-          };
-	        break;
+					out[8] = {
+						"name": formd[8].name,
+						"value": settings[i]
+					};
+					break;
 
-        case 'realName':
-          out[9] = {
-            "name": formd[9].name,
-            "value": settings[i]
-          };
-          break;
+				case 'realName':
+					out[9] = {
+						"name": formd[9].name,
+						"value": settings[i]
+					};
+					break;
 
-        case 'summary':
-	        out[14] = {
-	          "name": formd[14].name,
-	          "value": settings[i]
-	        };
-          break;
+				case 'summary':
+					out[14] = {
+						"name": formd[14].name,
+						"value": settings[i]
+					};
+					break;
 
-        case 'country':
-          out[10] = {
-            "name": formd[10].name,
-            "value": settings[i]
-          };
-          break;
+				case 'country':
+					out[10] = {
+						"name": formd[10].name,
+						"value": settings[i]
+					};
+					break;
 
-        case 'state':
-          out[11] = {
-            "name": formd[11].name,
-            "value": settings[i]
-          };
-          break;
+				case 'state':
+					out[11] = {
+						"name": formd[11].name,
+						"value": settings[i]
+					};
+					break;
 
-        case 'city':
-          out[12] = {
-            "name": formd[12].name,
-            "value": settings[i]
-          };
-          break;
+				case 'city':
+					out[12] = {
+						"name": formd[12].name,
+						"value": settings[i]
+					};
+					break;
 
-        case 'customURL':
-          out[13] = {
-            "name": formd[13].name,
-            "value": settings[i]
-          };
-          break;
+				case 'customURL':
+					out[13] = {
+						"name": formd[13].name,
+						"value": settings[i]
+					};
+					break;
 
-        case 'background':
-          // The assetid of our desired profile background
-          out[15] = {
-            "name": formd[15].name,
-            "value": settings[i]
-          };
-          break;
+				case 'background':
+					// The assetid of our desired profile background
+					out[15] = {
+						"name": formd[15].name,
+						"value": settings[i]
+					};
+					break;
 
-        case 'featuredBadge':
-          // Currently, game badges aren't supported
-            out[16] = {
-              "name": formd[16].name,
-              "value": settings[i]
-            };
-          break;
+				case 'featuredBadge':
+					// Currently, game badges aren't supported
+						out[16] = {
+							"name": formd[16].name,
+							"value": settings[i]
+						};
+					break;
 
-        case 'primaryGroup':
-          if (typeof settings[i] === 'object' && settings[i].getSteamID64) {
-            out[18] = {
-              "name": formd[18].name,
-              "value": settings[i].getSteamID64()
-            };
-          } else {
-            out[18] = {
-              "name": formd[18].name,
-              "value": new SteamID(settings[i]).getSteamID64()
-            };
-          }
+				case 'primaryGroup':
+					if (typeof settings[i] === 'object' && settings[i].getSteamID64) {
+						out[18] = {
+							"name": formd[18].name,
+							"value": settings[i].getSteamID64()
+						};
+					} else {
+						out[18] = {
+							"name": formd[18].name,
+							"value": new SteamID(settings[i]).getSteamID64()
+						};
+					}
 
-          break;
+					break;
 
-        case 'showcases':
-          for (var t in settings[i]) {
-            var showcaseconfig = [false,0,0,[]];
+				case 'showcases':
+					for (var t in settings[i]) {
+						var showcaseconfig = [false,0,0,[]];
 
-            switch (settings[i][t].showcase) {
+						switch (settings[i][t].showcase) {
 
-              case 'infobox':
-                out.push({
-                  "name": "profile_showcase[]",
-                  "value": "8"
-                });
-                out.push({
-                  "name": "rgShowcaseConfig[8][0][title]",
-                  "value": settings[i][t]["values"]["title"]
-                });
-                out.push({
-                  "name": "rgShowcaseConfig[8][0][notes]",
-                  "value": settings[i][t]["values"]["notes"]
-                });
-                break;
+							case 'infobox':
+								out.push({
+									"name": "profile_showcase[]",
+									"value": "8"
+								});
+								out.push({
+									"name": "rgShowcaseConfig[8][0][title]",
+									"value": settings[i][t]["values"]["title"]
+								});
+								out.push({
+									"name": "rgShowcaseConfig[8][0][notes]",
+									"value": settings[i][t]["values"]["notes"]
+								});
+								break;
 
-              case 'artwork':
-                out.push({
-                  "name": "profile_showcase[]",
-                  "value": "13"
-                });
-                for (var n = 0; n < 4; n++) {
-                  out.push({
-                    "name": "rgShowcaseConfig[13][" + n + "][publishedfileid]",
-                    "value": settings[i][t]["values"][n] || ""
-                  });
-                }
-                break;
+							case 'artwork':
+								out.push({
+									"name": "profile_showcase[]",
+									"value": "13"
+								});
+								for (var n = 0; n < 4; n++) {
+									out.push({
+										"name": "rgShowcaseConfig[13][" + n + "][publishedfileid]",
+										"value": settings[i][t]["values"][n] || ""
+									});
+								}
+								break;
 
-              case 'trade':
-                out.push({
-                  "name": "profile_showcase[]",
-                  "value": "4"
-                });
-                out.push({
-                  "name": "rgShowcaseConfig[4][6][notes]",
-                  "value": settings[i][t]["values"]["notes"]
-                });
+							case 'trade':
+								out.push({
+									"name": "profile_showcase[]",
+									"value": "4"
+								});
+								out.push({
+									"name": "rgShowcaseConfig[4][6][notes]",
+									"value": settings[i][t]["values"]["notes"]
+								});
 
-                if (settings[i][t]["values"].hasOwnProperty("items")) {
-                  showcaseconfig = [true, 6, 4, settings[i][t]["values"]["items"]];
-                }
-                break;
+								if (settings[i][t]["values"].hasOwnProperty("items")) {
+									showcaseconfig = [true, 6, 4, settings[i][t]["values"]["items"]];
+								}
+								break;
 
-              case 'items':
-                out.push({
-                  "name": "profile_showcase[]",
-                  "value": "3"
-                });
+							case 'items':
+								out.push({
+									"name": "profile_showcase[]",
+									"value": "3"
+								});
 
-                if (settings[i][t]["values"].hasOwnProperty("items")) {
-                  showcaseconfig = [true, 10, 3, settings[i][t]["values"]["items"]];
-                }
-                break;
+								if (settings[i][t]["values"].hasOwnProperty("items")) {
+									showcaseconfig = [true, 10, 3, settings[i][t]["values"]["items"]];
+								}
+								break;
 
-              case 'game':
-                out.push({
-                  "name": "profile_showcase[]",
-                  "value": "6"
-                });
-                out.push({
-                  "name": "rgShowcaseConfig[6][0][appid]",
-                  "value": settings[i][t]["values"]["appid"]
-                });
-                break;
+							case 'game':
+								out.push({
+									"name": "profile_showcase[]",
+									"value": "6"
+								});
+								out.push({
+									"name": "rgShowcaseConfig[6][0][appid]",
+									"value": settings[i][t]["values"]["appid"]
+								});
+								break;
 
-              case 'badge':
-                out.push({
-                  "name": "profile_showcase[]",
-                  "value": "5"
-                });
-                var styles = ["rare","selected",null,"recent","random"];
-                out.push({
-                  "name": "profile_showcase_style_5",
-                  "value": styles.indexOf(settings[i][t]["values"]["style"])
-                });
+							case 'badge':
+								out.push({
+									"name": "profile_showcase[]",
+									"value": "5"
+								});
+								var styles = ["rare","selected",null,"recent","random"];
+								out.push({
+									"name": "profile_showcase_style_5",
+									"value": styles.indexOf(settings[i][t]["values"]["style"])
+								});
 
-                if (settings[i][t]["values"].hasOwnProperty("badges")){
-                  for(var n = 0; n < 6; n++){
+								if (settings[i][t]["values"].hasOwnProperty("badges")){
+									for(var n = 0; n < 6; n++){
 										var defaultval = ["", "", ""];
-		                if (settings[i][t]["values"]["badges"][n] != undefined) {
-		                  defaultval = [settings[i][t]["values"]["badges"][n]["badgeid"], settings[i][t]["values"]["badges"][n]["appid"], settings[i][t]["values"]["badges"][n]["border_color"]];
-		                }
-		                out.push({
-		                  "name": "rgShowcaseConfig[5][" + n + "][badgeid]",
-		                  "value": defaultval[0]
-		                });
-		                out.push({
-		                  "name": "rgShowcaseConfig[5][" + n + "][appid]",
-		                  "value": defaultval[1]
-		                });
-		                out.push({
-		                  "name": "rgShowcaseConfig[5][" + n + "][border_color]",
-		                  "value": defaultval[2]
-		                });
-                  }
-                }
+										if (settings[i][t]["values"]["badges"][n] != undefined) {
+											defaultval = [settings[i][t]["values"]["badges"][n]["badgeid"], settings[i][t]["values"]["badges"][n]["appid"], settings[i][t]["values"]["badges"][n]["border_color"]];
+										}
+										out.push({
+											"name": "rgShowcaseConfig[5][" + n + "][badgeid]",
+											"value": defaultval[0]
+										});
+										out.push({
+											"name": "rgShowcaseConfig[5][" + n + "][appid]",
+											"value": defaultval[1]
+										});
+										out.push({
+											"name": "rgShowcaseConfig[5][" + n + "][border_color]",
+											"value": defaultval[2]
+										});
+									}
+								}
 
-                break;
+								break;
 
-              case 'rareachievements':
-                out.push({
-                  "name": "profile_showcase[]",
-                  "value": "1"
-                });
-                break;
+							case 'rareachievements':
+								out.push({
+									"name": "profile_showcase[]",
+									"value": "1"
+								});
+								break;
 
-              case 'screenshot':
-                out.push({
-                  "name": "profile_showcase[]",
-                  "value": "7"
-                });
-                for (var n = 0; n < 4; n++) {
-                  out.push({
-                    "name": "rgShowcaseConfig[7][" + n + "][publishedfileid]",
-                    "value": settings[i][t]["values"][n] || ""
-                  });
-                }
-                break;
+							case 'screenshot':
+								out.push({
+									"name": "profile_showcase[]",
+									"value": "7"
+								});
+								for (var n = 0; n < 4; n++) {
+									out.push({
+										"name": "rgShowcaseConfig[7][" + n + "][publishedfileid]",
+										"value": settings[i][t]["values"][n] || ""
+									});
+								}
+								break;
 
-              case 'group':
-                out.push({
-                  "name": "profile_showcase[]",
-                  "value": "9"
-                });
-                if (typeof settings[i][t]["values"]["groupid"] === 'object' && settings[i][t]["values"]["groupid"].getSteamID64) {
-                  out.push({
-                    "name": "rgShowcaseConfig[9][0][accountid]",
-                    "value": settings[i][t]["values"]["groupid"].getSteamID64()
-                  });
-                } else {
-                  out.push({
-                    "name": "rgShowcaseConfig[9][0][accountid]",
-                    "value": new SteamID(settings[i][t]["values"]["groupid"]).getSteamID64()
-                  });
-                }
-                break;
+							case 'group':
+								out.push({
+									"name": "profile_showcase[]",
+									"value": "9"
+								});
+								if (typeof settings[i][t]["values"]["groupid"] === 'object' && settings[i][t]["values"]["groupid"].getSteamID64) {
+									out.push({
+										"name": "rgShowcaseConfig[9][0][accountid]",
+										"value": settings[i][t]["values"]["groupid"].getSteamID64()
+									});
+								} else {
+									out.push({
+										"name": "rgShowcaseConfig[9][0][accountid]",
+										"value": new SteamID(settings[i][t]["values"]["groupid"]).getSteamID64()
+									});
+								}
+								break;
 
-              case 'review':
-                out.push({
-                  "name": "profile_showcase[]",
-                  "value": "10"
-                });
-                out.push({
-                  "name": "rgShowcaseConfig[10][0][appid]",
-                  "value": settings[i][t]["values"]["appid"]
-                });
-                break;
+							case 'review':
+								out.push({
+									"name": "profile_showcase[]",
+									"value": "10"
+								});
+								out.push({
+									"name": "rgShowcaseConfig[10][0][appid]",
+									"value": settings[i][t]["values"]["appid"]
+								});
+								break;
 
-              case 'workshop':
-                out.push({
-                  "name": "profile_showcase[]",
-                  "value": "11"
-                });
-                out.push({
-                  "name": "rgShowcaseConfig[11][0][appid]",
-                  "value": settings[i][t]["values"]["appid"]
-                });
-                out.push({
-                  "name": "rgShowcaseConfig[11][0][publishedfileid]",
-                  "value": settings[i][t]["values"]["publishedfileid"]
-                });
-                break;
+							case 'workshop':
+								out.push({
+									"name": "profile_showcase[]",
+									"value": "11"
+								});
+								out.push({
+									"name": "rgShowcaseConfig[11][0][appid]",
+									"value": settings[i][t]["values"]["appid"]
+								});
+								out.push({
+									"name": "rgShowcaseConfig[11][0][publishedfileid]",
+									"value": settings[i][t]["values"]["publishedfileid"]
+								});
+								break;
 
-              case 'guide':
-                out.push({
-                  "name": "profile_showcase[]",
-                  "value": "15"
-                });
-                out.push({
-                  "name": "rgShowcaseConfig[15][0][appid]",
-                  "value": settings[i][t]["values"]["appid"]
-                });
-                out.push({
-                  "name": "rgShowcaseConfig[15][0][publishedfileid]",
-                  "value": settings[i][t]["values"]["publishedfileid"]
-                });
-                break;
+							case 'guide':
+								out.push({
+									"name": "profile_showcase[]",
+									"value": "15"
+								});
+								out.push({
+									"name": "rgShowcaseConfig[15][0][appid]",
+									"value": settings[i][t]["values"]["appid"]
+								});
+								out.push({
+									"name": "rgShowcaseConfig[15][0][publishedfileid]",
+									"value": settings[i][t]["values"]["publishedfileid"]
+								});
+								break;
 
-              case 'achievements':
-                out.push({
-                  "name": "profile_showcase[]",
-                  "value": "17"
-                });
-                if (settings[i][t]["values"].hasOwnProperty("achievements")) {
-                  for (var n = 0; n < 7; n++) {
+							case 'achievements':
+								out.push({
+									"name": "profile_showcase[]",
+									"value": "17"
+								});
+								if (settings[i][t]["values"].hasOwnProperty("achievements")) {
+									for (var n = 0; n < 7; n++) {
 										var defaultval = ["", ""];
-		                if (settings[i][t]["values"]["achievements"][n] != undefined) {
-		                  defaultval = [settings[i][t]["values"]["achievements"][n]["appid"], settings[i][t]["values"]["achievements"][n]["title"]];
-		                }
-		                out.push({
-		                  "name": "rgShowcaseConfig[17][" + n + "][appid]",
-		                  "value": defaultval[0]
-		                });
-		                out.push({
-		                  "name": "rgShowcaseConfig[17][" + n + "][title]",
-		                  "value": defaultval[1]
-		                });
-                  }
-                }
-              	break;
+										if (settings[i][t]["values"]["achievements"][n] != undefined) {
+											defaultval = [settings[i][t]["values"]["achievements"][n]["appid"], settings[i][t]["values"]["achievements"][n]["title"]];
+										}
+										out.push({
+											"name": "rgShowcaseConfig[17][" + n + "][appid]",
+											"value": defaultval[0]
+										});
+										out.push({
+											"name": "rgShowcaseConfig[17][" + n + "][title]",
+											"value": defaultval[1]
+										});
+									}
+								}
+								break;
 
 								case 'games':
-                  out.push({
-                    "name": "profile_showcase[]",
-                    "value": "2"
-                  });
+									out.push({
+										"name": "profile_showcase[]",
+										"value": "2"
+									});
 
-                  if (settings[i][t]["values"].hasOwnProperty("games")) {
-                    showcaseconfig = [true, 4, 2, settings[i][t]["values"]["games"]];
-                  }
-                  break;
+									if (settings[i][t]["values"].hasOwnProperty("games")) {
+										showcaseconfig = [true, 4, 2, settings[i][t]["values"]["games"]];
+									}
+									break;
 
-                case 'ownguides':
-                  out.push({
-                    "name": "profile_showcase[]",
-                    "value": "16"
-                  });
+								case 'ownguides':
+									out.push({
+										"name": "profile_showcase[]",
+										"value": "16"
+									});
 
-                  for (var n = 0; n < 4; n++) {
-                    var defaultval = ["", ""];
-		                if (settings[i][t]["values"][n] != undefined) {
-		                  defaultval = [settings[i][t]["values"][n]["appid"], settings[i][t]["values"][n]["publishedfileid"]];
-		                }
-                    out.push({
-                      "name": "rgShowcaseConfig[16][" + n + "][appid]",
-                      "value": defaultval[0]
-                    });
-                    out.push({
-                      "name": "rgShowcaseConfig[16][" + n + "][publishedfileid]",
-                      "value": defaultval[1]
-                    });
-                  }
-                  break;
+									for (var n = 0; n < 4; n++) {
+										var defaultval = ["", ""];
+										if (settings[i][t]["values"][n] != undefined) {
+											defaultval = [settings[i][t]["values"][n]["appid"], settings[i][t]["values"][n]["publishedfileid"]];
+										}
+										out.push({
+											"name": "rgShowcaseConfig[16][" + n + "][appid]",
+											"value": defaultval[0]
+										});
+										out.push({
+											"name": "rgShowcaseConfig[16][" + n + "][publishedfileid]",
+											"value": defaultval[1]
+										});
+									}
+									break;
 
-                case 'ownguides':
-                  out.push({
-                    "name": "profile_showcase[]",
-                    "value": "12"
-                  });
+								case 'ownguides':
+									out.push({
+										"name": "profile_showcase[]",
+										"value": "12"
+									});
 
-                  for (var n = 0; n < 5; n++) {
-                    var defaultval = ["", ""];
-                    if (settings[i][t]["values"][n] != undefined) {
-                      defaultval = [settings[i][t]["values"][n]["appid"], settings[i][t]["values"][n]["publishedfileid"]];
-                    }
-                    out.push({
-                      "name": "rgShowcaseConfig[12][" + n + "][appid]",
-                      "value": defaultval[0]
-                    });
-                    out.push({
-                      "name": "rgShowcaseConfig[12][" + n + "][publishedfileid]",
-                      "value": defaultval[1]
-                    });
-                  }
-                  break;
-              }
+									for (var n = 0; n < 5; n++) {
+										var defaultval = ["", ""];
+										if (settings[i][t]["values"][n] != undefined) {
+											defaultval = [settings[i][t]["values"][n]["appid"], settings[i][t]["values"][n]["publishedfileid"]];
+										}
+										out.push({
+											"name": "rgShowcaseConfig[12][" + n + "][appid]",
+											"value": defaultval[0]
+										});
+										out.push({
+											"name": "rgShowcaseConfig[12][" + n + "][publishedfileid]",
+											"value": defaultval[1]
+										});
+									}
+									break;
+							}
 
-              if (showcaseconfig[0]) {
-                for (var n = 0; n < showcaseconfig[1]; n++) {
-                  var requestdata;
-                  if (showcaseconfig[3][n] == undefined) {
-                    requestdata = {
-                      appid: 0,
-                      item_contextid: 0,
-                      item_assetid: 0,
-                      customization_type: showcaseconfig[2],
-                      slot: n,
-                      sessionid: formd[0].value
-                    };
-                  } else {
-                    requestdata = {
-                      appid: showcaseconfig[3][n]["appid"],
-                      item_contextid: showcaseconfig[3][n]["item_contextid"],
-                      item_assetid: showcaseconfig[3][n]["item_assetid"],
-                      customization_type: showcaseconfig[2],
-                      slot: n,
-                      sessionid: formd[0].value
-                    };
+							if (showcaseconfig[0]) {
+								for (var n = 0; n < showcaseconfig[1]; n++) {
+									var requestdata;
+									if (showcaseconfig[3][n] == undefined) {
+										requestdata = {
+											appid: 0,
+											item_contextid: 0,
+											item_assetid: 0,
+											customization_type: showcaseconfig[2],
+											slot: n,
+											sessionid: formd[0].value
+										};
+									} else {
+										requestdata = {
+											appid: showcaseconfig[3][n]["appid"],
+											item_contextid: showcaseconfig[3][n]["item_contextid"],
+											item_assetid: showcaseconfig[3][n]["item_assetid"],
+											customization_type: showcaseconfig[2],
+											slot: n,
+											sessionid: formd[0].value
+										};
 
-                  }
+									}
 
-                  self._myProfile("ajaxsetshowcaseconfig", requestdata, function (err, response, body) {
-                    if (settings.customURL) {
-                      delete selfe._profileURL;
-                    }
+									self._myProfile("ajaxsetshowcaseconfig", requestdata, function (err, response, body) {
+										if (settings.customURL) {
+											delete selfe._profileURL;
+										}
 
-                    if (err || response.statusCode != 200) {
-                      if (callback) {
-                        callback(err || new Error("HTTP error " + response.statusCode));
-                      }
+										if (err || response.statusCode != 200) {
+											if (callback) {
+												callback(err || new Error("HTTP error " + response.statusCode));
+											}
 
-                      return;
-                    }
+											return;
+										}
 
-                    // Check for an error
-                    var $ = Cheerio.load(body);
-                    var error = $('#errorText .formRowFields');
-                    if (error) {
-                      error = error.text().trim();
-                      if (error) {
-                        if (callback) {
-                          callback(new Error(error));
-                        }
+										// Check for an error
+										var $ = Cheerio.load(body);
+										var error = $('#errorText .formRowFields');
+										if (error) {
+											error = error.text().trim();
+											if (error) {
+												if (callback) {
+													callback(new Error(error));
+												}
 
-                        return;
-                      }
-                    }
+												return;
+											}
+										}
 
-                    if (callback) {
-                      callback(null);
-                    }
-                  });
-                }
+										if (callback) {
+											callback(null);
+										}
+									});
+								}
 
-              }
-            }
-          break;
+							}
+						}
+					break;
 
 			}
 		}
