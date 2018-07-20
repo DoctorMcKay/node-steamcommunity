@@ -1,7 +1,6 @@
 const Cheerio = require('cheerio');
 const FS = require('fs');
 const SteamID = require('steamid');
-const Param = require('jquery-param');
 
 const Helpers = require('./helpers.js');
 const SteamCommunity = require('../index.js');
@@ -473,7 +472,13 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 			}
 		}
 
-		self._myProfile("edit", Param(out), function(err, response, body) {
+		var parameters = [];
+		for(let i = 0; i < out.length; i++){
+			parameters.push(encodeURIComponent(out[i].name) + "=" + encodeURIComponent(out[i].value));
+		}
+		parameters = parameters.join("&");
+
+		self._myProfile("edit", parameters, function(err, response, body) {
 			if (settings.customURL) {
 				delete self._profileURL;
 			}
