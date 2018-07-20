@@ -131,7 +131,7 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 					break;
 
 				case 'showcases':
-					for (var t in settings[i]) {
+					for (var type in settings[i]) {
 						//Variable used to easily make request to`ajaxsetshowcaseconfig` for showcases like trade, items, ...
 						var showcaseconfig = {
 							"supplied": false,
@@ -140,7 +140,7 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 							"itemarray": []
 						};
 
-						switch (settings[i][t].showcase) {
+						switch (settings[i][type].showcase) {
 
 							case 'infobox':
 								out.push({
@@ -149,11 +149,11 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 								});
 								out.push({
 									"name": "rgShowcaseConfig[8][0][title]",
-									"value": settings[i][t]["values"]["title"]
+									"value": settings[i][type]["values"]["title"]
 								});
 								out.push({
 									"name": "rgShowcaseConfig[8][0][notes]",
-									"value": settings[i][t]["values"]["notes"]
+									"value": settings[i][type]["values"]["notes"]
 								});
 								break;
 
@@ -165,7 +165,7 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 								for (var n = 0; n < 4; n++) {
 									out.push({
 										"name": "rgShowcaseConfig[13][" + n + "][publishedfileid]",
-										"value": settings[i][t]["values"][n] || ""
+										"value": settings[i][type]["values"][n] || ""
 									});
 								}
 								break;
@@ -177,14 +177,14 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 								});
 								out.push({
 									"name": "rgShowcaseConfig[4][6][notes]",
-									"value": settings[i][t]["values"]["notes"]
+									"value": settings[i][type]["values"]["notes"]
 								});
 
-								if (settings[i][t]["values"].hasOwnProperty("items")) {
+								if (settings[i][type]["values"].hasOwnProperty("items")) {
 									showcaseconfig.supplied = true;
 									showcaseconfig.numberofrequests = 6;
 									showcaseconfig.showcasetype = 4;
-									showcaseconfig.itemarray = settings[i][t]["values"]["items"];
+									showcaseconfig.itemarray = settings[i][type]["values"]["items"];
 								}
 								break;
 
@@ -194,11 +194,11 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 									"value": "3"
 								});
 
-								if (settings[i][t]["values"].hasOwnProperty("items")) {
+								if (settings[i][type]["values"].hasOwnProperty("items")) {
 									showcaseconfig.supplied = true;
 									showcaseconfig.numberofrequests = 10;
 									showcaseconfig.showcasetype = 3;
-									showcaseconfig.itemarray = settings[i][t]["values"]["items"];
+									showcaseconfig.itemarray = settings[i][type]["values"]["items"];
 								}
 								break;
 
@@ -209,7 +209,7 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 								});
 								out.push({
 									"name": "rgShowcaseConfig[6][0][appid]",
-									"value": settings[i][t]["values"]["appid"]
+									"value": settings[i][type]["values"]["appid"]
 								});
 								break;
 
@@ -221,14 +221,14 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 								var styles = ["rare","selected",null,"recent","random"];
 								out.push({
 									"name": "profile_showcase_style_5",
-									"value": styles.indexOf(settings[i][t]["values"]["style"])
+									"value": styles.indexOf(settings[i][type]["values"]["style"])
 								});
 
-								if (settings[i][t]["values"].hasOwnProperty("badges")){
+								if (settings[i][type]["values"].hasOwnProperty("badges")){
 									for(var n = 0; n < 6; n++){
 										var defaultval = ["", "", ""];
-										if (settings[i][t]["values"]["badges"][n] != undefined) {
-											defaultval = [settings[i][t]["values"]["badges"][n]["badgeid"], settings[i][t]["values"]["badges"][n]["appid"], settings[i][t]["values"]["badges"][n]["border_color"]];
+										if (settings[i][type]["values"]["badges"][n] != undefined) {
+											defaultval = [settings[i][type]["values"]["badges"][n]["badgeid"], settings[i][type]["values"]["badges"][n]["appid"], settings[i][type]["values"]["badges"][n]["border_color"]];
 										}
 										out.push({
 											"name": "rgShowcaseConfig[5][" + n + "][badgeid]",
@@ -262,7 +262,7 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 								for (var n = 0; n < 4; n++) {
 									out.push({
 										"name": "rgShowcaseConfig[7][" + n + "][publishedfileid]",
-										"value": settings[i][t]["values"][n] || ""
+										"value": settings[i][type]["values"][n] || ""
 									});
 								}
 								break;
@@ -272,15 +272,15 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 									"name": "profile_showcase[]",
 									"value": "9"
 								});
-								if (typeof settings[i][t]["values"]["groupid"] === 'object' && settings[i][t]["values"]["groupid"].getSteamID64) {
+								if (typeof settings[i][type]["values"]["groupid"] === 'object' && settings[i][type]["values"]["groupid"].getSteamID64) {
 									out.push({
 										"name": "rgShowcaseConfig[9][0][accountid]",
-										"value": settings[i][t]["values"]["groupid"].getSteamID64()
+										"value": settings[i][type]["values"]["groupid"].getSteamID64()
 									});
 								} else {
 									out.push({
 										"name": "rgShowcaseConfig[9][0][accountid]",
-										"value": new SteamID(settings[i][t]["values"]["groupid"]).getSteamID64()
+										"value": new SteamID(settings[i][type]["values"]["groupid"]).getSteamID64()
 									});
 								}
 								break;
@@ -292,7 +292,7 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 								});
 								out.push({
 									"name": "rgShowcaseConfig[10][0][appid]",
-									"value": settings[i][t]["values"]["appid"]
+									"value": settings[i][type]["values"]["appid"]
 								});
 								break;
 
@@ -303,11 +303,11 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 								});
 								out.push({
 									"name": "rgShowcaseConfig[11][0][appid]",
-									"value": settings[i][t]["values"]["appid"]
+									"value": settings[i][type]["values"]["appid"]
 								});
 								out.push({
 									"name": "rgShowcaseConfig[11][0][publishedfileid]",
-									"value": settings[i][t]["values"]["publishedfileid"]
+									"value": settings[i][type]["values"]["publishedfileid"]
 								});
 								break;
 
@@ -318,11 +318,11 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 								});
 								out.push({
 									"name": "rgShowcaseConfig[15][0][appid]",
-									"value": settings[i][t]["values"]["appid"]
+									"value": settings[i][type]["values"]["appid"]
 								});
 								out.push({
 									"name": "rgShowcaseConfig[15][0][publishedfileid]",
-									"value": settings[i][t]["values"]["publishedfileid"]
+									"value": settings[i][type]["values"]["publishedfileid"]
 								});
 								break;
 
@@ -331,11 +331,11 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 									"name": "profile_showcase[]",
 									"value": "17"
 								});
-								if (settings[i][t]["values"].hasOwnProperty("achievements")) {
+								if (settings[i][type]["values"].hasOwnProperty("achievements")) {
 									for (var n = 0; n < 7; n++) {
 										var defaultval = ["", ""];
-										if (settings[i][t]["values"]["achievements"][n] != undefined) {
-											defaultval = [settings[i][t]["values"]["achievements"][n]["appid"], settings[i][t]["values"]["achievements"][n]["title"]];
+										if (settings[i][type]["values"]["achievements"][n] != undefined) {
+											defaultval = [settings[i][type]["values"]["achievements"][n]["appid"], settings[i][type]["values"]["achievements"][n]["title"]];
 										}
 										out.push({
 											"name": "rgShowcaseConfig[17][" + n + "][appid]",
@@ -355,11 +355,11 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 										"value": "2"
 									});
 
-									if (settings[i][t]["values"].hasOwnProperty("games")) {
+									if (settings[i][type]["values"].hasOwnProperty("games")) {
 										showcaseconfig.supplied = true;
 										showcaseconfig.numberofrequests = 4;
 										showcaseconfig.showcasetype = 2;
-										showcaseconfig.itemarray = settings[i][t]["values"]["games"];
+										showcaseconfig.itemarray = settings[i][type]["values"]["games"];
 									}
 									break;
 
@@ -371,8 +371,8 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 
 									for (var n = 0; n < 4; n++) {
 										var defaultval = ["", ""];
-										if (settings[i][t]["values"][n] != undefined) {
-											defaultval = [settings[i][t]["values"][n]["appid"], settings[i][t]["values"][n]["publishedfileid"]];
+										if (settings[i][type]["values"][n] != undefined) {
+											defaultval = [settings[i][type]["values"][n]["appid"], settings[i][type]["values"][n]["publishedfileid"]];
 										}
 										out.push({
 											"name": "rgShowcaseConfig[16][" + n + "][appid]",
@@ -393,8 +393,8 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 
 									for (var n = 0; n < 5; n++) {
 										var defaultval = ["", ""];
-										if (settings[i][t]["values"][n] != undefined) {
-											defaultval = [settings[i][t]["values"][n]["appid"], settings[i][t]["values"][n]["publishedfileid"]];
+										if (settings[i][type]["values"][n] != undefined) {
+											defaultval = [settings[i][type]["values"][n]["appid"], settings[i][type]["values"][n]["publishedfileid"]];
 										}
 										out.push({
 											"name": "rgShowcaseConfig[12][" + n + "][appid]",
@@ -432,7 +432,7 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 
 									}
 
-									self._myProfile("ajaxsetshowcaseconfig", requestdata, function (err, response, body) {
+									setTimeout(self._myProfile.bind(self,"ajaxsetshowcaseconfig", requestdata, function (err, response, body) {
 										if (settings.customURL) {
 											delete selfe._profileURL;
 										}
@@ -462,7 +462,7 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 										if (callback) {
 											callback(null);
 										}
-									});
+									}), n * 1500);
 								}
 
 							}
