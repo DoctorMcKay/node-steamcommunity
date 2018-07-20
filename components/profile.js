@@ -55,6 +55,9 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 		}
 
 		var formd = form.serializeArray();
+		if (formd[15].name != "profile_background") {
+			formd.splice(15, 0, {"name": "profile_background",	"value": ""});
+		}
 		var out = [].concat(formd.slice(0,19));
 
 		for(var i in settings) {
