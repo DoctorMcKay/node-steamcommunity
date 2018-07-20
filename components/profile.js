@@ -53,11 +53,29 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 			return;
 		}
 
+		var values = {};
 		var formd = form.serializeArray();
-		if (formd[15].name != "profile_background") {
-			formd.splice(15, 0, {"name": "profile_background",	"value": ""});
+		var i = 0;
+		form.serializeArray().forEach(function (item) {
+			values[item.name] = i;
+			i++;
+		});
+		var out = [];
+		var requiredvalues = ["sessionID", "type", "weblink_1_title", "weblink_1_url", "weblink_2_title", "weblink_2_url", "weblink_3_title", "weblink_3_url", "personaName", "real_name", "country", "state", "city", "customURL", "summary", "profile_background", "favorite_badge_badgeid", "favorite_badge_communityitemid", "primary_group_steamid"];
+
+		for (var i = 0; i < 18; i++) {
+			if (values.hasOwnProperty(requiredvalues[i])) {
+				out.push({
+					"name": requiredvalues[i],
+					"value": formd[values[requiredvalues[i]]].value
+				});
+			} else {
+				out.push({
+					"name": requiredvalues[i],
+					"value": ""
+				});
+			}
 		}
-		var out = [].concat(formd.slice(0,19));
 
 		for(var i in settings) {
 			if(!settings.hasOwnProperty(i)) {
@@ -66,81 +84,48 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 
 			switch(i) {
 				case 'name':
-					out[8] = {
-						"name": formd[8].name,
-						"value": settings[i]
-					};
+					out[8].value = settings[i];
 					break;
 
 				case 'realName':
-					out[9] = {
-						"name": formd[9].name,
-						"value": settings[i]
-					};
+					out[9].value = settings[i];
 					break;
 
 				case 'summary':
-					out[14] = {
-						"name": formd[14].name,
-						"value": settings[i]
-					};
+					out[14].value = settings[i];
 					break;
 
 				case 'country':
-					out[10] = {
-						"name": formd[10].name,
-						"value": settings[i]
-					};
+					out[10].value = settings[i];
 					break;
 
 				case 'state':
-					out[11] = {
-						"name": formd[11].name,
-						"value": settings[i]
-					};
+					out[11].value = settings[i];
 					break;
 
 				case 'city':
-					out[12] = {
-						"name": formd[12].name,
-						"value": settings[i]
-					};
+					out[12].value = settings[i];
 					break;
 
 				case 'customURL':
-					out[13] = {
-						"name": formd[13].name,
-						"value": settings[i]
-					};
+					out[13].value = settings[i];
 					break;
 
 				case 'background':
 					// The assetid of our desired profile background
-					out[15] = {
-						"name": formd[15].name,
-						"value": settings[i]
-					};
+					out[15].value = settings[i];
 					break;
 
 				case 'featuredBadge':
 					// Currently, game badges aren't supported
-						out[16] = {
-							"name": formd[16].name,
-							"value": settings[i]
-						};
+						out[16].value = settings[i];
 					break;
 
 				case 'primaryGroup':
 					if (typeof settings[i] === 'object' && settings[i].getSteamID64) {
-						out[18] = {
-							"name": formd[18].name,
-							"value": settings[i].getSteamID64()
-						};
+						out[18].value = settings[i].getSteamID64();
 					} else {
-						out[18] = {
-							"name": formd[18].name,
-							"value": new SteamID(settings[i]).getSteamID64()
-						};
+						out[18].value = new SteamID(settings[i]).getSteamID64();
 					}
 
 					break;
