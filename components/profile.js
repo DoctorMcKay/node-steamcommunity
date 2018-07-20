@@ -132,7 +132,13 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 
 				case 'showcases':
 					for (var t in settings[i]) {
-						var showcaseconfig = [false,0,0,[]];
+						//Variable used to easily make request to`ajaxsetshowcaseconfig` for showcases like trade, items, ...
+						var showcaseconfig = {
+							"supplied": false,
+							"numberofrequests": 0,
+							"showcasetype": 0,
+							"itemarray": []
+						};
 
 						switch (settings[i][t].showcase) {
 
@@ -175,7 +181,10 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 								});
 
 								if (settings[i][t]["values"].hasOwnProperty("items")) {
-									showcaseconfig = [true, 6, 4, settings[i][t]["values"]["items"]];
+									showcaseconfig.supplied = true;
+									showcaseconfig.numberofrequests = 6;
+									showcaseconfig.showcasetype = 4;
+									showcaseconfig.itemarray = settings[i][t]["values"]["items"];
 								}
 								break;
 
@@ -186,7 +195,10 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 								});
 
 								if (settings[i][t]["values"].hasOwnProperty("items")) {
-									showcaseconfig = [true, 10, 3, settings[i][t]["values"]["items"]];
+									showcaseconfig.supplied = true;
+									showcaseconfig.numberofrequests = 10;
+									showcaseconfig.showcasetype = 3;
+									showcaseconfig.itemarray = settings[i][t]["values"]["items"];
 								}
 								break;
 
@@ -344,7 +356,10 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 									});
 
 									if (settings[i][t]["values"].hasOwnProperty("games")) {
-										showcaseconfig = [true, 4, 2, settings[i][t]["values"]["games"]];
+										showcaseconfig.supplied = true;
+										showcaseconfig.numberofrequests = 4;
+										showcaseconfig.showcasetype = 2;
+										showcaseconfig.itemarray = settings[i][t]["values"]["games"];
 									}
 									break;
 
@@ -393,24 +408,24 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 									break;
 							}
 
-							if (showcaseconfig[0]) {
-								for (var n = 0; n < showcaseconfig[1]; n++) {
+							if (showcaseconfig.supplied) {
+								for (var n = 0; n < showcaseconfig.numberofrequests; n++) {
 									var requestdata;
-									if (showcaseconfig[3][n] == undefined) {
+									if (showcaseconfig.itemarray[n] == undefined) {
 										requestdata = {
 											appid: 0,
 											item_contextid: 0,
 											item_assetid: 0,
-											customization_type: showcaseconfig[2],
+											customization_type: showcaseconfig.showcasetype,
 											slot: n,
 											sessionid: formd[0].value
 										};
 									} else {
 										requestdata = {
-											appid: showcaseconfig[3][n]["appid"],
-											item_contextid: showcaseconfig[3][n]["item_contextid"],
-											item_assetid: showcaseconfig[3][n]["item_assetid"],
-											customization_type: showcaseconfig[2],
+											appid: showcaseconfig.itemarray[n]["appid"],
+											item_contextid: showcaseconfig.itemarray[n]["item_contextid"],
+											item_assetid: showcaseconfig.itemarray[n]["item_assetid"],
+											customization_type: showcaseconfig.showcasetype,
 											slot: n,
 											sessionid: formd[0].value
 										};
