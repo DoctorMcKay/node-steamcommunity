@@ -129,6 +129,7 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 					break;
 
 				case 'showcases':
+					var num_of_requests = 0;
 					for (var type in settings[i]) {
 						//Variable used to easily make request to`ajaxsetshowcaseconfig` for showcases like trade, items, ...
 						var showcaseconfig = {
@@ -417,6 +418,7 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 
 						if (showcaseconfig.supplied) {
 							for (var n = 0; n < showcaseconfig.numberofrequests; n++) {
+								num_of_requests++;
 								var requestdata;
 								if (showcaseconfig.itemarray[n] == undefined) {
 									requestdata = {
@@ -452,7 +454,7 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 										this.error = true;
 										return;
 									}
-								}.bind(errorcontrol)), n * 1500);
+								}.bind(errorcontrol)), num_of_requests * 1500);
 							}
 						}
 
