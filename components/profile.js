@@ -330,7 +330,7 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 									}
 									break;
 
-								case 'ownguides':
+								case 'ownworkshop':
 									values["profile_showcase[12]"] = 12;
 
 									if (settings[i][type].hasOwnProperty("values")) {
