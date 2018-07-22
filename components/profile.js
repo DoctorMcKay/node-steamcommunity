@@ -363,6 +363,7 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 
 									}.bind(errorcontrol)), num_of_requests * 1500);
 								}
+							}
 						}
 
 					}
