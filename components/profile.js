@@ -55,10 +55,8 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 
 		var values = {};
 		var formd = form.serializeArray();
-		var i = 0;
-		form.serializeArray().forEach(function (item) {
+		form.serializeArray().forEach(function (item, i) {
 			values[item.name] = i;
-			i++;
 		});
 		var out = [];
 		var requiredvalues = ["sessionID", "type", "weblink_1_title", "weblink_1_url", "weblink_2_title", "weblink_2_url", "weblink_3_title", "weblink_3_url", "personaName", "real_name", "country", "state", "city", "customURL", "summary", "profile_background", "favorite_badge_badgeid", "favorite_badge_communityitemid", "primary_group_steamid"];
@@ -118,7 +116,7 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 
 				case 'featuredBadge':
 					// Currently, game badges aren't supported
-						out[16].value = settings[i];
+					out[16].value = settings[i];
 					break;
 
 				case 'primaryGroup':
@@ -358,107 +356,107 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 								}
 								break;
 
-								case 'games':
+							case 'games':
+								out.push({
+									"name": "profile_showcase[]",
+									"value": "2"
+								});
+
+								if (settings[i][type]["values"].hasOwnProperty("games")) {
+									showcaseconfig.supplied = true;
+									showcaseconfig.numberofrequests = 4;
+									showcaseconfig.showcasetype = 2;
+									showcaseconfig.itemarray = settings[i][type]["values"]["games"];
+								}
+								break;
+
+							case 'ownguides':
+								out.push({
+									"name": "profile_showcase[]",
+									"value": "16"
+								});
+
+								for (var n = 0; n < 4; n++) {
+									var defaultval = ["", ""];
+									if (settings[i][type]["values"][n] != undefined) {
+										defaultval = [settings[i][type]["values"][n]["appid"], settings[i][type]["values"][n]["publishedfileid"]];
+									}
 									out.push({
-										"name": "profile_showcase[]",
-										"value": "2"
+										"name": "rgShowcaseConfig[16][" + n + "][appid]",
+										"value": defaultval[0]
 									});
-
-									if (settings[i][type]["values"].hasOwnProperty("games")) {
-										showcaseconfig.supplied = true;
-										showcaseconfig.numberofrequests = 4;
-										showcaseconfig.showcasetype = 2;
-										showcaseconfig.itemarray = settings[i][type]["values"]["games"];
-									}
-									break;
-
-								case 'ownguides':
 									out.push({
-										"name": "profile_showcase[]",
-										"value": "16"
+										"name": "rgShowcaseConfig[16][" + n + "][publishedfileid]",
+										"value": defaultval[1]
 									});
+								}
+								break;
 
-									for (var n = 0; n < 4; n++) {
-										var defaultval = ["", ""];
-										if (settings[i][type]["values"][n] != undefined) {
-											defaultval = [settings[i][type]["values"][n]["appid"], settings[i][type]["values"][n]["publishedfileid"]];
-										}
-										out.push({
-											"name": "rgShowcaseConfig[16][" + n + "][appid]",
-											"value": defaultval[0]
-										});
-										out.push({
-											"name": "rgShowcaseConfig[16][" + n + "][publishedfileid]",
-											"value": defaultval[1]
-										});
+							case 'ownguides':
+								out.push({
+									"name": "profile_showcase[]",
+									"value": "12"
+								});
+
+								for (var n = 0; n < 5; n++) {
+									var defaultval = ["", ""];
+									if (settings[i][type]["values"][n] != undefined) {
+										defaultval = [settings[i][type]["values"][n]["appid"], settings[i][type]["values"][n]["publishedfileid"]];
 									}
-									break;
-
-								case 'ownguides':
 									out.push({
-										"name": "profile_showcase[]",
-										"value": "12"
+										"name": "rgShowcaseConfig[12][" + n + "][appid]",
+										"value": defaultval[0]
 									});
+									out.push({
+										"name": "rgShowcaseConfig[12][" + n + "][publishedfileid]",
+										"value": defaultval[1]
+									});
+								}
+								break;
+						}
 
-									for (var n = 0; n < 5; n++) {
-										var defaultval = ["", ""];
-										if (settings[i][type]["values"][n] != undefined) {
-											defaultval = [settings[i][type]["values"][n]["appid"], settings[i][type]["values"][n]["publishedfileid"]];
-										}
-										out.push({
-											"name": "rgShowcaseConfig[12][" + n + "][appid]",
-											"value": defaultval[0]
-										});
-										out.push({
-											"name": "rgShowcaseConfig[12][" + n + "][publishedfileid]",
-											"value": defaultval[1]
-										});
-									}
-									break;
-							}
+						if (showcaseconfig.supplied) {
+							for (var n = 0; n < showcaseconfig.numberofrequests; n++) {
+								var requestdata;
+								if (showcaseconfig.itemarray[n] == undefined) {
+									requestdata = {
+										appid: 0,
+										item_contextid: 0,
+										item_assetid: 0,
+										customization_type: showcaseconfig.showcasetype,
+										slot: n,
+										sessionid: formd[0].value
+									};
+								} else {
+									requestdata = {
+										appid: showcaseconfig.itemarray[n]["appid"],
+										item_contextid: showcaseconfig.itemarray[n]["item_contextid"],
+										item_assetid: showcaseconfig.itemarray[n]["item_assetid"],
+										customization_type: showcaseconfig.showcasetype,
+										slot: n,
+										sessionid: formd[0].value
+									};
 
-							if (showcaseconfig.supplied) {
-								for (var n = 0; n < showcaseconfig.numberofrequests; n++) {
-									var requestdata;
-									if (showcaseconfig.itemarray[n] == undefined) {
-										requestdata = {
-											appid: 0,
-											item_contextid: 0,
-											item_assetid: 0,
-											customization_type: showcaseconfig.showcasetype,
-											slot: n,
-											sessionid: formd[0].value
-										};
-									} else {
-										requestdata = {
-											appid: showcaseconfig.itemarray[n]["appid"],
-											item_contextid: showcaseconfig.itemarray[n]["item_contextid"],
-											item_assetid: showcaseconfig.itemarray[n]["item_assetid"],
-											customization_type: showcaseconfig.showcasetype,
-											slot: n,
-											sessionid: formd[0].value
-										};
-
-									}
-
-									setTimeout(self._myProfile.bind(self,"ajaxsetshowcaseconfig", requestdata, function (err, response, body) {
-
-										if (err || response.statusCode != 200  && this.showerrors) {
-											if(err){
-												err.message += " | Happened while updating specific showcase items.";
-											}
-
-											if (callback && !this.error) {
-												callback(err || new Error("HTTP error " + response.statusCode + " | Happened while updating specific showcase items."));
-											}
-											this.error = true;
-											return;
-										}
-									}.bind(errorcontrol)), n * 1500);
 								}
 
+								setTimeout(self._myProfile.bind(self,"ajaxsetshowcaseconfig", requestdata, function (err, response, body) {
+
+									if (err || response.statusCode != 200  && this.showerrors) {
+										if(err){
+											err.message += " | Happened while updating specific showcase items.";
+										}
+
+										if (callback && !this.error) {
+											callback(err || new Error("HTTP error " + response.statusCode + " | Happened while updating specific showcase items."));
+										}
+										this.error = true;
+										return;
+									}
+								}.bind(errorcontrol)), n * 1500);
 							}
 						}
+
+					}
 					break;
 
 			}
