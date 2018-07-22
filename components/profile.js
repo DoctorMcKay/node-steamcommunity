@@ -139,7 +139,16 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 							"showcasetype": 0,
 							"itemarray": []
 						};
-
+						//Controls if the callback function is called when a request changing f.e. a single item or game in a showcase fails
+						var errorcontrol = {
+							error: false,
+							showerrors: false
+						};
+						if(settings[i][type].hasOwnProperty("values")){
+							if(settings[i][type]["values"].hasOwnProperty("showshowcaseconfigerrors")){
+								errorcontrol.showerrors = settings[i][type]["values"]["showshowcaseconfigerrors"];
+							}
+						}
 						switch (settings[i][type].showcase) {
 
 							case 'infobox':
@@ -433,36 +442,19 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 									}
 
 									setTimeout(self._myProfile.bind(self,"ajaxsetshowcaseconfig", requestdata, function (err, response, body) {
-										if (settings.customURL) {
-											delete selfe._profileURL;
-										}
 
-										if (err || response.statusCode != 200) {
-											if (callback) {
-												callback(err || new Error("HTTP error " + response.statusCode));
+										if (err || response.statusCode != 200  && this.showerrors) {
+											if(err){
+												err.message += " | Happened while updating specific showcase items.";
 											}
 
+											if (callback && !this.error) {
+												callback(err || new Error("HTTP error " + response.statusCode + " | Happened while updating specific showcase items."));
+											}
+											this.error = true;
 											return;
 										}
-
-										// Check for an error
-										var $ = Cheerio.load(body);
-										var error = $('#errorText .formRowFields');
-										if (error) {
-											error = error.text().trim();
-											if (error) {
-												if (callback) {
-													callback(new Error(error));
-												}
-
-												return;
-											}
-										}
-
-										if (callback) {
-											callback(null);
-										}
-									}), n * 1500);
+									}.bind(errorcontrol)), n * 1500);
 								}
 
 							}
