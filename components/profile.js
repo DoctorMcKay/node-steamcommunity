@@ -32,6 +32,54 @@ SteamCommunity.prototype.setupProfile = function(callback) {
 	});
 };
 
+SteamCommunity.prototype.editShowcaseItem = function(showcase, slot, item, callback) {
+	let self = this;
+	//The possible options, with the maximum number of slots and the corresponding type
+	let allowedoptions = {
+		"trade": {
+			"maxslots": 6,
+			"type": 4
+		},
+		"items": {
+			"maxslots": 10,
+			"type": 3
+		},
+		"games": {
+			"maxslots": 4,
+			"type": 2
+		}
+	};
+
+	return new Promise((resolve, reject) => {
+
+		if(!allowedoptions.hasOwnProperty(showcase)){
+			let err = new Error("The submitted showcase type has no editable items.");
+			return callback ? callback(err) : reject(err);
+		}
+		if(slot < 1 || slot > allowedoptions[showcase]["maxslots"]){
+			let err = new Error("The submitted slot is outside of range. (Allowed range: 1-"+allowedoptions[showcase]["maxslots"]+")");
+			return callback ? callback(err) : reject(err);
+		}
+		if(!(item.hasOwnProperty("appid") || item.hasOwnProperty("item_contextid") || item.hasOwnProperty("item_assetid"))){
+			let err = new Error("The submitted item is not valid.");
+			return callback ? callback(err) : reject(err);
+		}
+		let requestdata = item;
+		requestdata["slot"] = slot - 1;
+		requestdata["customization_type"] = allowedoptions[showcase]["type"];
+		requestdata["sessionid"] = self.getSessionID();
+		self._myProfile("ajaxsetshowcaseconfig", requestdata, function (err, response, body) {
+
+			if (err || response.statusCode != 200) {
+				err = err || new Error("HTTP error " + response.statusCode);
+				return callback ? callback(err) : reject(err);
+			}
+			return callback ? callback(null) : resolve()
+
+		});
+	});
+};
+
 SteamCommunity.prototype.editProfile = function(settings, callback) {
 	var self = this;
 	this._myProfile("edit", null, function(err, response, body) {
@@ -132,14 +180,6 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 
 						remainingshowcases--;
 
-						//Variable used to easily make request to`ajaxsetshowcaseconfig` for showcases like trade, items, ...
-						var showcaseconfig = {
-							"supplied": false,
-							"numberofrequests": 0,
-							"showcasetype": 0,
-							"itemarray": []
-						};
-
 						//Controls if the callback function is called when a request changing f.e. a single item or game in a showcase fails
 						var errorcontrol = {
 							"error": false,
@@ -182,29 +222,14 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 								values["profile_showcase[4]"] = 4;
 
 								if (settings[i][type].hasOwnProperty("values")) {
-
 									if (settings[i][type]["values"].hasOwnProperty("notes")) {
 										values["rgShowcaseConfig[4][6][notes]"] = settings[i][type]["values"]["notes"];
-									}
-
-									if (settings[i][type]["values"].hasOwnProperty("items")) {
-										showcaseconfig["supplied"] = true;
-										showcaseconfig["numberofrequests"] = 6;
-										showcaseconfig["showcasetype"] = 4;
-										showcaseconfig["itemarray"] = settings[i][type]["values"]["items"];
 									}
 								}
 								break;
 
 							case 'items':
 								values["profile_showcase[3]"] = 3;
-
-								if (settings[i][type].hasOwnProperty("values") && settings[i][type]["values"].hasOwnProperty("items")) {
-									showcaseconfig["supplied"] = true;
-									showcaseconfig["numberofrequests"] = 10;
-									showcaseconfig["showcasetype"] = 3;
-									showcaseconfig["itemarray"] = settings[i][type]["values"]["items"];
-								}
 								break;
 
 							case 'game':
@@ -310,13 +335,6 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 
 							case 'games':
 								values["profile_showcase[2]"] = 2;
-
-								if (settings[i][type].hasOwnProperty("values") && settings[i][type]["values"].hasOwnProperty("games")) {
-									showcaseconfig["supplied"] = true;
-									showcaseconfig["numberofrequests"] = 4;
-									showcaseconfig["showcasetype"] = 2;
-									showcaseconfig["itemarray"] = settings[i][type]["values"]["games"];
-								}
 								break;
 
 							case 'ownguides':
@@ -344,40 +362,6 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 									}
 								}
 								break;
-						}
-
-						if (showcaseconfig["supplied"]) {
-							for (var n = 0; n < showcaseconfig["numberofrequests"]; n++) {
-								var requestdata;
-								if (showcaseconfig["itemarray"][n] != undefined) {
-									numofrequests++;
-									requestdata = {
-										appid: showcaseconfig["itemarray"][n]["appid"],
-										item_contextid: showcaseconfig["itemarray"][n]["item_contextid"],
-										item_assetid: showcaseconfig["itemarray"][n]["item_assetid"],
-										customization_type: showcaseconfig["showcasetype"],
-										slot: n,
-										sessionid: values.sessionID
-									};
-
-									setTimeout(self._myProfile.bind(self, "ajaxsetshowcaseconfig", requestdata, function (err, response, body) {
-
-										if ((err || response.statusCode != 200) && this.showerrors) {
-											if (err) {
-												err.message += " | Happened while updating specific showcase items.";
-											}
-
-											if (callback && !this.error) {
-												callback(err || new Error("HTTP error " + response.statusCode + " | Happened while updating specific showcase items."));
-											}
-											this.error = true;
-											return;
-										}
-
-
-									}.bind(errorcontrol)), numofrequests * 1500);
-								}
-							}
 						}
 					}
 					break;
