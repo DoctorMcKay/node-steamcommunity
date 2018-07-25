@@ -33,9 +33,9 @@ SteamCommunity.prototype.setupProfile = function(callback) {
 };
 
 SteamCommunity.prototype.editShowcaseItem = function(showcase, slot, item, callback) {
-	let self = this;
+	const self = this;
 	//The possible options, with the maximum number of slots and the corresponding type
-	let allowedoptions = {
+	const allowedoptions = {
 		"trade": {
 			"maxslots": 6,
 			"type": 4
@@ -50,33 +50,30 @@ SteamCommunity.prototype.editShowcaseItem = function(showcase, slot, item, callb
 		}
 	};
 
-	return new Promise((resolve, reject) => {
+	if(!allowedoptions.hasOwnProperty(showcase)){
+		const err = new Error("The submitted showcase type has no editable items.");
+		return callback ? callback(err) : undefined;
+	}
+	if(slot < 1 || slot > allowedoptions[showcase]["maxslots"]){
+		const err = new Error("The submitted slot is outside of range. (Allowed range: 1-"+allowedoptions[showcase]["maxslots"]+")");
+		return callback ? callback(err) : undefined;
+	}
+	if(!(item.hasOwnProperty("appid") || item.hasOwnProperty("item_contextid") || item.hasOwnProperty("item_assetid"))){
+		const err = new Error("The submitted item is not valid.");
+		return callback ? callback(err) : undefined;
+	}
+	const requestdata = item;
+	requestdata["slot"] = slot - 1;
+	requestdata["customization_type"] = allowedoptions[showcase]["type"];
+	requestdata["sessionid"] = self.getSessionID();
+	self._myProfile("ajaxsetshowcaseconfig", requestdata, function (err, response, body) {
 
-		if(!allowedoptions.hasOwnProperty(showcase)){
-			let err = new Error("The submitted showcase type has no editable items.");
-			return callback ? callback(err) : reject(err);
+		if (err || response.statusCode != 200) {
+			err = err || new Error("HTTP error " + response.statusCode);
+			return callback ? callback(err) : undefined;
 		}
-		if(slot < 1 || slot > allowedoptions[showcase]["maxslots"]){
-			let err = new Error("The submitted slot is outside of range. (Allowed range: 1-"+allowedoptions[showcase]["maxslots"]+")");
-			return callback ? callback(err) : reject(err);
-		}
-		if(!(item.hasOwnProperty("appid") || item.hasOwnProperty("item_contextid") || item.hasOwnProperty("item_assetid"))){
-			let err = new Error("The submitted item is not valid.");
-			return callback ? callback(err) : reject(err);
-		}
-		let requestdata = item;
-		requestdata["slot"] = slot - 1;
-		requestdata["customization_type"] = allowedoptions[showcase]["type"];
-		requestdata["sessionid"] = self.getSessionID();
-		self._myProfile("ajaxsetshowcaseconfig", requestdata, function (err, response, body) {
+		return callback ? callback(null) : undefined;
 
-			if (err || response.statusCode != 200) {
-				err = err || new Error("HTTP error " + response.statusCode);
-				return callback ? callback(err) : reject(err);
-			}
-			return callback ? callback(null) : resolve()
-
-		});
 	});
 };
 
@@ -162,7 +159,6 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 
 
 				case 'showcases':
-					var numofrequests = 0;
 
 					//When supplying a new showcases array, remove the old showcase (order)
 					for (var val in values) {
@@ -179,18 +175,6 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 						}
 
 						remainingshowcases--;
-
-						//Controls if the callback function is called when a request changing f.e. a single item or game in a showcase fails
-						var errorcontrol = {
-							"error": false,
-							"showerrors": false
-						};
-
-						if (settings[i][type].hasOwnProperty("values")) {
-							if (settings[i][type]["values"].hasOwnProperty("showshowcaseconfigerrors")) {
-								errorcontrol["showerrors"] = settings[i][type]["values"]["showshowcaseconfigerrors"];
-							}
-						}
 
 						switch (settings[i][type].showcase) {
 
@@ -253,7 +237,7 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 									if (settings[i][type]["values"].hasOwnProperty("badges")) {
 										var types = ["badgeid", "appid", "border_color"];
 										for (var n = 0; n < 6; n++) {
-											for (var t in type) {
+											for (var t in types) {
 												if (settings[i][type]["values"]["badges"][n] != undefined) {
 													if (settings[i][type]["values"]["badges"][n].hasOwnProperty(types[t])) {
 														values["rgShowcaseConfig[5][" + n + "][" + types[t] + "]"] = settings[i][type]["values"]["badges"][n][types[t]] || values["rgShowcaseConfig[5][" + n + "][" + types[t] + "]"] || "";
