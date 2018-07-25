@@ -33,7 +33,6 @@ SteamCommunity.prototype.setupProfile = function(callback) {
 };
 
 SteamCommunity.prototype.editShowcaseItem = function(showcase, slot, item, callback) {
-	const self = this;
 	//The possible options, with the maximum number of slots and the corresponding type
 	const allowedoptions = {
 		"trade": {
@@ -50,23 +49,23 @@ SteamCommunity.prototype.editShowcaseItem = function(showcase, slot, item, callb
 		}
 	};
 
-	if(!allowedoptions.hasOwnProperty(showcase)){
+	if (!allowedoptions.hasOwnProperty(showcase)) {
 		const err = new Error("The submitted showcase type has no editable items.");
 		return callback ? callback(err) : undefined;
 	}
-	if(slot < 1 || slot > allowedoptions[showcase]["maxslots"]){
+	if (slot < 1 || slot > allowedoptions[showcase]["maxslots"]) {
 		const err = new Error("The submitted slot is outside of range. (Allowed range: 1-"+allowedoptions[showcase]["maxslots"]+")");
 		return callback ? callback(err) : undefined;
 	}
-	if(!(item.hasOwnProperty("appid") || item.hasOwnProperty("item_contextid") || item.hasOwnProperty("item_assetid"))){
+	if (!(item.hasOwnProperty("appid") || item.hasOwnProperty("item_contextid") || item.hasOwnProperty("item_assetid"))) {
 		const err = new Error("The submitted item is not valid.");
 		return callback ? callback(err) : undefined;
 	}
-	const requestdata = item;
+	const requestdata = Object.assign({}, item);
 	requestdata["slot"] = slot - 1;
 	requestdata["customization_type"] = allowedoptions[showcase]["type"];
-	requestdata["sessionid"] = self.getSessionID();
-	self._myProfile("ajaxsetshowcaseconfig", requestdata, function (err, response, body) {
+	requestdata["sessionid"] = this.getSessionID();
+	this._myProfile("ajaxsetshowcaseconfig", requestdata, function (err, response, body) {
 
 		if (err || response.statusCode != 200) {
 			err = err || new Error("HTTP error " + response.statusCode);
