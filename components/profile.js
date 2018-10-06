@@ -193,7 +193,7 @@ SteamCommunity.prototype.profileSettings = function(settings, callback) {
 					break;
 
 				case 'inventoryGifts':
-					privacy.PrivacyInventoryGifts = settings[i] ? SteamCommunity.PrivacyState.Private : SteamCommunity.PrivacyState.Public;
+					privacy.PrivacyInventoryGifts = settings[i] === SteamCommunity.PrivacyState.FriendsOnly ? SteamCommunity.PrivacyState.Private : settings[i];
 					break;
 
 				case 'gameDetails':
@@ -201,7 +201,7 @@ SteamCommunity.prototype.profileSettings = function(settings, callback) {
 					break;
 
 				case 'playtime':
-					privacy.PrivacyPlaytime = settings[i] ? SteamCommunity.PrivacyState.Private : SteamCommunity.PrivacyState.Public;
+					privacy.PrivacyPlaytime = settings[i] === SteamCommunity.PrivacyState.FriendsOnly ? SteamCommunity.PrivacyState.Private : settings[i];
 					break;
 			}
 		}
