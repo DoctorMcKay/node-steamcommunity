@@ -5,9 +5,9 @@ module.exports = CConfirmation;
 function CConfirmation(community, data) {
 	Object.defineProperty(this, "_community", {"value": community});
 
-	this.id = data.id;
+	this.id = data.id.toString();
 	this.type = data.type;
-	this.creator = data.creator;
+	this.creator = data.creator.toString();
 	this.key = data.key;
 	this.title = data.title;
 	this.receiving = data.receiving;
