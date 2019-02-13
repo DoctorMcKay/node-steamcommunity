@@ -1,6 +1,5 @@
 var SteamCommunity = require('../index.js');
 var ReadLine = require('readline');
-var fs = require('fs');
 
 var community = new SteamCommunity();
 var rl = ReadLine.createInterface({

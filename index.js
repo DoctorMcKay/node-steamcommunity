@@ -77,7 +77,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 		mobileHeaders = {
 			"X-Requested-With": "com.valvesoftware.android.steam.community",
 			"Referer": "https://steamcommunity.com/mobilelogin?oauth_client_id=DE45CD61&oauth_scope=read_profile%20write_profile%20read_client%20write_client",
-			"User-Agent": "Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; Google Nexus 4 - 4.1.1 - API 16 - 768x1280 Build/JRO03S) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30",
+			"User-Agent": this._options.mobileUserAgent || details.mobileUserAgent || "Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; Google Nexus 4 - 4.1.1 - API 16 - 768x1280 Build/JRO03S) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30",
 			"Accept": "text/javascript, text/html, application/xml, text/xml, */*"
 		};
 

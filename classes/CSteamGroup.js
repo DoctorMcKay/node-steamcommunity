@@ -123,6 +123,10 @@ CSteamGroup.prototype.deleteComment = function(cid, callback) {
 	this._community.deleteGroupComment(this.steamID, cid, callback);
 };
 
+CSteamGroup.prototype.comment = function(message, callback) {
+	this._community.postGroupComment(this.steamID, message, callback);
+};
+
 /**
  * Get requests to join this restricted group.
  * @param {function} callback - First argument is null/Error, second is array of SteamID objects

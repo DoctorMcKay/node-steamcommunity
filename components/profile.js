@@ -203,6 +203,10 @@ SteamCommunity.prototype.profileSettings = function(settings, callback) {
 				case 'playtime':
 					privacy.PrivacyPlaytime = settings[i] ? SteamCommunity.PrivacyState.Private : SteamCommunity.PrivacyState.Public;
 					break;
+
+				case 'friendsList':
+					privacy.PrivacyFriendsList = settings[i];
+					break;
 			}
 		}
 
