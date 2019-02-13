@@ -5,17 +5,22 @@ SteamCommunity.ChatState = require('../resources/EChatState.js');
 SteamCommunity.PersonaState = require('../resources/EPersonaState.js');
 SteamCommunity.PersonaStateFlag = require('../resources/EPersonaStateFlag.js');
 
+/**
+ * @deprecated No support for new Steam chat. Use steam-user instead.
+ * @param {int} interval
+ * @param {string} uiMode
+ */
 SteamCommunity.prototype.chatLogon = function(interval, uiMode) {
 	if(this.chatState == SteamCommunity.ChatState.LoggingOn || this.chatState == SteamCommunity.ChatState.LoggedOn) {
 		return;
 	}
-	
+
 	interval = interval || 500;
 	uiMode = uiMode || "web";
-	
+
 	this.emit('debug', 'Requesting chat WebAPI token');
 	this.chatState = SteamCommunity.ChatState.LoggingOn;
-	
+
 	var self = this;
 	this.getWebApiOauthToken(function(err, token) {
 		if(err) {
@@ -32,7 +37,7 @@ SteamCommunity.prototype.chatLogon = function(interval, uiMode) {
 			self.emit('debug', "Cannot get oauth token: " + err.message);
 			return;
 		}
-		
+
 		self.httpRequestPost({
 			"uri": "https://api.steampowered.com/ISteamWebUserPresenceOAuth/Logon/v1",
 			"form": {
@@ -48,7 +53,7 @@ SteamCommunity.prototype.chatLogon = function(interval, uiMode) {
 				setTimeout(self.chatLogon.bind(self), 5000);
 				return;
 			}
-			
+
 			if(body.error != 'OK') {
 				self.chatState = SteamCommunity.ChatState.LogOnFailed;
 				self.emit('chatLogOnFailed', new Error(body.error), false);
@@ -56,7 +61,7 @@ SteamCommunity.prototype.chatLogon = function(interval, uiMode) {
 				setTimeout(self.chatLogon.bind(self), 5000);
 				return;
 			}
-			
+
 			self._chat = {
 				"umqid": body.umqid,
 				"message": body.message,
@@ -64,9 +69,9 @@ SteamCommunity.prototype.chatLogon = function(interval, uiMode) {
 				"interval": interval,
 				"uiMode": uiMode
 			};
-			
+
 			self.chatFriends = {};
-			
+
 			self.chatState = SteamCommunity.ChatState.LoggedOn;
 			self.emit('chatLoggedOn');
 			self._chatPoll();
@@ -74,20 +79,27 @@ SteamCommunity.prototype.chatLogon = function(interval, uiMode) {
 	});
 };
 
+/**
+ * @deprecated No support for new Steam chat. Use steam-user instead.
+ * @param {string|SteamID} recipient
+ * @param {string} text
+ * @param {string} [type]
+ * @param {function} [callback]
+ */
 SteamCommunity.prototype.chatMessage = function(recipient, text, type, callback) {
 	if(this.chatState != SteamCommunity.ChatState.LoggedOn) {
 		throw new Error("Chat must be logged on before messages can be sent");
 	}
-	
+
 	if(typeof recipient === 'string') {
 		recipient = new SteamID(recipient);
 	}
-	
+
 	if(typeof type === 'function') {
 		callback = type;
 		type = 'saytext';
 	}
-	
+
 	type = type || 'saytext';
 
 	var self = this;
@@ -105,12 +117,12 @@ SteamCommunity.prototype.chatMessage = function(recipient, text, type, callback)
 		if(!callback) {
 			return;
 		}
-		
+
 		if (err) {
 			callback(err);
 			return;
 		}
-		
+
 		if(body.error != 'OK') {
 			callback(new Error(body.error));
 		} else {
@@ -119,6 +131,9 @@ SteamCommunity.prototype.chatMessage = function(recipient, text, type, callback)
 	}, "steamcommunity");
 };
 
+/**
+ * @deprecated No support for new Steam chat. Use steam-user instead.
+ */
 SteamCommunity.prototype.chatLogoff = function() {
 	var self = this;
 	this.httpRequestPost({
@@ -141,9 +156,12 @@ SteamCommunity.prototype.chatLogoff = function() {
 	}, "steamcommunity");
 };
 
+/**
+ * @private
+ */
 SteamCommunity.prototype._chatPoll = function() {
 	this.emit('debug', 'Doing chat poll');
-	
+
 	var self = this;
 	this.httpRequestPost({
 		"uri": "https://api.steampowered.com/ISteamWebUserPresenceOAuth/Poll/v1",
@@ -161,9 +179,9 @@ SteamCommunity.prototype._chatPoll = function() {
 		if (self.chatState == SteamCommunity.ChatState.Offline) {
 			return;
 		}
-		
+
 		self._chat.timer = setTimeout(self._chatPoll.bind(self), self._chat.interval);
-		
+
 		if(err || response.statusCode != 200) {
 			self.emit('debug', 'Error in chat poll: ' + (err ? err.message : "HTTP error " + response.statusCode));
 			if (err.message == "Not Logged On") {
@@ -172,7 +190,7 @@ SteamCommunity.prototype._chatPoll = function() {
 
 			return;
 		}
-		
+
 		if(!body || body.error != 'OK') {
 			self.emit('debug', 'Error in chat poll: ' + (body && body.error ? body.error : "Malformed response"));
 			if (body && body.error && body.error == "Not Logged On") {
@@ -181,29 +199,29 @@ SteamCommunity.prototype._chatPoll = function() {
 
 			return;
 		}
-		
+
 		self._chat.message = body.messagelast;
-		
+
 		(body.messages || []).forEach(function(message) {
 			var sender = new SteamID();
 			sender.universe = SteamID.Universe.PUBLIC;
 			sender.type = SteamID.Type.INDIVIDUAL;
 			sender.instance = SteamID.Instance.DESKTOP;
 			sender.accountid = message.accountid_from;
-			
+
 			switch(message.type) {
 				case 'personastate':
 					self._chatUpdatePersona(sender);
 					break;
-				
+
 				case 'saytext':
 					self.emit('chatMessage', sender, message.text);
 					break;
-				
+
 				case 'typing':
 					self.emit('chatTyping', sender);
 					break;
-				
+
 				default:
 					self.emit('debug', 'Unhandled chat message type: ' + message.type);
 			}
@@ -211,6 +229,9 @@ SteamCommunity.prototype._chatPoll = function() {
 	}, "steamcommunity");
 };
 
+/**
+ * @private
+ */
 SteamCommunity.prototype._relogWebChat = function() {
 	this.emit('debug', "Relogging web chat");
 	clearTimeout(this._chat.timer);
@@ -218,6 +239,10 @@ SteamCommunity.prototype._relogWebChat = function() {
 	this.chatLogon(this._chat.interval, this._chat.uiMode);
 };
 
+/**
+ * @param {SteamID} steamID
+ * @private
+ */
 SteamCommunity.prototype._chatUpdatePersona = function(steamID) {
 	if (!this.chatFriends || this.chatState == SteamCommunity.ChatState.Offline) {
 		return; // we no longer care
@@ -240,7 +265,7 @@ SteamCommunity.prototype._chatUpdatePersona = function(steamID) {
 			}, 2000);
 			return;
 		}
-		
+
 		var persona = {
 			"steamID": steamID,
 			"personaName": body.m_strName,
