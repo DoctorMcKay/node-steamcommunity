@@ -270,12 +270,13 @@ SteamCommunity.prototype.getClientLogonToken = function(callback) {
 			return;
 		}
 
-		if (!body.account_name || !body.token) {
+		if (!body.steamid || !body.account_name || !body.token) {
 			callback(new Error('Malformed response'));
 			return;
 		}
 
 		callback(null, {
+			"steamID": new SteamID(body.steamid),
 			"accountName": body.account_name,
 			"webLogonToken": body.token
 		});
