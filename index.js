@@ -275,7 +275,10 @@ SteamCommunity.prototype.getClientLogonToken = function(callback) {
 			return;
 		}
 
-		callback(null, body);
+		callback(null, {
+			"accountName": body.account_name,
+			"webLogonToken": body.token
+		});
 	});
 };
 
