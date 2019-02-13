@@ -13,7 +13,7 @@ module.exports = SteamCommunity;
 
 SteamCommunity.SteamID = SteamID;
 SteamCommunity.ConfirmationType = require('./resources/EConfirmationType.js');
-SteamCommunity.EResult = require('./resources/EResult.js')
+SteamCommunity.EResult = require('./resources/EResult.js');
 
 
 function SteamCommunity(options) {
@@ -247,6 +247,36 @@ SteamCommunity.prototype.oAuthLogin = function(steamguard, token, callback) {
 		self.setCookies(cookies);
 		callback(null, self.getSessionID(), cookies);
 	}, "steamcommunity");
+};
+
+/**
+ * Get a token that can be used to log onto Steam using steam-user.
+ * @param {function} callback
+ */
+SteamCommunity.prototype.getClientLogonToken = function(callback) {
+	this.httpRequestGet({
+		"uri": "https://steamcommunity.com/chat/clientjstoken",
+		"json": true
+	}, (err, res, body) => {
+		if (err || res.statusCode != 200) {
+			callback(err ? err : new Error('HTTP error ' + res.statusCode));
+			return;
+		}
+
+		if (!body.logged_in) {
+			let e = new Error('Not Logged In');
+			callback(e);
+			this._notifySessionExpired(e);
+			return;
+		}
+
+		if (!body.account_name || !body.token) {
+			callback(new Error('Malformed response'));
+			return;
+		}
+
+		callback(null, body);
+	});
 };
 
 SteamCommunity.prototype._setCookie = function(cookie, secure) {
