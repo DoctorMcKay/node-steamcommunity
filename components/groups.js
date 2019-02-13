@@ -591,6 +591,30 @@ SteamCommunity.prototype.deleteGroupComment = function(gid, cid, callback) {
 	}, "steamcommunity");
 };
 
+SteamCommunity.prototype.postGroupComment = function(gid, message, callback) {
+	if (typeof gid === 'string') {
+		gid = new SteamID(gid);
+	}
+
+	var options = {
+		"uri": "https://steamcommunity.com/comment/Clan/post/" + gid.getSteamID64() + "/-1/",
+		"form": {
+			"comment": message,
+			"count": 6,
+			"sessionid": this.getSessionID()
+		}
+	};
+
+	var self = this;
+	this.httpRequestPost(options, function(err, response, body) {
+		if(!callback) {
+			return;
+		}
+
+		callback(err || null);
+	}, "steamcommunity");
+};
+
 /**
  * Get requests to join a restricted group.
  * @param {SteamID|string} gid - The SteamID of the group you want to manage
