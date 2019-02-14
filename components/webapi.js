@@ -14,7 +14,7 @@ SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
 		if(body.match(/<h2>Access Denied<\/h2>/)) {
 			return callback(new Error("Access Denied"));
 		}
-		
+
 		if(body.match(/You must have a validated email address to create a Steam Web API key./)) {
 			return callback(new Error("You must have a validated email address to create a Steam Web API key."));
 		}
@@ -44,6 +44,10 @@ SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
 	}, "steamcommunity");
 };
 
+/**
+ * @deprecated No longer works if not logged in via mobile login. Will be removed in a future release.
+ * @param {function} callback
+ */
 SteamCommunity.prototype.getWebApiOauthToken = function(callback) {
 	var self = this;
 
