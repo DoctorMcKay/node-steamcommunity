@@ -6,6 +6,11 @@ SteamCommunity.ChatState = require('../resources/EChatState.js');
 SteamCommunity.PersonaState = require('../resources/EPersonaState.js');
 SteamCommunity.PersonaStateFlag = require('../resources/EPersonaStateFlag.js');
 
+/**
+ * @deprecated No support for new Steam chat. Use steam-user instead.
+ * @param {int} interval
+ * @param {string} uiMode
+ */
 SteamCommunity.prototype.chatLogon = function(interval, uiMode) {
 	if(this.chatState == SteamCommunity.ChatState.LoggingOn || this.chatState == SteamCommunity.ChatState.LoggedOn) {
 		return;
@@ -75,6 +80,13 @@ SteamCommunity.prototype.chatLogon = function(interval, uiMode) {
 	});
 };
 
+/**
+ * @deprecated No support for new Steam chat. Use steam-user instead.
+ * @param {string|SteamID} recipient
+ * @param {string} text
+ * @param {string} [type]
+ * @param {function} [callback]
+ */
 SteamCommunity.prototype.chatMessage = function(recipient, text, type, callback) {
 	if(this.chatState != SteamCommunity.ChatState.LoggedOn) {
 		throw new Error("Chat must be logged on before messages can be sent");
@@ -120,6 +132,9 @@ SteamCommunity.prototype.chatMessage = function(recipient, text, type, callback)
 	}, "steamcommunity");
 };
 
+/**
+ * @deprecated No support for new Steam chat. Use steam-user instead.
+ */
 SteamCommunity.prototype.chatLogoff = function() {
 	var self = this;
 	this.httpRequestPost({
@@ -142,6 +157,9 @@ SteamCommunity.prototype.chatLogoff = function() {
 	}, "steamcommunity");
 };
 
+/**
+ * @private
+ */
 SteamCommunity.prototype._chatPoll = function() {
 	this.emit('debug', 'Doing chat poll');
 
@@ -212,6 +230,9 @@ SteamCommunity.prototype._chatPoll = function() {
 	}, "steamcommunity");
 };
 
+/**
+ * @private
+ */
 SteamCommunity.prototype._relogWebChat = function() {
 	this.emit('debug', "Relogging web chat");
 	clearTimeout(this._chat.timer);
@@ -219,6 +240,10 @@ SteamCommunity.prototype._relogWebChat = function() {
 	this.chatLogon(this._chat.interval, this._chat.uiMode);
 };
 
+/**
+ * @param {SteamID} steamID
+ * @private
+ */
 SteamCommunity.prototype._chatUpdatePersona = function(steamID) {
 	if (!this.chatFriends || this.chatState == SteamCommunity.ChatState.Offline) {
 		return; // we no longer care
