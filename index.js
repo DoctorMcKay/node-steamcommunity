@@ -1,19 +1,21 @@
 require('@doctormckay/stats-reporter').setup(require('./package.json'));
 
+const EventEmitter = require('events').EventEmitter;
 const hex2b64 = require('node-bignumber').hex2b64;
 const Request = require('request');
 const RSA = require('node-bignumber').Key;
 const SteamID = require('steamid');
+const Util = require('util');
 
 const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36";
 
-require('util').inherits(SteamCommunity, require('events').EventEmitter);
+Util.inherits(SteamCommunity, EventEmitter);
 
 module.exports = SteamCommunity;
 
 SteamCommunity.SteamID = SteamID;
 SteamCommunity.ConfirmationType = require('./resources/EConfirmationType.js');
-SteamCommunity.EResult = require('./resources/EResult.js')
+SteamCommunity.EResult = require('./resources/EResult.js');
 
 
 function SteamCommunity(options) {

@@ -1,8 +1,9 @@
-var SteamCommunity = require('../index.js');
-var Cheerio = require('cheerio');
-var SteamTotp = require('steam-totp');
+const Cheerio = require('cheerio');
+const SteamTotp = require('steam-totp');
 
-var CConfirmation = require('../classes/CConfirmation.js');
+const SteamCommunity = require('../index.js');
+
+const CConfirmation = require('../classes/CConfirmation.js');
 
 /**
  * Get a list of your account's currently outstanding confirmations.

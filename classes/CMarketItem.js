@@ -1,5 +1,6 @@
-var SteamCommunity = require('../index.js');
-var Cheerio = require('cheerio');
+const Cheerio = require('cheerio');
+
+const SteamCommunity = require('../index.js');
 
 SteamCommunity.prototype.getMarketItem = function(appid, hashName, currency, callback) {
 	if (typeof currency == "function") {

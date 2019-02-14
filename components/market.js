@@ -1,5 +1,6 @@
-var SteamCommunity = require('../index.js');
-var Cheerio = require('cheerio');
+const Cheerio = require('cheerio');
+
+const SteamCommunity = require('../index.js');
 
 /**
  * Get a list of all apps on the market

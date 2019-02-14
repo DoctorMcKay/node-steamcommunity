@@ -1,9 +1,11 @@
-var SteamCommunity = require('../index.js');
-var SteamID = require('steamid');
-var xml2js = require('xml2js');
-var Cheerio = require('cheerio');
-var Helpers = require('./helpers.js');
-var EResult = SteamCommunity.EResult;
+const Cheerio = require('cheerio');
+const SteamID = require('steamid');
+const XML2JS = require('xml2js');
+
+const Helpers = require('./helpers.js');
+const SteamCommunity = require('../index.js');
+
+const EResult = SteamCommunity.EResult;
 
 SteamCommunity.prototype.getGroupMembers = function(gid, callback, members, link, addresses, addressIdx) {
 	members = members || [];
@@ -46,7 +48,7 @@ SteamCommunity.prototype.getGroupMembers = function(gid, callback, members, link
 			return;
 		}
 
-		xml2js.parseString(body, function(err, result) {
+		XML2JS.parseString(body, function(err, result) {
 			if (err) {
 				callback(err);
 				return;
@@ -129,7 +131,7 @@ SteamCommunity.prototype.getAllGroupAnnouncements = function(gid, time, callback
 			return;
 		}
 
-		xml2js.parseString(body, function(err, results) {
+		XML2JS.parseString(body, function(err, results) {
 			if(err) {
 				return callback(err);
 			}
@@ -398,7 +400,7 @@ SteamCommunity.prototype.setGroupPlayerOfTheWeek = function(gid, steamID, callba
 			return;
 		}
 
-		xml2js.parseString(body, function(err, results) {
+		XML2JS.parseString(body, function(err, results) {
 			if(err) {
 				callback(err);
 				return;
@@ -634,7 +636,7 @@ SteamCommunity.prototype.respondToGroupJoinRequests = function(gid, steamIDs, ap
 	if (typeof gid === 'string') {
 		gid = new SteamID(gid);
 	}
-	
+
 	var rgAccounts = (!Array.isArray(steamIDs) ? [steamIDs] : steamIDs).map(sid => sid.toString());
 
 	this.httpRequestPost({

@@ -1,4 +1,4 @@
-var SteamCommunity = require('../index.js');
+const SteamCommunity = require('../index.js');
 
 SteamCommunity.prototype.httpRequest = function(uri, options, callback, source) {
 	if (typeof uri === 'object') {

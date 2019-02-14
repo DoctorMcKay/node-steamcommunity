@@ -1,4 +1,4 @@
-var SteamCommunity = require('../index.js');
+const SteamCommunity = require('../index.js');
 
 SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
 	var self = this;
@@ -14,7 +14,7 @@ SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
 		if(body.match(/<h2>Access Denied<\/h2>/)) {
 			return callback(new Error("Access Denied"));
 		}
-		
+
 		if(body.match(/You must have a validated email address to create a Steam Web API key./)) {
 			return callback(new Error("You must have a validated email address to create a Steam Web API key."));
 		}
