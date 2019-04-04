@@ -199,6 +199,61 @@ SteamCommunity.prototype.deleteUserComment = function(userID, commentID, callbac
 	}, "steamcommunity");
 };
 
+SteamCommunity.prototype.getUserComments = function(userID, options, callback) {
+	if(typeof userID === 'string') {
+		userID = new SteamID(userID);
+	}
+
+	if (typeof options === 'function') {
+		callback = options;
+		options = {};
+	}
+
+	var self = this;
+	this.httpRequestPost({
+		"uri": "https://steamcommunity.com/comment/Profile/render/" + userID.toString() + "/-1",
+		"form": {
+			"start": 0,
+			"count": 0,
+			"feature2": -1,
+			"sessionid": this.getSessionID(),
+			...options
+		},
+		"json": true
+	}, function(err, response, body) {
+		if(!callback) {
+			return;
+		}
+
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if(body.success) {
+			const $ = Cheerio.load(body.comments_html);
+			const comments = $(".commentthread_comment.responsive_body_text[id]").map((i, elem) => ({
+				id: $(elem).attr("id").split("_")[1],
+				author: {
+					id: new SteamID("[U:1:" + $(elem).find("[data-miniprofile]").data("miniprofile") + "]"),
+					name: $(elem).find("bdi").text(),
+					avatar: $(elem).find(".playerAvatar img[src]").attr("src"),
+					state: $(elem).find(".playerAvatar").attr("class").split(" ").pop()
+				},
+				date: new Date($(elem).find(".commentthread_comment_timestamp").data("timestamp") * 1000),
+				text: $(elem).find(".commentthread_comment_text").text(),
+				html:  $(elem).find(".commentthread_comment_text").html()
+			})).get();
+
+			callback(null, comments, body.total_count);
+		} else if(body.error) {
+			callback(new Error(body.error));
+		} else {
+			callback(new Error("Unknown error"));
+		}
+	}, "steamcommunity");
+};
+
 SteamCommunity.prototype.inviteUserToGroup = function(userID, groupID, callback) {
 	if(typeof userID === 'string') {
 		userID = new SteamID(userID);
