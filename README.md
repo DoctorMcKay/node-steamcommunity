@@ -9,8 +9,6 @@ This module provides an easy interface for the Steam Community website. This mod
 
 It supports Steam Guard and CAPTCHAs.
 
-This reports anonymous usage statistics to the author. [See here](https://github.com/DoctorMcKay/node-stats-reporter) for more information.
-
 **Have a question about the module or coding in general? *Do not create a GitHub issue.* GitHub issues are for feature
 requests and bug reports. Instead, post in the [dedicated forum](https://dev.doctormckay.com/forum/8-node-steamcommunity/).
 Such issues may be ignored!**

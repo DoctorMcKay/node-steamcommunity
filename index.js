@@ -1,5 +1,3 @@
-require('@doctormckay/stats-reporter').setup(require('./package.json'));
-
 const hex2b64 = require('node-bignumber').hex2b64;
 const Request = require('request');
 const RSA = require('node-bignumber').Key;

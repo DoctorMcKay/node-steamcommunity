@@ -21,7 +21,6 @@
 		"url": "https://github.com/DoctorMcKay/node-steamcommunity.git"
 	},
 	"dependencies": {
-		"@doctormckay/stats-reporter": "^1.0.2",
 		"request": "^2.86.0",
 		"node-bignumber": "^1.2.1",
 		"steamid": "^1.0.0",
