@@ -397,6 +397,11 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
  * @param {function} callback
  */
 SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, contextID, tradableOnly, language, callback) {
+	if (typeof language === 'function') {
+		callback = language;
+		language = "english";
+	}
+
 	if (!userID) {
 		callback(new Error("The user's SteamID is invalid or missing."));
 		return;
@@ -406,11 +411,6 @@ SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, cont
 
 	if (typeof userID === 'string') {
 		userID = new SteamID(userID);
-	}
-
-	if (typeof language === 'function') {
-		callback = language;
-		language = "english";
 	}
 
 	var pos = 1;

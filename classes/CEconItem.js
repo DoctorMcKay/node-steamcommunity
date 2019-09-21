@@ -66,6 +66,22 @@ function CEconItem(item, description, contextID) {
 		this.market_fee_app = parseInt(match[1], 10);
 	}
 
+	// Restore cache_expiration, if we can (for CS:GO items)
+	if (this.appid == 730 && this.contextid == 2 && this.owner_descriptions) {
+		let description = this.owner_descriptions.find(d => d.value && d.value.indexOf('Tradable After ') == 0);
+		if (description) {
+			let date = new Date(description.value.substring(15).replace(/[,()]/g, ''));
+			if (date) {
+				this.cache_expiration = date.toISOString();
+			}
+		}
+	}
+
+	// If we have item_expiration, also set cache_expiration to the same value
+	if (this.item_expiration) {
+		this.cache_expiration = this.item_expiration;
+	}
+
 	if (this.actions === "") {
 		this.actions = [];
 	}
