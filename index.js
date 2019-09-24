@@ -1,11 +1,11 @@
-require('@doctormckay/stats-reporter').setup(require('./package.json'));
-
 const EventEmitter = require('events').EventEmitter;
 const hex2b64 = require('node-bignumber').hex2b64;
 const Request = require('request');
 const RSA = require('node-bignumber').Key;
 const SteamID = require('steamid');
 const Util = require('util');
+
+const Helpers = require('./components/helpers.js');
 
 const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36";
 
@@ -433,7 +433,7 @@ SteamCommunity.prototype.loggedIn = function(callback) {
 };
 
 SteamCommunity.prototype.getTradeURL = function(callback) {
-	this._myProfile("/tradeoffers/privacy", null, (err, response, body) => {
+	this._myProfile("tradeoffers/privacy", null, (err, response, body) => {
 		if (err) {
 			callback(err);
 			return;
@@ -450,7 +450,7 @@ SteamCommunity.prototype.getTradeURL = function(callback) {
 };
 
 SteamCommunity.prototype.changeTradeURL = function(callback) {
-	this._myProfile("/tradeoffers/newtradeurl", {"sessionid": this.getSessionID()}, (err, response, body) => {
+	this._myProfile("tradeoffers/newtradeurl", {"sessionid": this.getSessionID()}, (err, response, body) => {
 		if (!callback) {
 			return;
 		}
@@ -463,6 +463,33 @@ SteamCommunity.prototype.changeTradeURL = function(callback) {
 		var newToken = body.replace(/"/g, ''); //"t1o2k3e4n" => t1o2k3e4n
 		callback(null, "https://steamcommunity.com/tradeoffer/new/?partner=" + this.steamID.accountid + "&token=" + newToken, newToken);
 	}, "steamcommunity");
+};
+
+/**
+ * Clear your profile name (alias) history.
+ * @param {function} callback
+ */
+SteamCommunity.prototype.clearPersonaNameHistory = function(callback) {
+	this._myProfile("ajaxclearaliashistory/", {"sessionid": this.getSessionID()}, (err, res, body) => {
+		if (!callback) {
+			return;
+		}
+
+		if (err) {
+			return callback(err);
+		}
+
+		if (res.statusCode != 200) {
+			return callback(new Error("HTTP error " + res.statusCode));
+		}
+
+		try {
+			body = JSON.parse(body);
+			callback(Helpers.eresultError(body.success));
+		} catch (ex) {
+			return callback(new Error("Malformed response"));
+		}
+	});
 };
 
 SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {

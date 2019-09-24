@@ -1,4 +1,6 @@
 const Cheerio = require('cheerio');
+const Crypto = require('crypto');
+const imageSize = require('image-size');
 const SteamID = require('steamid');
 
 const SteamCommunity = require('../index.js');
@@ -397,15 +399,20 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
  * @param {function} callback
  */
 SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, contextID, tradableOnly, language, callback) {
+	if (typeof language === 'function') {
+		callback = language;
+		language = "english";
+	}
+
+	if (!userID) {
+		callback(new Error("The user's SteamID is invalid or missing."));
+		return;
+	}
+
 	var self = this;
 
 	if (typeof userID === 'string') {
 		userID = new SteamID(userID);
-	}
-
-	if (typeof language === 'function') {
-		callback = language;
-		language = "english";
 	}
 
 	var pos = 1;
@@ -502,4 +509,157 @@ SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, cont
 
 		return quickDescriptionLookup[key];
 	}
+};
+
+/**
+ * Upload an image to Steam and send it to another user over Steam chat.
+ * @param {SteamID|string} userID - Either a SteamID object or a string that can parse into one
+ * @param {Buffer} imageContentsBuffer - The image contents, as a Buffer
+ * @param {{spoiler?: boolean}} [options]
+ * @param {function} callback
+ */
+SteamCommunity.prototype.sendImageToUser = function(userID, imageContentsBuffer, options, callback) {
+	if (typeof options == 'function') {
+		callback = options;
+		options = {};
+	}
+
+	options = options || {};
+
+	if (!userID) {
+		callback(new Error('The user\'s SteamID is invalid or missing'));
+		return;
+	}
+
+	if (typeof userID == 'string') {
+		userID = new SteamID(userID);
+	}
+
+	if (!Buffer.isBuffer(imageContentsBuffer)) {
+		callback(new Error('The image contents must be a Buffer containing an image'));
+		return;
+	}
+
+	var imageDetails = null;
+	try {
+		imageDetails = imageSize(imageContentsBuffer);
+	} catch (ex) {
+		callback(ex);
+		return;
+	}
+
+	var imageHash = Crypto.createHash('sha1');
+	imageHash.update(imageContentsBuffer);
+	imageHash = imageHash.digest('hex');
+
+	this.httpRequestPost({
+		uri: 'https://steamcommunity.com/chat/beginfileupload/?l=english',
+		headers: {
+			referer: 'https://steamcommunity.com/chat/'
+		},
+		formData: { // it's multipart
+			sessionid: this.getSessionID(),
+			l: 'english',
+			file_size: imageContentsBuffer.length,
+			file_name: 'image.' + imageDetails.type,
+			file_sha: imageHash,
+			file_image_width: imageDetails.width,
+			file_image_height: imageDetails.height,
+			file_type: 'image/' + (imageDetails.type == 'jpg' ? 'jpeg' : imageDetails.type)
+		},
+		json: true
+	}, (err, res, body) => {
+		if (err) {
+			if (body && body.success) {
+				var err2 = Helpers.eresultError(body.success);
+				if (body.message) {
+					err2.message = body.message;
+				}
+				callback(err2);
+			} else {
+				callback(err);
+			}
+			return;
+		}
+
+		if (body.success != 1) {
+			callback(Helpers.eresultError(body.success));
+			return;
+		}
+
+		var hmac = body.hmac;
+		var timestamp = body.timestamp;
+		var startResult = body.result;
+
+		if (!startResult || !startResult.ugcid || !startResult.url_host || !startResult.request_headers) {
+			callback(new Error('Malformed response'));
+			return;
+		}
+
+		// Okay, now we need to PUT the file to the provided URL
+		var uploadUrl = (startResult.use_https ? 'https' : 'http') + '://' + startResult.url_host + startResult.url_path;
+		var headers = {};
+		startResult.request_headers.forEach((header) => {
+			headers[header.name.toLowerCase()] = header.value;
+		});
+
+		this.httpRequest({
+			uri: uploadUrl,
+			method: 'PUT',
+			headers,
+			body: imageContentsBuffer
+		}, (err, res, body) => {
+			if (err) {
+				callback(err);
+				return;
+			}
+
+			// Now we need to commit the upload
+			this.httpRequestPost({
+				uri: 'https://steamcommunity.com/chat/commitfileupload/',
+				headers: {
+					referer: 'https://steamcommunity.com/chat/'
+				},
+				formData: { // it's multipart again
+					sessionid: this.getSessionID(),
+					l: 'english',
+					file_name: 'image.' + imageDetails.type,
+					file_sha: imageHash,
+					success: '1',
+					ugcid: startResult.ugcid,
+					file_type: 'image/' + (imageDetails.type == 'jpg' ? 'jpeg' : imageDetails.type),
+					file_image_width: imageDetails.width,
+					file_image_height: imageDetails.height,
+					timestamp,
+					hmac,
+					friend_steamid: userID.getSteamID64(),
+					spoiler: options.spoiler ? '1' : '0'
+				},
+				json: true
+			}, (err, res, body) => {
+				if (err) {
+					callback(err);
+					return;
+				}
+
+				if (body.success != 1) {
+					callback(Helpers.eresultError(body.success));
+					return;
+				}
+
+				if (body.result.success != 1) {
+					// lol valve
+					callback(Helpers.eresultError(body.result.success));
+					return;
+				}
+
+				if (!body.result.details || !body.result.details.url) {
+					callback(new Error('Malformed response'));
+					return;
+				}
+
+				callback(null, body.result.details.url);
+			}, 'steamcommunity');
+		}, 'steamcommunity');
+	}, 'steamcommunity');
 };
