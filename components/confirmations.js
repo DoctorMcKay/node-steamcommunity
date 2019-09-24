@@ -12,23 +12,21 @@ const CConfirmation = require('../classes/CConfirmation.js');
  * @param {SteamCommunity~getConfirmations} callback - Called when the list of confirmations is received
  */
 SteamCommunity.prototype.getConfirmations = function(time, key, callback) {
-	var self = this;
-
-	request(this, "conf", key, time, "conf", null, false, function(err, body) {
-		if(err) {
+	request(this, "conf", key, time, "conf", null, false, (err, body) => {
+		if (err) {
 			if (err.message == "Invalid protocol: steammobile:") {
 				err.message = "Not Logged In";
-				self._notifySessionExpired(err);
+				this._notifySessionExpired(err);
 			}
 
 			callback(err);
 			return;
 		}
 
-		var $ = Cheerio.load(body);
-		var empty = $('#mobileconf_empty');
-		if(empty.length > 0) {
-			if(!$(empty).hasClass('mobileconf_done')) {
+		let $ = Cheerio.load(body);
+		let empty = $('#mobileconf_empty');
+		if (empty.length > 0) {
+			if (!$(empty).hasClass('mobileconf_done')) {
 				// An error occurred
 				callback(new Error(empty.find('div:nth-of-type(2)').text()));
 			} else {
@@ -39,18 +37,18 @@ SteamCommunity.prototype.getConfirmations = function(time, key, callback) {
 		}
 
 		// We have something to confirm
-		var confirmations = $('#mobileconf_list');
-		if(!confirmations) {
+		let confirmations = $('#mobileconf_list');
+		if (!confirmations) {
 			callback(new Error("Malformed response"));
 			return;
 		}
 
-		var confs = [];
-		Array.prototype.forEach.call(confirmations.find('.mobileconf_list_entry'), function(conf) {
+		let confs = [];
+		Array.prototype.forEach.call(confirmations.find('.mobileconf_list_entry'), (conf) => {
 			conf = $(conf);
 
-			var img = conf.find('.mobileconf_list_entry_icon img');
-			confs.push(new CConfirmation(self, {
+			let img = conf.find('.mobileconf_list_entry_icon img');
+			confs.push(new CConfirmation(this, {
 				"id": conf.data('confid'),
 				"type": conf.data('type'),
 				"creator": conf.data('creator'),
@@ -69,7 +67,7 @@ SteamCommunity.prototype.getConfirmations = function(time, key, callback) {
 /**
  * @callback SteamCommunity~getConfirmations
  * @param {Error|null} err - An Error object on failure, or null on success
- * @param {CConfirmation[]} confirmations - An array of CConfirmation objects
+ * @param {CConfirmation[]} [confirmations] - An array of CConfirmation objects
  */
 
 /**
@@ -80,20 +78,20 @@ SteamCommunity.prototype.getConfirmations = function(time, key, callback) {
  * @param {SteamCommunity~getConfirmationOfferID} callback
  */
 SteamCommunity.prototype.getConfirmationOfferID = function(confID, time, key, callback) {
-	request(this, "details/" + confID, key, time, "details", null, true, function(err, body) {
-		if(err) {
+	request(this, "details/" + confID, key, time, "details", null, true, (err, body) => {
+		if (err) {
 			callback(err);
 			return;
 		}
 
-		if(!body.success) {
+		if (!body.success) {
 			callback(new Error("Cannot load confirmation details"));
 			return;
 		}
 
-		var $ = Cheerio.load(body.html);
-		var offer = $('.tradeoffer');
-		if(offer.length < 1) {
+		let $ = Cheerio.load(body.html);
+		let offer = $('.tradeoffer');
+		if (offer.length < 1) {
 			callback(null, null);
 			return;
 		}
@@ -110,7 +108,7 @@ SteamCommunity.prototype.getConfirmationOfferID = function(confID, time, key, ca
 
 /**
  * Confirm or cancel a given confirmation.
- * @param {int|int[]} confID - The ID of the confirmation in question, or an array of confirmation IDs
+ * @param {int|int[]|string|string[]} confID - The ID of the confirmation in question, or an array of confirmation IDs
  * @param {string|string[]} confKey - The confirmation key associated with the confirmation in question (or an array of them) (not a TOTP key, the `key` property of CConfirmation)
  * @param {int} time - The unix timestamp with which the following key was generated
  * @param {string} key - The confirmation key that was generated using the preceding time and the tag "allow" (if accepting) or "cancel" (if not accepting)
@@ -122,22 +120,22 @@ SteamCommunity.prototype.respondToConfirmation = function(confID, confKey, time,
 		"op": accept ? "allow" : "cancel",
 		"cid": confID,
 		"ck": confKey
-	}, true, function(err, body) {
-		if(!callback) {
+	}, true, (err, body) => {
+		if (!callback) {
 			return;
 		}
 
-		if(err) {
+		if (err) {
 			callback(err);
 			return;
 		}
 
-		if(body.success) {
+		if (body.success) {
 			callback(null);
 			return;
 		}
 
-		if(body.message) {
+		if (body.message) {
 			callback(new Error(body.message));
 			return;
 		}
@@ -153,60 +151,59 @@ SteamCommunity.prototype.respondToConfirmation = function(confID, confKey, time,
  * @param {SteamCommunity~genericErrorCallback} callback
  */
 SteamCommunity.prototype.acceptConfirmationForObject = function(identitySecret, objectID, callback) {
-	var self = this;
 	this._usedConfTimes = this._usedConfTimes || [];
+
+	let doConfirmation = () => {
+		let offset = this._timeOffset;
+		let time = SteamTotp.time(offset);
+		this.getConfirmations(time, SteamTotp.getConfirmationKey(identitySecret, time, "conf"), (err, confs) => {
+			if (err) {
+				callback(err);
+				return;
+			}
+
+			let conf = confs.find(conf => conf.creator == objectID);
+			if (!conf) {
+				callback(new Error("Could not find confirmation for object " + objectID));
+				return;
+			}
+
+			// make sure we don't reuse the same time
+			let localOffset = 0;
+			do {
+				time = SteamTotp.time(offset) + localOffset++;
+			} while (this._usedConfTimes.indexOf(time) != -1);
+
+			this._usedConfTimes.push(time);
+			if (this._usedConfTimes.length > 60) {
+				this._usedConfTimes.splice(0, this._usedConfTimes.length - 60); // we don't need to save more than 60 entries
+			}
+
+			conf.respond(time, SteamTotp.getConfirmationKey(identitySecret, time, "allow"), true, callback);
+		});
+	};
 
 	if (typeof this._timeOffset !== 'undefined') {
 		// time offset is already known and saved
 		doConfirmation();
 	} else {
-		SteamTotp.getTimeOffset(function(err, offset) {
+		SteamTotp.getTimeOffset((err, offset) => {
 			if (err) {
 				callback(err);
 				return;
 			}
 
-			self._timeOffset = offset;
+			this._timeOffset = offset;
 			doConfirmation();
 
-			setTimeout(function() {
+			setTimeout(() => {
 				// Delete the saved time offset after 12 hours because why not
-				delete self._timeOffset;
+				delete this._timeOffset;
 			}, 1000 * 60 * 60 * 12);
 		});
 	}
 
-	function doConfirmation() {
-		var offset = self._timeOffset;
-		var time = SteamTotp.time(offset);
-		self.getConfirmations(time, SteamTotp.getConfirmationKey(identitySecret, time, "conf"), function(err, confs) {
-			if (err) {
-				callback(err);
-				return;
-			}
 
-			var conf = confs.filter(function(conf) { return conf.creator == objectID; });
-			if (conf.length == 0) {
-				callback(new Error("Could not find confirmation for object " + objectID));
-				return;
-			}
-
-			conf = conf[0];
-
-			// make sure we don't reuse the same time
-			var localOffset = 0;
-			do {
-				time = SteamTotp.time(offset) + localOffset++;
-			} while (self._usedConfTimes.indexOf(time) != -1);
-
-			self._usedConfTimes.push(time);
-			if (self._usedConfTimes.length > 60) {
-				self._usedConfTimes.splice(0, self._usedConfTimes.length - 60); // we don't need to save more than 60 entries
-			}
-
-			conf.respond(time, SteamTotp.getConfirmationKey(identitySecret, time, "allow"), true, callback);
-		});
-	}
 };
 
 /**
@@ -218,9 +215,7 @@ SteamCommunity.prototype.acceptConfirmationForObject = function(identitySecret, 
  * @param {function} callback
  */
 SteamCommunity.prototype.acceptAllConfirmations = function(time, confKey, allowKey, callback) {
-	var self = this;
-
-	this.getConfirmations(time, confKey, function(err, confs) {
+	this.getConfirmations(time, confKey, (err, confs) => {
 		if (err) {
 			callback(err);
 			return;
@@ -231,7 +226,7 @@ SteamCommunity.prototype.acceptAllConfirmations = function(time, confKey, allowK
 			return;
 		}
 
-		self.respondToConfirmation(confs.map(function(conf) { return conf.id; }), confs.map(function(conf) { return conf.key; }), time, allowKey, true, function(err) {
+		this.respondToConfirmation(confs.map(conf => conf.id), confs.map(conf => conf.key), time, allowKey, true, (err) => {
 			if (err) {
 				callback(err);
 				return;
@@ -255,7 +250,7 @@ function request(community, url, key, time, tag, params, json, callback) {
 	params.m = "android";
 	params.tag = tag;
 
-	var req = {
+	let req = {
 		"method": url == 'multiajaxop' ? 'POST' : 'GET',
 		"uri": "https://steamcommunity.com/mobileconf/" + url,
 		"json": !!json
@@ -267,7 +262,7 @@ function request(community, url, key, time, tag, params, json, callback) {
 		req.form = params;
 	}
 
-	community.httpRequest(req, function(err, response, body) {
+	community.httpRequest(req, (err, response, body) => {
 		if (err) {
 			callback(err);
 			return;
