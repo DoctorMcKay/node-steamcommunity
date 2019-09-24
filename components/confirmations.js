@@ -269,5 +269,5 @@ function request(community, url, key, time, tag, params, json, callback) {
 		}
 
 		callback(null, body);
-	}, "steamcommunity");
+	}, 'steamcommunity');
 }
