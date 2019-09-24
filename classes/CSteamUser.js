@@ -190,3 +190,13 @@ CSteamUser.prototype.getInventoryContents = function(appID, contextID, tradableO
 CSteamUser.prototype.getProfileBackground = function(callback) {
 	this._community.getUserProfileBackground(this.steamID, callback);
 };
+
+/**
+ * Upload an image to Steam and send it to the target user over chat.
+ * @param {Buffer} imageContentsBuffer - The image contents, as a Buffer
+ * @param {{spoiler?: boolean}} [options]
+ * @param {function} callback
+ */
+CSteamUser.prototype.sendImage = function(imageContentsBuffer, options, callback) {
+	this._community.sendImageToUser(this.steamID, imageContentsBuffer, options, callback);
+};
