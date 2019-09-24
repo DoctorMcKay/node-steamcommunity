@@ -1,12 +1,12 @@
 const SteamCommunity = require('../index.js');
 
 SteamCommunity.prototype.httpRequest = function(uri, options, callback, source) {
-	if (typeof uri === 'object') {
+	if (typeof uri == 'object') {
 		source = callback;
 		callback = options;
 		options = uri;
 		uri = options.url || options.uri;
-	} else if (typeof options === 'function') {
+	} else if (typeof options == 'function') {
 		source = callback;
 		callback = options;
 		options = {};
@@ -19,18 +19,12 @@ SteamCommunity.prototype.httpRequest = function(uri, options, callback, source) 
 		delete this._httpRequestConvenienceMethod;
 	}
 
-	var requestID = ++this._httpRequestID;
-	source = source || "";
+	let requestID = ++this._httpRequestID;
+	source = source || '';
 
-	var self = this;
-	var continued = false;
+	let continued = false;
 
-	if (!this.onPreHttpRequest || !this.onPreHttpRequest(requestID, source, options, continueRequest)) {
-		// No pre-hook, or the pre-hook doesn't want to delay the request.
-		continueRequest(null);
-	}
-
-	function continueRequest(err) {
+	let continueRequest = (err) => {
 		if (continued) {
 			return;
 		}
@@ -45,14 +39,14 @@ SteamCommunity.prototype.httpRequest = function(uri, options, callback, source) 
 			return;
 		}
 
-		self.request(options, function (err, response, body) {
-			var hasCallback = !!callback;
-			var httpError = options.checkHttpError !== false && self._checkHttpError(err, response, callback, body);
-			var communityError = !options.json && options.checkCommunityError !== false && self._checkCommunityError(body, httpError ? function () {} : callback); // don't fire the callback if hasHttpError did it already
-			var tradeError = !options.json && options.checkTradeError !== false && self._checkTradeError(body, httpError || communityError ? function () {} : callback); // don't fire the callback if either of the previous already did
-			var jsonError = options.json && options.checkJsonError !== false && !body ? new Error("Malformed JSON response") : null;
+		this.request(options, (err, response, body) => {
+			let hasCallback = !!callback;
+			let httpError = options.checkHttpError !== false && this._checkHttpError(err, response, callback, body);
+			let communityError = !options.json && options.checkCommunityError !== false && this._checkCommunityError(body, httpError ? noop : callback); // don't fire the callback if hasHttpError did it already
+			let tradeError = !options.json && options.checkTradeError !== false && this._checkTradeError(body, httpError || communityError ? noop : callback); // don't fire the callback if either of the previous already did
+			let jsonError = options.json && options.checkJsonError !== false && !body ? new Error("Malformed JSON response") : null;
 
-			self.emit('postHttpRequest', requestID, source, options, httpError || communityError || tradeError || jsonError || null, response, body, {
+			this.emit('postHttpRequest', requestID, source, options, httpError || communityError || tradeError || jsonError || null, response, body, {
 				"hasCallback": hasCallback,
 				"httpError": httpError,
 				"communityError": communityError,
@@ -62,12 +56,17 @@ SteamCommunity.prototype.httpRequest = function(uri, options, callback, source) 
 
 			if (hasCallback && !(httpError || communityError || tradeError)) {
 				if (jsonError) {
-					callback.call(self, jsonError, response);
+					callback.call(this, jsonError, response);
 				} else {
-					callback.apply(self, arguments);
+					callback.apply(this, arguments);
 				}
 			}
 		});
+	};
+
+	if (!this.onPreHttpRequest || !this.onPreHttpRequest(requestID, source, options, continueRequest)) {
+		// No pre-hook, or the pre-hook doesn't want to delay the request.
+		continueRequest(null);
 	}
 };
 
@@ -98,7 +97,7 @@ SteamCommunity.prototype._checkHttpError = function(err, response, callback, bod
 		return err;
 	}
 
-	if (response.statusCode == 403 && typeof response.body === 'string' && response.body.match(/<div id="parental_notice_instructions">Enter your PIN below to exit Family View.<\/div>/)) {
+	if (response.statusCode == 403 && typeof response.body == 'string' && response.body.match(/<div id="parental_notice_instructions">Enter your PIN below to exit Family View.<\/div>/)) {
 		err = new Error("Family View Restricted");
 		callback(err, response, body);
 		return err;
@@ -115,16 +114,16 @@ SteamCommunity.prototype._checkHttpError = function(err, response, callback, bod
 };
 
 SteamCommunity.prototype._checkCommunityError = function(html, callback) {
-	var err;
+	let err;
 
-	if(typeof html === 'string' && html.match(/<h1>Sorry!<\/h1>/)) {
-		var match = html.match(/<h3>(.+)<\/h3>/);
+	if (typeof html == 'string' && html.match(/<h1>Sorry!<\/h1>/)) {
+		let match = html.match(/<h3>(.+)<\/h3>/);
 		err = new Error(match ? match[1] : "Unknown error occurred");
 		callback(err);
 		return err;
 	}
 
-	if (typeof html === 'string' && html.match(/g_steamID = false;/) && html.match(/<h1>Sign In<\/h1>/)) {
+	if (typeof html == 'string' && html.match(/g_steamID = false;/) && html.match(/<h1>Sign In<\/h1>/)) {
 		err = new Error("Not Logged In");
 		callback(err);
 		this._notifySessionExpired(err);
@@ -139,12 +138,14 @@ SteamCommunity.prototype._checkTradeError = function(html, callback) {
 		return false;
 	}
 
-	var match = html.match(/<div id="error_msg">\s*([^<]+)\s*<\/div>/);
+	let match = html.match(/<div id="error_msg">\s*([^<]+)\s*<\/div>/);
 	if (match) {
-		var err = new Error(match[1].trim());
+		let err = new Error(match[1].trim());
 		callback(err);
 		return err;
 	}
 
 	return false;
 };
+
+function noop() {}
