@@ -552,6 +552,8 @@ SteamCommunity.prototype.sendImageToUser = function(userID, imageContentsBuffer,
 	imageHash.update(imageContentsBuffer);
 	imageHash = imageHash.digest('hex');
 
+	var filename = Date.now() + '_image.' + imageDetails.type;
+
 	this.httpRequestPost({
 		uri: 'https://steamcommunity.com/chat/beginfileupload/?l=english',
 		headers: {
@@ -561,7 +563,7 @@ SteamCommunity.prototype.sendImageToUser = function(userID, imageContentsBuffer,
 			sessionid: this.getSessionID(),
 			l: 'english',
 			file_size: imageContentsBuffer.length,
-			file_name: 'image.' + imageDetails.type,
+			file_name: filename,
 			file_sha: imageHash,
 			file_image_width: imageDetails.width,
 			file_image_height: imageDetails.height,
@@ -623,7 +625,7 @@ SteamCommunity.prototype.sendImageToUser = function(userID, imageContentsBuffer,
 				formData: { // it's multipart again
 					sessionid: this.getSessionID(),
 					l: 'english',
-					file_name: 'image.' + imageDetails.type,
+					file_name: filename,
 					file_sha: imageHash,
 					success: '1',
 					ugcid: startResult.ugcid,
