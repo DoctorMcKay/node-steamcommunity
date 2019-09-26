@@ -1,7 +1,8 @@
-var SteamCommunity = require('../index.js');
-var Helpers = require('../components/helpers.js');
-var SteamID = require('steamid');
-var xml2js = require('xml2js');
+const SteamID = require('steamid');
+const XML2JS = require('xml2js');
+
+const Helpers = require('../components/helpers.js');
+const SteamCommunity = require('../index.js');
 
 SteamCommunity.prototype.getSteamUser = function(id, callback) {
 	if(typeof id !== 'string' && !Helpers.isSteamID(id)) {
@@ -19,7 +20,7 @@ SteamCommunity.prototype.getSteamUser = function(id, callback) {
 			return;
 		}
 
-		xml2js.parseString(body, function(err, result) {
+		XML2JS.parseString(body, function(err, result) {
 			if(err || (!result.response && !result.profile)) {
 				callback(err || new Error("No valid response"));
 				return;

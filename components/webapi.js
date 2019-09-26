@@ -1,4 +1,4 @@
-var SteamCommunity = require('../index.js');
+const SteamCommunity = require('../index.js');
 
 SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
 	var self = this;

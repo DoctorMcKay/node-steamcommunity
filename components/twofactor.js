@@ -1,7 +1,8 @@
-var SteamTotp = require('steam-totp');
-var SteamCommunity = require('../index.js');
+const SteamTotp = require('steam-totp');
 
-var ETwoFactorTokenType = {
+const SteamCommunity = require('../index.js');
+
+const ETwoFactorTokenType = {
 	"None": 0,                  // No token-based two-factor authentication
 	"ValveMobileApp": 1,        // Tokens generated using Valve's special charset (5 digits, alphanumeric)
 	"ThirdParty": 2             // Tokens generated using literally everyone else's standard charset (6 digits, numeric). This is disabled.

@@ -1,13 +1,15 @@
+const EventEmitter = require('events').EventEmitter;
 const hex2b64 = require('node-bignumber').hex2b64;
 const Request = require('request');
 const RSA = require('node-bignumber').Key;
 const SteamID = require('steamid');
+const Util = require('util');
 
 const Helpers = require('./components/helpers.js');
 
 const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36";
 
-require('util').inherits(SteamCommunity, require('events').EventEmitter);
+Util.inherits(SteamCommunity, EventEmitter);
 
 module.exports = SteamCommunity;
 
@@ -539,7 +541,6 @@ require('./components/profile.js');
 require('./components/market.js');
 require('./components/groups.js');
 require('./components/users.js');
-require('./components/inventoryhistory.js');
 require('./components/webapi.js');
 require('./components/twofactor.js');
 require('./components/confirmations.js');
