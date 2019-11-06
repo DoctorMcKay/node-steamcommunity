@@ -69,7 +69,13 @@ function CSteamUser(community, userData, customurl) {
 	this.customURL = processItem('customURL', customurl);
 
 	if(this.visibilityState == 3) {
-		this.memberSince = new Date(processItem('memberSince', '0').replace(/(\d{1,2})(st|nd|th)/, "$1"));
+		let memberSinceValue = processItem('memberSince', '0').replace(/(\d{1,2})(st|nd|th)/, "$1");
+
+		if (memberSinceValue.indexOf(',') === -1) {
+			memberSinceValue += ', ' + new Date().getFullYear();
+		}
+
+		this.memberSince = new Date(memberSinceValue);
 		this.location = processItem('location');
 		this.realName = processItem('realname');
 		this.summary = processItem('summary');
