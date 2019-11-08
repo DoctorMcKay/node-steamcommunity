@@ -78,8 +78,8 @@ CSteamGroup.prototype.getAllAnnouncements = function(time, callback) {
 	this._community.getAllGroupAnnouncements(this.steamID, time, callback);
 };
 
-CSteamGroup.prototype.postAnnouncement = function(headline, content, callback) {
-	this._community.postGroupAnnouncement(this.steamID, headline, content, callback);
+CSteamGroup.prototype.postAnnouncement = function(headline, content, hidden, callback) {
+	this._community.postGroupAnnouncement(this.steamID, headline, content, hidden, callback);
 };
 
 CSteamGroup.prototype.editAnnouncement = function(annoucementID, headline, content, callback) {
