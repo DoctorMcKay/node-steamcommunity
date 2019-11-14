@@ -543,10 +543,13 @@ require('./components/inventoryhistory.js');
 require('./components/webapi.js');
 require('./components/twofactor.js');
 require('./components/confirmations.js');
+require('./components/workshop.js');
+require('./classes/CCommunityComment.js');
 require('./classes/CMarketItem.js');
 require('./classes/CMarketSearchResult.js');
 require('./classes/CSteamGroup.js');
 require('./classes/CSteamUser.js');
+require('./classes/CWorkshopItem.js');
 
 /**
  @callback SteamCommunity~genericErrorCallback
