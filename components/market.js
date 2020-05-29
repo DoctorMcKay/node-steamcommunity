@@ -110,6 +110,43 @@ SteamCommunity.prototype.turnItemIntoGems = function(appid, assetid, expectedGem
 };
 
 /**
+ * Open a booster pack.
+ * @param {int} appid
+ * @param {int|string} assetid
+ * @param {function} callback
+ */
+SteamCommunity.prototype.openBoosterPack = function(appid, assetid, callback) {
+	this._myProfile({
+		"endpoint": "ajaxunpackbooster/",
+		"json": true,
+		"checkHttpError": false
+	}, {
+		"appid": appid,
+		"communityitemid": assetid,
+		"sessionid": this.getSessionID()
+	}, (err, res, body) => {
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (body.success && body.success != SteamCommunity.EResult.OK) {
+			let err = new Error(body.message || SteamCommunity.EResult[body.success]);
+			err.eresult = err.code = body.success;
+			callback(err);
+			return;
+		}
+
+		if (!body.rgItems) {
+			callback(new Error("Malformed response"));
+			return;
+		}
+
+		callback(null, body.rgItems);
+	})
+};
+
+/**
  * Get details about a gift in your inventory.
  * @param {string} giftID
  * @param {function} callback
