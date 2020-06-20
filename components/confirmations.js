@@ -242,6 +242,39 @@ SteamCommunity.prototype.acceptAllConfirmations = function(time, confKey, allowK
 	});
 };
 
+/**
+ * Send a single request to Steam to cancel all outstanding confirmations (after loading the list). If one fails, the
+ * entire request will fail and there will be no way to know which failed without loading the list again.
+ * @param {number} time
+ * @param {string} confKey
+ * @param {string} cancelKey
+ * @param {function} callback
+ */
+SteamCommunity.prototype.cancelAllConfirmations = function(time, confKey, cancelKey, callback) {
+	var self = this;
+
+	this.getConfirmations(time, confKey, function(err, confs) {
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (confs.length == 0) {
+			callback(null, []);
+			return;
+		}
+
+		self.respondToConfirmation(confs.map(function(conf) { return conf.id; }), confs.map(function(conf) { return conf.key; }), time, cancelKey, false, function(err) {
+			if (err) {
+				callback(err);
+				return;
+			}
+
+			callback(err, confs);
+		});
+	});
+};
+
 function request(community, url, key, time, tag, params, json, callback) {
 	if (!community.steamID) {
 		throw new Error("Must be logged in before trying to do anything with confirmations");
