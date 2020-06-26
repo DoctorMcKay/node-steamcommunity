@@ -1,6 +1,6 @@
 {
 	"name": "steamcommunity",
-	"version": "3.41.4",
+	"version": "3.41.5",
 	"description": "Provides an interface for logging into and interacting with the Steam Community website",
 	"keywords": [
 		"steam",
