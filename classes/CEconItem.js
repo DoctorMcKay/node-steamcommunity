@@ -86,7 +86,9 @@ function CEconItem(item, description, contextID) {
 		this.actions = [];
 	}
 
-	 delete this.currency;
+	if (this.currency) {
+		delete this.currency;
+	}
 }
 
 CEconItem.prototype.getImageURL = function() {
