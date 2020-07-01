@@ -86,6 +86,8 @@ function CEconItem(item, description, contextID) {
 		this.actions = [];
 	}
 
+	// One wouldn't think that we need this if statement, but apparently v8 has a weird bug/quirk where deleting a
+	// property results in greatly increased memory usage. Because that makes sense.
 	if (this.currency) {
 		delete this.currency;
 	}
