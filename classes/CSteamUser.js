@@ -183,10 +183,11 @@ CSteamUser.prototype.getInventory = function(appID, contextID, tradableOnly, cal
  * @param {int} appID - The Steam application ID of the game for which you want an inventory
  * @param {int} contextID - The ID of the "context" within the game you want to retrieve
  * @param {boolean} tradableOnly - true to get only tradable items and currencies
+ * @param {string} [language] - The language of item descriptions to return. Omit for default (which may either be English or your account's chosen language)
  * @param callback
  */
-CSteamUser.prototype.getInventoryContents = function(appID, contextID, tradableOnly, callback) {
-	this._community.getUserInventoryContents(this.steamID, appID, contextID, tradableOnly, callback);
+CSteamUser.prototype.getInventoryContents = function(appID, contextID, tradableOnly, language, callback) {
+	this._community.getUserInventoryContents(this.steamID, appID, contextID, tradableOnly, language, callback);
 };
 
 /**
