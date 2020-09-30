@@ -323,11 +323,13 @@ function generateSessionID() {
 
 SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
 	var self = this;
+	var sessionID = self.getSessionID();
 
 	this.httpRequestPost("https://steamcommunity.com/parental/ajaxunlock", {
 		"json": true,
 		"form": {
-			"pin": pin
+			"pin": pin,
+			"sessionid": sessionID
 		}
 	}, function(err, response, body) {
 		if(!callback) {
