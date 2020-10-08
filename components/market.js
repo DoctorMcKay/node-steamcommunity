@@ -146,6 +146,56 @@ SteamCommunity.prototype.openBoosterPack = function(appid, assetid, callback) {
 	})
 };
 
+SteamCommunity.prototype._sackExchanger = function(assetid, amount, unpacking, callback) {
+	this._myProfile({
+		"endpoint": "ajaxexchangegoo/",
+		"json": true,
+		"checkHttpError": false
+	}, {
+		"appid": 753,
+		"assetid": assetid,
+		"sessionid": this.getSessionID(),
+		"goo_denomination_in": unpacking ? 1000 : 1,
+		"goo_amount_in": unpacking ? amount : amount * 1000,
+		"goo_denomination_out": unpacking ? 1 : 1000,
+		"goo_amount_out_expected": unpacking ? 1000 * amount : amount
+	}, (err, res, body) => {
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (body.success && body.success != SteamCommunity.EResult.OK) {
+			let err = new Error(body.message || SteamCommunity.EResult[body.success]);
+			err.eresult = err.code = body.success;
+			callback(err);
+			return;
+		}
+
+		callback(null);
+	})
+};
+
+/**
+ * Pack sack(s) of gems.
+ * @param {int|string} assetid
+ * @param {int} sacks
+ * @param {function} callback
+ */
+SteamCommunity.prototype.packSack = function(assetid, sacks, callback) {
+	this._sackExchanger(assetid, sacks, false, callback);
+};
+
+/**
+ * Unpack sack(s) of gems.
+ * @param {int|string} assetid
+ * @param {int} sacks
+ * @param {function} callback
+ */
+SteamCommunity.prototype.unpackSack = function(assetid, sacks, callback) {
+	this._sackExchanger(assetid, sacks, true, callback);
+};
+
 /**
  * Get details about a gift in your inventory.
  * @param {string} giftID
