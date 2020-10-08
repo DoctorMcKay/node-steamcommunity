@@ -106,7 +106,7 @@ SteamCommunity.prototype.turnItemIntoGems = function(appid, assetid, expectedGem
 		}
 
 		callback(null, {"gemsReceived": parseInt(body['goo_value_received '], 10), "totalGems": parseInt(body.goo_value_total, 10)});
-	})
+	});
 };
 
 /**
@@ -143,7 +143,7 @@ SteamCommunity.prototype.openBoosterPack = function(appid, assetid, callback) {
 		}
 
 		callback(null, body.rgItems);
-	})
+	});
 };
 
 SteamCommunity.prototype._sackExchanger = function(assetid, amount, unpacking, callback) {
@@ -173,7 +173,7 @@ SteamCommunity.prototype._sackExchanger = function(assetid, amount, unpacking, c
 		}
 
 		callback(null);
-	})
+	});
 };
 
 /**
