@@ -251,9 +251,9 @@ SteamCommunity.prototype.toSackOfGems = function(assetid, gemsToPack, expectedSa
 };
 
 /**
- * Transform sack of gems into gems.
+ * Unpack sack of gems into gems.
  * @param {int|string} assetid
- * @param {int} gemsToPack
+ * @param {int} sacksOfGemsToUnpack
  * @param {int} expectedSacksOfGems
  * @param {function} callback
  */
