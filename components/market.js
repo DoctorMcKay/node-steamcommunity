@@ -212,3 +212,77 @@ SteamCommunity.prototype.redeemGift = function(giftID, callback) {
 		callback(null);
 	});
 };
+
+/**
+ * Pack gems into sack of gems.
+ * @param {int|string} assetid
+ * @param {int} gemsToPack
+ * @param {int} expectedSacksOfGems
+ * @param {function} callback
+ */
+SteamCommunity.prototype.toSackOfGems = function(assetid, gemsToPack, expectedSacksOfGems, callback) {
+	this._myProfile({
+		"endpoint": "ajaxexchangegoo/",
+		"json": true,
+		"checkHttpError": false
+	}, {
+		"appid": 753,
+		"assetid": assetid,
+		"goo_denomination_in": 1,
+		"goo_amount_in": gemsToPack,
+		"goo_denomination_out": 1000,
+		"goo_amount_out_expected": expectedSacksOfGems,
+		"sessionid": this.getSessionID()
+	}, (err, res, body) => {
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (body.success && body.success != SteamCommunity.EResult.OK) {
+			let err = new Error(body.message || SteamCommunity.EResult[body.success]);
+			err.eresult = err.code = body.success;
+			callback(err);
+			return;
+		}
+
+		callback(null);
+	})
+};
+
+/**
+ * Unpack sack of gems into gems.
+ * @param {int|string} assetid
+ * @param {int} sacksOfGemsToUnpack
+ * @param {int} expectedSacksOfGems
+ * @param {function} callback
+ */
+SteamCommunity.prototype.unpackSackOfGems = function(assetid, sacksOfGemsToUnpack, expectedGemsValue, callback) {
+	this._myProfile({
+		"endpoint": "ajaxexchangegoo/",
+		"json": true,
+		"checkHttpError": false
+	}, {
+		"appid": 753,
+		"assetid": assetid,
+		"goo_denomination_in": 1000,
+		"goo_amount_in": sacksOfGemsToUnpack,
+		"goo_denomination_out": 1,
+		"goo_amount_out_expected": expectedGemsValue,
+		"sessionid": this.getSessionID()
+	}, (err, res, body) => {
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (body.success && body.success != SteamCommunity.EResult.OK) {
+			let err = new Error(body.message || SteamCommunity.EResult[body.success]);
+			err.eresult = err.code = body.success;
+			callback(err);
+			return;
+		}
+
+		callback(null);
+	})
+};
