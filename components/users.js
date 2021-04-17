@@ -319,9 +319,15 @@ SteamCommunity.prototype.getUserInventoryContexts = function(userID, callback) {
  * @param {int} appID - The Steam application ID of the game for which you want an inventory
  * @param {int} contextID - The ID of the "context" within the game you want to retrieve
  * @param {boolean} tradableOnly - true to get only tradable items and currencies
+ * @param {string} [language] - The language of item descriptions to return. Omit for default (which may either be English or your account's chosen language)
  * @param {function} callback
  */
-SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, tradableOnly, callback) {
+SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, tradableOnly, language, callback) {
+	if (typeof language === 'function') {
+		callback = language;
+		language = "";  // account's chosen language
+	}
+
 	var self = this;
 
 	if (typeof userID === 'string') {
@@ -338,6 +344,7 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 				"Referer": "https://steamcommunity.com" + endpoint + "/inventory"
 			},
 			"qs": {
+				"l": language,
 				"start": start,
 				"trading": tradableOnly ? 1 : undefined
 			},
