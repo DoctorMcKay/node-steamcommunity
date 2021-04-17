@@ -459,6 +459,12 @@ SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, cont
 						err.eresult = match[2];
 						callback(err);
 						return;
+					} else {
+						// try to use the fallback endpoint
+						if (!start && body.error.startsWith('EYldRefreshAppIfNecessary failed with EResult')) {
+							self.getUserInventory(userID, appID, contextID, tradableOnly, language, callback);
+							return;
+						}
 					}
 				}
 
