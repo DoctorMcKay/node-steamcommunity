@@ -83,6 +83,33 @@ SteamCommunity.prototype.removeFriend = function(userID, callback) {
 	}, "steamcommunity");
 };
 
+SteamCommunity.prototype.getBlockedList = function (callback) {
+    this.httpRequestGet("https://steamcommunity.com/friends/blocked", function (err, res, body) {
+        if (res.req.path.substring(0,6) == "/login") {
+            callback(new Error("Not Logged In"));
+            return;
+        }
+        if (!body) {
+            callback(new Error("Malformed response"));
+            return;
+        }
+
+        var matches = body.match(/(data-steamid=\")\w+/g);
+        if (!matches) {
+            // We didn't block anyone
+            callback(null, []);
+            return;
+        }
+
+        var blocked = [];
+        for (var i = 0; i < matches.length; i++) {
+            blocked.push(new SteamID(matches[i].substring(14)));
+        }
+
+        callback(null, blocked);
+    }, "steamcommunity")
+};
+
 SteamCommunity.prototype.blockCommunication = function(userID, callback) {
 	if(typeof userID === 'string') {
 		userID = new SteamID(userID);
