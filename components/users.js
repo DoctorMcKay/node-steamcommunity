@@ -94,18 +94,12 @@ SteamCommunity.prototype.getBlockedList = function (callback) {
             return;
         }
 
-        var matches = body.match(/(data-steamid=\")\w+/g);
-        if (!matches) {
-            // We didn't block anyone
-            callback(null, []);
-            return;
+        var blocked = [],
+            regex=/\bdata-steamid="(\d+)"/g,
+            matches;
+        while (matches = regex.exec(body)) {
+            blocked.push( new SteamID(matches[1]) );
         }
-
-        var blocked = [];
-        for (var i = 0; i < matches.length; i++) {
-            blocked.push(new SteamID(matches[i].substring(14)));
-        }
-
         callback(null, blocked);
     }, "steamcommunity")
 };
