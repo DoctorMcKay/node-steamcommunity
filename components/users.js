@@ -232,18 +232,22 @@ SteamCommunity.prototype.getUserComments = function(userID, options, callback) {
 
 		if(body.success) {
 			const $ = Cheerio.load(body.comments_html);
-			const comments = $(".commentthread_comment.responsive_body_text[id]").map((i, elem) => ({
-				id: $(elem).attr("id").split("_")[1],
-				author: {
-					id: new SteamID("[U:1:" + $(elem).find("[data-miniprofile]").data("miniprofile") + "]"),
-					name: $(elem).find("bdi").text(),
-					avatar: $(elem).find(".playerAvatar img[src]").attr("src"),
-					state: $(elem).find(".playerAvatar").attr("class").split(" ").pop()
-				},
-				date: new Date($(elem).find(".commentthread_comment_timestamp").data("timestamp") * 1000),
-				text: $(elem).find(".commentthread_comment_text").text(),
-				html:  $(elem).find(".commentthread_comment_text").html()
-			})).get();
+			const comments = $(".commentthread_comment.responsive_body_text[id]").map((i, elem) => {
+				var $elem = $(elem),
+					$commentContent = $elem.find(".commentthread_comment_text");
+				return {
+					id: $elem.attr("id").split("_")[1],
+					author: {
+						id: new SteamID("[U:1:" + $elem.find("[data-miniprofile]").data("miniprofile") + "]"),
+						name: $elem.find("bdi").text(),
+						avatar: $elem.find(".playerAvatar img[src]").attr("src"),
+						state: $elem.find(".playerAvatar").attr("class").split(" ").pop()
+					},
+					date: new Date($elem.find(".commentthread_comment_timestamp").data("timestamp") * 1000),
+					text: $commentContent.text(),
+					html: $commentContent.html()
+				}
+			}).get();
 
 			callback(null, comments, body.total_count);
 		} else if(body.error) {
