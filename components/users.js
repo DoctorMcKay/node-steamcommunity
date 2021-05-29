@@ -84,7 +84,7 @@ SteamCommunity.prototype.removeFriend = function(userID, callback) {
 };
 
 SteamCommunity.prototype.getBlockedList = function (callback) {
-    this.httpRequestGet("https://steamcommunity.com/friends/blocked", function (err, res, body) {
+    this.httpRequestGet("https://steamcommunity.com/my/friends/blocked?ajax=1", function (err, res, body) {
         if (res.req.path.substring(0,6) == "/login") {
             callback(new Error("Not Logged In"));
             return;
