@@ -303,8 +303,8 @@ SteamCommunity.prototype.setCookies = function(cookies) {
 	});
 };
 
-SteamCommunity.prototype.getSessionID = function() {
-	var cookies = this._jar.getCookieString("http://steamcommunity.com").split(';');
+SteamCommunity.prototype.getSessionID = function(host = "http://steamcommunity.com") {
+	var cookies = this._jar.getCookieString(host).split(';');
 	for(var i = 0; i < cookies.length; i++) {
 		var match = cookies[i].trim().match(/([^=]+)=(.+)/);
 		if(match[1] == 'sessionid') {
@@ -545,7 +545,7 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 		"uri": "https://help.steampowered.com/wizard/AjaxDoPackageRestore",
 		"form": {
 			"packageid": packageID,
-			"sessionid": this.getSessionID(),
+			"sessionid": this.getSessionID('https://help.steampowered.com'),
 			"wizard_ajax": 1
 		},
 		"json": true
@@ -555,10 +555,8 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 			return;
 		}
 
-		if (body.success && body.success != SteamCommunity.EResult.OK) {
-
+		if (!body.success) {
 			let err = new Error(body.errorMsg || SteamCommunity.EResult[body.success]);
-			err.eresult = err.code = body.success;
 			callback(err);
 			return;
 		}
@@ -577,7 +575,7 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 		"uri": "https://help.steampowered.com/wizard/AjaxDoPackageRemove",
 		"form": {
 			"packageid": packageID,
-			"sessionid": this.getSessionID(),
+			"sessionid": this.getSessionID('https://help.steampowered.com'),
 			"wizard_ajax": 1
 		},
 		"json": true
@@ -587,10 +585,8 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 			return;
 		}
 
-		if (body.success && body.success != SteamCommunity.EResult.OK) {
-
+		if (!body.success) {
 			let err = new Error(body.errorMsg || SteamCommunity.EResult[body.success]);
-			err.eresult = err.code = body.success;
 			callback(err);
 			return;
 		}
