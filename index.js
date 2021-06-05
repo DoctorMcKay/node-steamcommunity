@@ -303,8 +303,8 @@ SteamCommunity.prototype.setCookies = function(cookies) {
 	});
 };
 
-SteamCommunity.prototype.getSessionID = function() {
-	var cookies = this._jar.getCookieString("http://steamcommunity.com").split(';');
+SteamCommunity.prototype.getSessionID = function(host = "http://steamcommunity.com") {
+	var cookies = this._jar.getCookieString(host).split(';');
 	for(var i = 0; i < cookies.length; i++) {
 		var match = cookies[i].trim().match(/([^=]+)=(.+)/);
 		if(match[1] == 'sessionid') {
@@ -533,6 +533,66 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 
 		self.httpRequest(options, callback, "steamcommunity");
 	}
+};
+
+/**
+ * Restore a previously removed steam package from your steam account.
+ * @param {int|string} packageID
+ * @param {function} callback
+ */
+ SteamCommunity.prototype.restorePackage = function(packageID, callback) {
+	this.httpRequestPost({
+		"uri": "https://help.steampowered.com/wizard/AjaxDoPackageRestore",
+		"form": {
+			"packageid": packageID,
+			"sessionid": this.getSessionID('https://help.steampowered.com'),
+			"wizard_ajax": 1
+		},
+		"json": true
+	}, (err, res, body) => {
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (!body.success) {
+			let err = new Error(body.errorMsg || SteamCommunity.EResult[body.success]);
+			callback(err);
+			return;
+		}
+
+		callback(null);
+	});
+};
+
+/**
+ * Remove a steam package from your steam account.
+ * @param {int|string} packageID
+ * @param {function} callback
+ */
+ SteamCommunity.prototype.removePackage = function(packageID, callback) {
+	this.httpRequestPost({
+		"uri": "https://help.steampowered.com/wizard/AjaxDoPackageRemove",
+		"form": {
+			"packageid": packageID,
+			"sessionid": this.getSessionID('https://help.steampowered.com'),
+			"wizard_ajax": 1
+		},
+		"json": true
+	}, (err, res, body) => {
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (!body.success) {
+			let err = new Error(body.errorMsg || SteamCommunity.EResult[body.success]);
+			callback(err);
+			return;
+		}
+
+		callback(null);
+	});
 };
 
 require('./components/http.js');
