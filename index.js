@@ -14,6 +14,7 @@ module.exports = SteamCommunity;
 SteamCommunity.SteamID = SteamID;
 SteamCommunity.ConfirmationType = require('./resources/EConfirmationType.js');
 SteamCommunity.EResult = require('./resources/EResult.js');
+SteamCommunity.FriendRelationship = require('./resources/EFriendRelationship.js');
 
 
 function SteamCommunity(options) {
@@ -533,6 +534,37 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 
 		self.httpRequest(options, callback, "steamcommunity");
 	}
+};
+
+/**
+ * Returns an object whose keys are 64-bit SteamIDs, and whose values are values from the EFriendRelationship enum.
+ * Therefore, you can deduce your friends or blocked list from this object.
+ * @param {function} callback
+ */
+ SteamCommunity.prototype.getFriendsList = function(callback) {
+	this.httpRequestGet({
+		"uri": "https://steamcommunity.com/textfilter/ajaxgetfriendslist",
+		"json": true
+	}, (err, res, body) => {
+		if (err) {
+			callback(err ? err : new Error('HTTP error ' + res.statusCode));
+			return;
+		}
+
+		if (body.success != 1) {
+			callback(Helpers.eresultError(body.success));
+			return;
+		}
+
+		if (!body.friendslist || !body.friendslist.friends) {
+			callback(new Error('Malformed response'));
+			return;
+		}
+
+		const friends = {};
+		body.friendslist.friends.forEach(friend => (friends[friend.ulfriendid] = friend.efriendrelationship));
+		callback(null, friends);
+	});
 };
 
 require('./components/http.js');
