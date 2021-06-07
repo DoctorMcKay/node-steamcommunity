@@ -154,6 +154,14 @@ CSteamUser.prototype.comment = function(message, callback) {
 	this._community.postUserComment(this.steamID, message, callback);
 };
 
+CSteamUser.prototype.deleteComment = function(commentID, callback) {
+	this._community.deleteUserComment(this.steamID, commentID, callback);
+};
+
+CSteamUser.prototype.getComments = function(options, callback) {
+	this._community.getUserComments(this.steamID, options, callback);
+};
+
 CSteamUser.prototype.inviteToGroup = function(groupID, callback) {
 	this._community.inviteUserToGroup(this.steamID, groupID, callback);
 };
