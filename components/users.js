@@ -240,14 +240,14 @@ SteamCommunity.prototype.getUserComments = function(userID, options, callback) {
 				return {
 					id: $elem.attr("id").split("_")[1],
 					author: {
-						id: new SteamID("[U:1:" + $elem.find("[data-miniprofile]").data("miniprofile") + "]"),
+						steamID: new SteamID("[U:1:" + $elem.find("[data-miniprofile]").data("miniprofile") + "]"),
 						name: $elem.find("bdi").text(),
 						avatar: $elem.find(".playerAvatar img[src]").attr("src"),
 						state: $elem.find(".playerAvatar").attr("class").split(" ").pop()
 					},
 					date: new Date($elem.find(".commentthread_comment_timestamp").data("timestamp") * 1000),
-					text: $commentContent.text(),
-					html: $commentContent.html()
+					text: $commentContent.text().trim(),
+					html: $commentContent.html().trim()
 				}
 			}).get();
 
