@@ -535,66 +535,6 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 	}
 };
 
-/**
- * Restore a previously removed steam package from your steam account.
- * @param {int|string} packageID
- * @param {function} callback
- */
-SteamCommunity.prototype.restorePackage = function(packageID, callback) {
-	this.httpRequestPost({
-		"uri": "https://help.steampowered.com/wizard/AjaxDoPackageRestore",
-		"form": {
-			"packageid": packageID,
-			"sessionid": this.getSessionID('https://help.steampowered.com'),
-			"wizard_ajax": 1
-		},
-		"json": true
-	}, (err, res, body) => {
-		if (err) {
-			callback(err);
-			return;
-		}
-
-		if (!body.success) {
-			let err = new Error(body.errorMsg || SteamCommunity.EResult[body.success]);
-			callback(err);
-			return;
-		}
-
-		callback(null);
-	});
-};
-
-/**
- * Remove a steam package from your steam account.
- * @param {int|string} packageID
- * @param {function} callback
- */
-SteamCommunity.prototype.removePackage = function(packageID, callback) {
-	this.httpRequestPost({
-		"uri": "https://help.steampowered.com/wizard/AjaxDoPackageRemove",
-		"form": {
-			"packageid": packageID,
-			"sessionid": this.getSessionID('https://help.steampowered.com'),
-			"wizard_ajax": 1
-		},
-		"json": true
-	}, (err, res, body) => {
-		if (err) {
-			callback(err);
-			return;
-		}
-
-		if (!body.success) {
-			let err = new Error(body.errorMsg || SteamCommunity.EResult[body.success]);
-			callback(err);
-			return;
-		}
-
-		callback(null);
-	});
-};
-
 require('./components/http.js');
 require('./components/chat.js');
 require('./components/profile.js');
@@ -605,6 +545,7 @@ require('./components/inventoryhistory.js');
 require('./components/webapi.js');
 require('./components/twofactor.js');
 require('./components/confirmations.js');
+require('./components/help.js');
 require('./classes/CMarketItem.js');
 require('./classes/CMarketSearchResult.js');
 require('./classes/CSteamGroup.js');
