@@ -14,7 +14,7 @@ SteamCommunity.prototype.getMarketApps = function(callback) {
 			return;
 		}
 
-		var $ = Cheerio.load(body);
+		let $ = Cheerio.load(body);
 		if ($('.market_search_game_button_group')) {
 			let apps = {};
 			$('.market_search_game_button_group a.game_button').each(function (i, element) {

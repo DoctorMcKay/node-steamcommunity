@@ -61,7 +61,7 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 		}
 
 		let values = {
-			sessionID: self.getSessionID(),
+			sessionID: this.getSessionID(),
 			type: 'profileSave',
 			weblink_1_title: '',
 			weblink_1_url: '',
