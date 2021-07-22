@@ -16,6 +16,7 @@ module.exports = SteamCommunity;
 SteamCommunity.SteamID = SteamID;
 SteamCommunity.ConfirmationType = require('./resources/EConfirmationType.js');
 SteamCommunity.EResult = require('./resources/EResult.js');
+SteamCommunity.EFriendRelationship = require('./resources/EFriendRelationship.js');
 
 
 function SteamCommunity(options) {
@@ -305,8 +306,8 @@ SteamCommunity.prototype.setCookies = function(cookies) {
 	});
 };
 
-SteamCommunity.prototype.getSessionID = function() {
-	var cookies = this._jar.getCookieString("http://steamcommunity.com").split(';');
+SteamCommunity.prototype.getSessionID = function(host = "http://steamcommunity.com") {
+	var cookies = this._jar.getCookieString(host).split(';');
 	for(var i = 0; i < cookies.length; i++) {
 		var match = cookies[i].trim().match(/([^=]+)=(.+)/);
 		if(match[1] == 'sessionid') {
@@ -325,11 +326,13 @@ function generateSessionID() {
 
 SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
 	var self = this;
+	var sessionID = self.getSessionID();
 
 	this.httpRequestPost("https://steamcommunity.com/parental/ajaxunlock", {
 		"json": true,
 		"form": {
-			"pin": pin
+			"pin": pin,
+			"sessionid": sessionID
 		}
 	}, function(err, response, body) {
 		if(!callback) {
@@ -535,6 +538,37 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 	}
 };
 
+/**
+ * Returns an object whose keys are 64-bit SteamIDs, and whose values are values from the EFriendRelationship enum.
+ * Therefore, you can deduce your friends or blocked list from this object.
+ * @param {function} callback
+ */
+SteamCommunity.prototype.getFriendsList = function(callback) {
+	this.httpRequestGet({
+		"uri": "https://steamcommunity.com/textfilter/ajaxgetfriendslist",
+		"json": true
+	}, (err, res, body) => {
+		if (err) {
+			callback(err ? err : new Error('HTTP error ' + res.statusCode));
+			return;
+		}
+
+		if (body.success != 1) {
+			callback(Helpers.eresultError(body.success));
+			return;
+		}
+
+		if (!body.friendslist || !body.friendslist.friends) {
+			callback(new Error('Malformed response'));
+			return;
+		}
+
+		const friends = {};
+		body.friendslist.friends.forEach(friend => (friends[friend.ulfriendid] = friend.efriendrelationship));
+		callback(null, friends);
+	});
+};
+
 require('./components/http.js');
 require('./components/chat.js');
 require('./components/profile.js');
@@ -544,6 +578,7 @@ require('./components/users.js');
 require('./components/webapi.js');
 require('./components/twofactor.js');
 require('./components/confirmations.js');
+require('./components/help.js');
 require('./classes/CMarketItem.js');
 require('./classes/CMarketSearchResult.js');
 require('./classes/CSteamGroup.js');

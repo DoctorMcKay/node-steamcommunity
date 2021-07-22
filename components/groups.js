@@ -151,23 +151,34 @@ SteamCommunity.prototype.getAllGroupAnnouncements = function(gid, time, callback
 	}, 'steamcommunity');
 };
 
-SteamCommunity.prototype.postGroupAnnouncement = function(gid, headline, content, callback) {
+SteamCommunity.prototype.postGroupAnnouncement = function(gid, headline, content, hidden, callback) {
 	if (typeof gid == 'string') {
 		gid = new SteamID(gid);
 	}
 
+	if (typeof hidden === 'function') {
+		callback = hidden;
+		hidden = false;
+	}
+
+	let form = {
+		"sessionID": this.getSessionID(),
+		"action": "post",
+		"headline": headline,
+		"body": content,
+		"languages[0][headline]": headline,
+		"languages[0][body]": content
+	};
+
+	if (hidden) {
+		form.is_hidden = "is_hidden"
+	}
+
 	this.httpRequestPost({
 		"uri": "https://steamcommunity.com/gid/" + gid.getSteamID64() + "/announcements",
-		"form": {
-			"sessionID": this.getSessionID(),
-			"action": "post",
-			"headline": headline,
-			"body": content,
-			"languages[0][headline]": headline,
-			"languages[0][body]": content
-		}
+		form
 	}, (err, response, body) => {
-		if (!callback) {
+		if(!callback) {
 			return;
 		}
 

@@ -70,7 +70,13 @@ function CSteamUser(community, userData, customurl) {
 	this.customURL = processItem('customURL', customurl);
 
 	if(this.visibilityState == 3) {
-		this.memberSince = new Date(processItem('memberSince', '0').replace(/(\d{1,2})(st|nd|th)/, "$1"));
+		let memberSinceValue = processItem('memberSince', '0').replace(/(\d{1,2})(st|nd|th)/, "$1");
+
+		if (memberSinceValue.indexOf(',') === -1) {
+			memberSinceValue += ', ' + new Date().getFullYear();
+		}
+
+		this.memberSince = new Date(memberSinceValue);
 		this.location = processItem('location');
 		this.realName = processItem('realname');
 		this.summary = processItem('summary');
@@ -149,6 +155,14 @@ CSteamUser.prototype.comment = function(message, callback) {
 	this._community.postUserComment(this.steamID, message, callback);
 };
 
+CSteamUser.prototype.deleteComment = function(commentID, callback) {
+	this._community.deleteUserComment(this.steamID, commentID, callback);
+};
+
+CSteamUser.prototype.getComments = function(options, callback) {
+	this._community.getUserComments(this.steamID, options, callback);
+};
+
 CSteamUser.prototype.inviteToGroup = function(groupID, callback) {
 	this._community.inviteUserToGroup(this.steamID, groupID, callback);
 };
@@ -178,10 +192,11 @@ CSteamUser.prototype.getInventory = function(appID, contextID, tradableOnly, cal
  * @param {int} appID - The Steam application ID of the game for which you want an inventory
  * @param {int} contextID - The ID of the "context" within the game you want to retrieve
  * @param {boolean} tradableOnly - true to get only tradable items and currencies
+ * @param {string} [language] - The language of item descriptions to return. Omit for default (which may either be English or your account's chosen language)
  * @param callback
  */
-CSteamUser.prototype.getInventoryContents = function(appID, contextID, tradableOnly, callback) {
-	this._community.getUserInventoryContents(this.steamID, appID, contextID, tradableOnly, callback);
+CSteamUser.prototype.getInventoryContents = function(appID, contextID, tradableOnly, language, callback) {
+	this._community.getUserInventoryContents(this.steamID, appID, contextID, tradableOnly, language, callback);
 };
 
 /**

@@ -34,31 +34,45 @@ SteamCommunity.prototype.setupProfile = function(callback) {
 
 SteamCommunity.prototype.editProfile = function(settings, callback) {
 	var self = this;
-	this._myProfile("edit", null, function(err, response, body) {
-		if(err || response.statusCode != 200) {
-			if(callback) {
-				callback(err || new Error("HTTP error " + response.statusCode));
+	this._myProfile('edit/info', null, function(err, response, body) {
+		if (err || response.statusCode != 200) {
+			if (callback) {
+				callback(err || new Error('HTTP error ' + response.statusCode));
 			}
 
 			return;
 		}
 
 		var $ = Cheerio.load(body);
-		var form = $('#editForm');
-		if(!form) {
-			if(callback) {
-				callback(new Error("Malformed response"));
+		var existingSettings = $('#profile_edit_config').data('profile-edit');
+		if (!existingSettings || !existingSettings.strPersonaName) {
+			if (callback) {
+				callback(new Error('Malformed response'));
 			}
 
 			return;
 		}
 
-		var values = {};
-		form.serializeArray().forEach(function(item) {
-			values[item.name] = item.value;
-		});
+		var values = {
+			sessionID: self.getSessionID(),
+			type: 'profileSave',
+			weblink_1_title: '',
+			weblink_1_url: '',
+			weblink_2_title: '',
+			weblink_2_url: '',
+			weblink_3_title: '',
+			weblink_3_url: '',
+			personaName: existingSettings.strPersonaName,
+			real_name: existingSettings.strRealName,
+			summary: existingSettings.strSummary,
+			country: existingSettings.LocationData.locCountryCode,
+			state: existingSettings.LocationData.locStateCode,
+			city: existingSettings.LocationData.locCityCode,
+			customURL: existingSettings.strCustomURL,
+			json: 1
+		};
 
-		for(var i in settings) {
+		for (var i in settings) {
 			if(!settings.hasOwnProperty(i)) {
 				continue;
 			}
@@ -92,6 +106,8 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 					values.customURL = settings[i];
 					break;
 
+				// These don't work right now
+				/*
 				case 'background':
 					// The assetid of our desired profile background
 					values.profile_background = settings[i];
@@ -110,60 +126,55 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 					}
 
 					break;
-
+				*/
 				// TODO: profile showcases
 			}
 		}
 
-		self._myProfile("edit", values, function(err, response, body) {
+		self._myProfile('edit', values, function(err, response, body) {
 			if (settings.customURL) {
 				delete self._profileURL;
 			}
 
-			if(err || response.statusCode != 200) {
-				if(callback) {
-					callback(err || new Error("HTTP error " + response.statusCode));
-				}
-
+			if (!callback) {
 				return;
 			}
 
-			// Check for an error
-			var $ = Cheerio.load(body);
-			var error = $('#errorText .formRowFields');
-			if(error) {
-				error = error.text().trim();
-				if(error) {
-					if(callback) {
-						callback(new Error(error));
-					}
-
-					return;
-				}
+			if (err || response.statusCode != 200) {
+				callback(err || new Error('HTTP error ' + response.statusCode));
+				return;
 			}
 
-			if(callback) {
+			try {
+				var json = JSON.parse(body);
+				if (!json.success || json.success != 1) {
+					callback(new Error(json.errmsg || 'Request was not successful'));
+					return;
+				}
+
 				callback(null);
+			} catch (ex) {
+				callback(ex);
 			}
 		});
 	});
 };
 
 SteamCommunity.prototype.profileSettings = function(settings, callback) {
-	this._myProfile("edit/settings", null, (err, response, body) => {
+	this._myProfile('edit/settings', null, (err, response, body) => {
 		if (err || response.statusCode != 200) {
 			if (callback) {
-				callback(err || new Error("HTTP error " + response.statusCode));
+				callback(err || new Error('HTTP error ' + response.statusCode));
 			}
 
 			return;
 		}
 
 		var $ = Cheerio.load(body);
-		var existingSettings = $('.ProfileReactRoot[data-privacysettings]').data('privacysettings');
-		if (!existingSettings) {
-			if(callback) {
-				callback(new Error("Malformed response"));
+		var existingSettings = $('#profile_edit_config').data('profile-edit');
+		if (!existingSettings || !existingSettings.Privacy) {
+			if (callback) {
+				callback(new Error('Malformed response'));
 			}
 
 			return;
@@ -171,8 +182,8 @@ SteamCommunity.prototype.profileSettings = function(settings, callback) {
 
 		// PrivacySettings => {PrivacyProfile, PrivacyInventory, PrivacyInventoryGifts, PrivacyOwnedGames, PrivacyPlaytime}
 		// eCommentPermission
-		var privacy = existingSettings.PrivacySettings;
-		var commentPermission = existingSettings.eCommentPermission;
+		var privacy = existingSettings.Privacy.PrivacySettings;
+		var commentPermission = existingSettings.Privacy.eCommentPermission;
 
 		for (var i in settings) {
 			if (!settings.hasOwnProperty(i)) {
@@ -211,18 +222,18 @@ SteamCommunity.prototype.profileSettings = function(settings, callback) {
 		}
 
 		this._myProfile({
-			"method": "POST",
-			"endpoint": "ajaxsetprivacy/",
-			"json": true,
-			"formData": { // it's multipart because lolvalve
-				"sessionid": this.getSessionID(),
-				"Privacy": JSON.stringify(privacy),
-				"eCommentPermission": commentPermission
+			method: 'POST',
+			endpoint: 'ajaxsetprivacy/',
+			json: true,
+			formData: { // it's multipart because lolvalve
+				sessionid: this.getSessionID(),
+				Privacy: JSON.stringify(privacy),
+				eCommentPermission: commentPermission
 			}
 		}, null, function(err, response, body) {
 			if (err || response.statusCode != 200) {
 				if (callback) {
-					callback(err || new Error("HTTP error " + response.statusCode));
+					callback(err || new Error('HTTP error ' + response.statusCode));
 				}
 
 				return;
@@ -230,7 +241,7 @@ SteamCommunity.prototype.profileSettings = function(settings, callback) {
 
 			if (body.success != 1) {
 				if (callback) {
-					callback(new Error(body.success ? "Error " + body.success : "Request was not successful"));
+					callback(new Error(body.success ? 'Error ' + body.success : 'Request was not successful'));
 				}
 
 				return;

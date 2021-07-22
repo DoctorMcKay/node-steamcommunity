@@ -199,7 +199,7 @@ SteamCommunity.prototype.acceptConfirmationForObject = function(identitySecret, 
 			setTimeout(() => {
 				// Delete the saved time offset after 12 hours because why not
 				delete this._timeOffset;
-			}, 1000 * 60 * 60 * 12);
+			}, 1000 * 60 * 60 * 12).unref();
 		});
 	}
 

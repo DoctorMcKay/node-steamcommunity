@@ -49,25 +49,9 @@ SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
  * @param {function} callback
  */
 SteamCommunity.prototype.getWebApiOauthToken = function(callback) {
-	var self = this;
-
-	if( this.oAuthToken ) {
-		return callback( null, this.oAuthToken );
+	if (this.oAuthToken) {
+		return callback(null, this.oAuthToken);
 	}
 
-	// Pull an oauth token from the webchat UI
-	this.httpRequest("https://steamcommunity.com/chat", function(err, response, body) {
-		if (err) {
-			callback(err);
-			return;
-		}
-
-		var match = body.match(/"([0-9a-f]{32})"/);
-		if (!match) {
-			callback(new Error("Malformed response"));
-			return;
-		}
-
-		callback(null, match[1]);
-	}, "steamcommunity");
+	callback(new Error('This operation requires an OAuth token, which can only be obtained from node-steamcommunity\'s `login` method.'));
 };
