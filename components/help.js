@@ -17,6 +17,10 @@ SteamCommunity.prototype.restorePackage = function(packageID, callback) {
 		},
 		"json": true
 	}, (err, res, body) => {
+		if (!callback) {
+			return;
+		}
+
 		if (err) {
 			callback(err);
 			return;
@@ -46,6 +50,10 @@ SteamCommunity.prototype.removePackage = function(packageID, callback) {
 		},
 		"json": true
 	}, (err, res, body) => {
+		if (!callback) {
+			return;
+		}
+
 		if (err) {
 			callback(err);
 			return;
