@@ -12,10 +12,10 @@ const CConfirmation = require('../classes/CConfirmation.js');
  * @param {SteamCommunity~getConfirmations} callback - Called when the list of confirmations is received
  */
 SteamCommunity.prototype.getConfirmations = function(time, key, callback) {
-	request(this, "conf", key, time, "conf", null, false, (err, body) => {
+	request(this, 'conf', key, time, 'conf', null, false, (err, body) => {
 		if (err) {
-			if (err.message == "Invalid protocol: steammobile:") {
-				err.message = "Not Logged In";
+			if (err.message == 'Invalid protocol: steammobile:') {
+				err.message = 'Not Logged In';
 				this._notifySessionExpired(err);
 			}
 
@@ -39,7 +39,7 @@ SteamCommunity.prototype.getConfirmations = function(time, key, callback) {
 		// We have something to confirm
 		let confirmations = $('#mobileconf_list');
 		if (!confirmations) {
-			callback(new Error("Malformed response"));
+			callback(new Error('Malformed response'));
 			return;
 		}
 
@@ -49,14 +49,14 @@ SteamCommunity.prototype.getConfirmations = function(time, key, callback) {
 
 			let img = conf.find('.mobileconf_list_entry_icon img');
 			confs.push(new CConfirmation(this, {
-				"id": conf.data('confid'),
-				"type": conf.data('type'),
-				"creator": conf.data('creator'),
-				"key": conf.data('key'),
-				"title": conf.find('.mobileconf_list_entry_description>div:nth-of-type(1)').text().trim(),
-				"receiving": conf.find('.mobileconf_list_entry_description>div:nth-of-type(2)').text().trim(),
-				"time": conf.find('.mobileconf_list_entry_description>div:nth-of-type(3)').text().trim(),
-				"icon": img.length < 1 ? '' : $(img).attr('src')
+				id: conf.data('confid'),
+				type: conf.data('type'),
+				creator: conf.data('creator'),
+				key: conf.data('key'),
+				title: conf.find('.mobileconf_list_entry_description>div:nth-of-type(1)').text().trim(),
+				receiving: conf.find('.mobileconf_list_entry_description>div:nth-of-type(2)').text().trim(),
+				time: conf.find('.mobileconf_list_entry_description>div:nth-of-type(3)').text().trim(),
+				icon: img.length < 1 ? '' : $(img).attr('src')
 			}));
 		});
 
@@ -78,14 +78,14 @@ SteamCommunity.prototype.getConfirmations = function(time, key, callback) {
  * @param {SteamCommunity~getConfirmationOfferID} callback
  */
 SteamCommunity.prototype.getConfirmationOfferID = function(confID, time, key, callback) {
-	request(this, "details/" + confID, key, time, "details", null, true, (err, body) => {
+	request(this, 'details/' + confID, key, time, 'details', null, true, (err, body) => {
 		if (err) {
 			callback(err);
 			return;
 		}
 
 		if (!body.success) {
-			callback(new Error("Cannot load confirmation details"));
+			callback(new Error('Cannot load confirmation details'));
 			return;
 		}
 
@@ -116,10 +116,10 @@ SteamCommunity.prototype.getConfirmationOfferID = function(confID, time, key, ca
  * @param {SteamCommunity~genericErrorCallback} callback - Called when the request is complete
  */
 SteamCommunity.prototype.respondToConfirmation = function(confID, confKey, time, key, accept, callback) {
-	request(this, (confID instanceof Array) ? "multiajaxop" : "ajaxop", key, time, accept ? "allow" : "cancel", {
-		"op": accept ? "allow" : "cancel",
-		"cid": confID,
-		"ck": confKey
+	request(this, (confID instanceof Array) ? 'multiajaxop' : 'ajaxop', key, time, accept ? 'allow' : 'cancel', {
+		op: accept ? 'allow' : 'cancel',
+		cid: confID,
+		ck: confKey
 	}, true, (err, body) => {
 		if (!callback) {
 			return;
@@ -140,7 +140,7 @@ SteamCommunity.prototype.respondToConfirmation = function(confID, confKey, time,
 			return;
 		}
 
-		callback(new Error("Could not act on confirmation"));
+		callback(new Error('Could not act on confirmation'));
 	});
 };
 
@@ -156,7 +156,7 @@ SteamCommunity.prototype.acceptConfirmationForObject = function(identitySecret, 
 	let doConfirmation = () => {
 		let offset = this._timeOffset;
 		let time = SteamTotp.time(offset);
-		this.getConfirmations(time, SteamTotp.getConfirmationKey(identitySecret, time, "conf"), (err, confs) => {
+		this.getConfirmations(time, SteamTotp.getConfirmationKey(identitySecret, time, 'conf'), (err, confs) => {
 			if (err) {
 				callback(err);
 				return;
@@ -164,7 +164,7 @@ SteamCommunity.prototype.acceptConfirmationForObject = function(identitySecret, 
 
 			let conf = confs.find(conf => conf.creator == objectID);
 			if (!conf) {
-				callback(new Error("Could not find confirmation for object " + objectID));
+				callback(new Error('Could not find confirmation for object ' + objectID));
 				return;
 			}
 
@@ -179,7 +179,7 @@ SteamCommunity.prototype.acceptConfirmationForObject = function(identitySecret, 
 				this._usedConfTimes.splice(0, this._usedConfTimes.length - 60); // we don't need to save more than 60 entries
 			}
 
-			conf.respond(time, SteamTotp.getConfirmationKey(identitySecret, time, "allow"), true, callback);
+			conf.respond(time, SteamTotp.getConfirmationKey(identitySecret, time, 'allow'), true, callback);
 		});
 	};
 
@@ -239,7 +239,7 @@ SteamCommunity.prototype.acceptAllConfirmations = function(time, confKey, allowK
 
 function request(community, url, key, time, tag, params, json, callback) {
 	if (!community.steamID) {
-		throw new Error("Must be logged in before trying to do anything with confirmations");
+		throw new Error('Must be logged in before trying to do anything with confirmations');
 	}
 
 	params = params || {};
@@ -247,16 +247,16 @@ function request(community, url, key, time, tag, params, json, callback) {
 	params.a = community.steamID.getSteamID64();
 	params.k = key;
 	params.t = time;
-	params.m = "android";
+	params.m = 'android';
 	params.tag = tag;
 
 	let req = {
-		"method": url == 'multiajaxop' ? 'POST' : 'GET',
-		"uri": "https://steamcommunity.com/mobileconf/" + url,
-		"json": !!json
+		method: url == 'multiajaxop' ? 'POST' : 'GET',
+		uri: 'https://steamcommunity.com/mobileconf/' + url,
+		json: !!json
 	};
 
-	if (req.method == "GET") {
+	if (req.method == 'GET') {
 		req.qs = params;
 	} else {
 		req.form = params;
