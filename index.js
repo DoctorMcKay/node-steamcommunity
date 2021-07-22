@@ -540,7 +540,7 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
  * @param {int|string} packageID
  * @param {function} callback
  */
- SteamCommunity.prototype.restorePackage = function(packageID, callback) {
+SteamCommunity.prototype.restorePackage = function(packageID, callback) {
 	this.httpRequestPost({
 		"uri": "https://help.steampowered.com/wizard/AjaxDoPackageRestore",
 		"form": {
@@ -570,7 +570,7 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
  * @param {int|string} packageID
  * @param {function} callback
  */
- SteamCommunity.prototype.removePackage = function(packageID, callback) {
+SteamCommunity.prototype.removePackage = function(packageID, callback) {
 	this.httpRequestPost({
 		"uri": "https://help.steampowered.com/wizard/AjaxDoPackageRemove",
 		"form": {
