@@ -9,116 +9,111 @@ const CEconItem = require('../classes/CEconItem.js');
 const Helpers = require('./helpers.js');
 
 SteamCommunity.prototype.addFriend = function(userID, callback) {
-	if(typeof userID === 'string') {
+	if (typeof userID === 'string') {
 		userID = new SteamID(userID);
 	}
 
-	var self = this;
 	this.httpRequestPost({
-		"uri": "https://steamcommunity.com/actions/AddFriendAjax",
-		"form": {
-			"accept_invite": 0,
-			"sessionID": this.getSessionID(),
-			"steamid": userID.toString()
+		uri: 'https://steamcommunity.com/actions/AddFriendAjax',
+		form: {
+			accept_invite: 0,
+			sessionID: this.getSessionID(),
+			steamid: userID.toString()
 		},
-		"json": true
-	}, function(err, response, body) {
-		if(!callback) {
+		json: true
+	}, (err, response, body) => {
+		if (!callback) {
 			return;
 		}
 
 		if (err) {
-			callback(err);
-			return;
+			return callback(err);
 		}
 
-		if(body.success) {
+		if (body.success) {
 			callback(null);
 		} else {
-			callback(new Error("Unknown error"));
+			callback(new Error('Unknown error'));
 		}
-	}, "steamcommunity");
+	}, 'steamcommunity');
 };
 
 SteamCommunity.prototype.acceptFriendRequest = function(userID, callback) {
-	if(typeof userID === 'string') {
+	if (typeof userID === 'string') {
 		userID = new SteamID(userID);
 	}
 
-	var self = this;
 	this.httpRequestPost({
-		"uri": "https://steamcommunity.com/actions/AddFriendAjax",
-		"form": {
-			"accept_invite": 1,
-			"sessionID": this.getSessionID(),
-			"steamid": userID.toString()
+		uri: 'https://steamcommunity.com/actions/AddFriendAjax',
+		form: {
+			accept_invite: 1,
+			sessionID: this.getSessionID(),
+			steamid: userID.toString()
 		}
-	}, function(err, response, body) {
-		if(!callback) {
+	}, (err, response, body) => {
+		if (!callback) {
 			return;
 		}
 
 		callback(err || null);
-	}, "steamcommunity");
+	}, 'steamcommunity');
 };
 
 SteamCommunity.prototype.removeFriend = function(userID, callback) {
-	if(typeof userID === 'string') {
+	if (typeof userID === 'string') {
 		userID = new SteamID(userID);
 	}
 
-	var self = this;
 	this.httpRequestPost({
-		"uri": "https://steamcommunity.com/actions/RemoveFriendAjax",
-		"form": {
-			"sessionID": this.getSessionID(),
-			"steamid": userID.toString()
+		uri: 'https://steamcommunity.com/actions/RemoveFriendAjax',
+		form: {
+			sessionID: this.getSessionID(),
+			steamid: userID.toString()
 		}
-	}, function(err, response, body) {
-		if(!callback) {
+	}, (err, response, body) => {
+		if (!callback) {
 			return;
 		}
 
 		callback(err || null);
-	}, "steamcommunity");
+	}, 'steamcommunity');
 };
 
 SteamCommunity.prototype.blockCommunication = function(userID, callback) {
-	if(typeof userID === 'string') {
+	if (typeof userID === 'string') {
 		userID = new SteamID(userID);
 	}
 
-	var self = this;
 	this.httpRequestPost({
-		"uri": "https://steamcommunity.com/actions/BlockUserAjax",
-		"form": {
-			"sessionID": this.getSessionID(),
-			"steamid": userID.toString()
+		uri: 'https://steamcommunity.com/actions/BlockUserAjax',
+		form: {
+			sessionID: this.getSessionID(),
+			steamid: userID.toString()
 		}
-	}, function(err, response, body) {
-		if(!callback) {
+	}, (err, response, body) => {
+		if (!callback) {
 			return;
 		}
 
 		callback(err || null);
-	}, "steamcommunity");
+	}, 'steamcommunity');
 };
 
 SteamCommunity.prototype.unblockCommunication = function(userID, callback) {
-	if(typeof userID === 'string') {
+	if (typeof userID === 'string') {
 		userID = new SteamID(userID);
 	}
 
-	var form = {"action": "unignore"};
+	let form = {action: 'unignore'};
 	form['friends[' + userID.toString() + ']'] = 1;
 
-	this._myProfile('friends/blocked/', form, function(err, response, body) {
-		if(!callback) {
+	this._myProfile('friends/blocked/', form, (err, response, body) => {
+		if (!callback) {
 			return;
 		}
 
-		if(err || response.statusCode >= 400) {
-			callback(err || new Error("HTTP error " + response.statusCode));
+		if (err || response.statusCode >= 400) {
+			callback(err || new Error(`HTTP error ${response.statusCode}`));
 			return;
 		}
 
@@ -127,21 +122,20 @@ SteamCommunity.prototype.unblockCommunication = function(userID, callback) {
 };
 
 SteamCommunity.prototype.postUserComment = function(userID, message, callback) {
-	if(typeof userID === 'string') {
+	if (typeof userID === 'string') {
 		userID = new SteamID(userID);
 	}
 
-	var self = this;
 	this.httpRequestPost({
-		"uri": "https://steamcommunity.com/comment/Profile/post/" + userID.toString() + "/-1",
-		"form": {
-			"comment": message,
-			"count": 1,
-			"sessionid": this.getSessionID()
+		uri: `https://steamcommunity.com/comment/Profile/post/${userID.toString()}/-1`,
+		form: {
+			comment: message,
+			count: 1,
+			sessionid: this.getSessionID()
 		},
-		"json": true
-	}, function(err, response, body) {
-		if(!callback) {
+		json: true
+	}, (err, response, body) => {
+		if (!callback) {
 			return;
 		}
 
@@ -150,37 +144,36 @@ SteamCommunity.prototype.postUserComment = function(userID, message, callback) {
 			return;
 		}
 
-		if(body.success) {
+		if (body.success) {
 			const $ = Cheerio.load(body.comments_html);
 			const commentID = $('.commentthread_comment').attr('id').split('_')[1];
 
 			callback(null, commentID);
-		} else if(body.error) {
+		} else if (body.error) {
 			callback(new Error(body.error));
 		} else {
-			callback(new Error("Unknown error"));
+			callback(new Error('Unknown error'));
 		}
-	}, "steamcommunity");
+	}, 'steamcommunity');
 };
 
 SteamCommunity.prototype.deleteUserComment = function(userID, commentID, callback) {
-	if(typeof userID === 'string') {
+	if (typeof userID === 'string') {
 		userID = new SteamID(userID);
 	}
 
-	var self = this;
 	this.httpRequestPost({
-		"uri": "https://steamcommunity.com/comment/Profile/delete/" + userID.toString() + "/-1",
-		"form": {
-			"gidcomment": commentID,
-			"start": 0,
-			"count": 1,
-			"sessionid": this.getSessionID(),
-			"feature2": -1
+		uri: `https://steamcommunity.com/comment/Profile/delete/${userID.toString()}/-1`,
+		form: {
+			gidcomment: commentID,
+			start: 0,
+			count: 1,
+			sessionid: this.getSessionID(),
+			feature2: -1
 		},
-		"json": true
-	}, function(err, response, body) {
-		if(!callback) {
+		json: true
+	}, (err, response, body) => {
+		if (!callback) {
 			return;
 		}
 
@@ -189,20 +182,20 @@ SteamCommunity.prototype.deleteUserComment = function(userID, commentID, callbac
 			return;
 		}
 
-		if(body.success && !body.comments_html.includes(commentID)) {
+		if (body.success && !body.comments_html.includes(commentID)) {
 			callback(null);
-		} else if(body.error) {
+		} else if (body.error) {
 			callback(new Error(body.error));
-		} else if(body.comments_html.includes(commentID)) {
-			callback(new Error("Failed to delete comment"));
+		} else if (body.comments_html.includes(commentID)) {
+			callback(new Error('Failed to delete comment'));
 		} else {
-			callback(new Error("Unknown error"));
+			callback(new Error('Unknown error'));
 		}
-	}, "steamcommunity");
+	}, 'steamcommunity');
 };
 
 SteamCommunity.prototype.getUserComments = function(userID, options, callback) {
-	if(typeof userID === 'string') {
+	if (typeof userID === 'string') {
 		userID = new SteamID(userID);
 	}
 
@@ -211,19 +204,19 @@ SteamCommunity.prototype.getUserComments = function(userID, options, callback) {
 		options = {};
 	}
 
-	var form = Object.assign({
-		"start": 0,
-		"count": 0,
-		"feature2": -1,
-		"sessionid": this.getSessionID()
+	let form = Object.assign({
+		start: 0,
+		count: 0,
+		feature2: -1,
+		sessionid: this.getSessionID()
 	}, options);
 
 	this.httpRequestPost({
-		"uri": "https://steamcommunity.com/comment/Profile/render/" + userID.toString() + "/-1",
-		"form": form,
-		"json": true
-	}, function(err, response, body) {
-		if(!callback) {
+		uri: `https://steamcommunity.com/comment/Profile/render/${userID.toString()}/-1`,
+		form,
+		json: true
+	}, (err, response, body) => {
+		if (!callback) {
 			return;
 		}
 
@@ -232,52 +225,51 @@ SteamCommunity.prototype.getUserComments = function(userID, options, callback) {
 			return;
 		}
 
-		if(body.success) {
+		if (body.success) {
 			const $ = Cheerio.load(body.comments_html);
-			const comments = $(".commentthread_comment.responsive_body_text[id]").map((i, elem) => {
-				var $elem = $(elem),
-					$commentContent = $elem.find(".commentthread_comment_text");
+			const comments = $('.commentthread_comment.responsive_body_text[id]').map((i, elem) => {
+				let $elem = $(elem),
+					$commentContent = $elem.find('.commentthread_comment_text');
 				return {
-					id: $elem.attr("id").split("_")[1],
+					id: $elem.attr('id').split('_')[1],
 					author: {
-						steamID: new SteamID("[U:1:" + $elem.find("[data-miniprofile]").data("miniprofile") + "]"),
-						name: $elem.find("bdi").text(),
-						avatar: $elem.find(".playerAvatar img[src]").attr("src"),
-						state: $elem.find(".playerAvatar").attr("class").split(" ").pop()
+						steamID: new SteamID('[U:1:' + $elem.find('[data-miniprofile]').data('miniprofile') + ']'),
+						name: $elem.find('bdi').text(),
+						avatar: $elem.find('.playerAvatar img[src]').attr('src'),
+						state: $elem.find('.playerAvatar').attr('class').split(' ').pop()
 					},
-					date: new Date($elem.find(".commentthread_comment_timestamp").data("timestamp") * 1000),
+					date: new Date($elem.find('.commentthread_comment_timestamp').data('timestamp') * 1000),
 					text: $commentContent.text().trim(),
 					html: $commentContent.html().trim()
 				}
 			}).get();
 
 			callback(null, comments, body.total_count);
-		} else if(body.error) {
+		} else if (body.error) {
 			callback(new Error(body.error));
 		} else {
-			callback(new Error("Unknown error"));
+			callback(new Error('Unknown error'));
 		}
-	}, "steamcommunity");
+	}, 'steamcommunity');
 };
 
 SteamCommunity.prototype.inviteUserToGroup = function(userID, groupID, callback) {
-	if(typeof userID === 'string') {
+	if (typeof userID === 'string') {
 		userID = new SteamID(userID);
 	}
 
-	var self = this;
 	this.httpRequestPost({
-		"uri": "https://steamcommunity.com/actions/GroupInvite",
-		"form": {
-			"group": groupID.toString(),
-			"invitee": userID.toString(),
-			"json": 1,
-			"sessionID": this.getSessionID(),
-			"type": "groupInvite"
+		uri: 'https://steamcommunity.com/actions/GroupInvite',
+		form: {
+			group: groupID.toString(),
+			invitee: userID.toString(),
+			json: 1,
+			sessionID: this.getSessionID(),
+			type: 'groupInvite'
 		},
-		"json": true
-	}, function(err, response, body) {
-		if(!callback) {
+		json: true
+	}, (err, response, body) => {
+		if (!callback) {
 			return;
 		}
 
@@ -286,14 +278,14 @@ SteamCommunity.prototype.inviteUserToGroup = function(userID, groupID, callback)
 			return;
 		}
 
-		if(body.results == 'OK') {
+		if (body.results == 'OK') {
 			callback(null);
-		} else if(body.results) {
+		} else if (body.results) {
 			callback(new Error(body.results));
 		} else {
-			callback(new Error("Unknown error"));
+			callback(new Error('Unknown error'));
 		}
-	}, "steamcommunity");
+	}, 'steamcommunity');
 };
 
 SteamCommunity.prototype.getUserAliases = function(userID, callback) {
@@ -302,24 +294,24 @@ SteamCommunity.prototype.getUserAliases = function(userID, callback) {
 	}
 
 	this.httpRequestGet({
-		"uri": "https://steamcommunity.com/profiles/" + userID.getSteamID64() + "/ajaxaliases",
-		"json": true
-	}, function(err, response, body) {
+		uri: `https://steamcommunity.com/profiles/${userID.getSteamID64()}/ajaxaliases`,
+		json: true
+	}, (err, response, body) => {
 		if (err) {
 			callback(err);
 			return;
 		}
 
 		if (typeof body !== 'object') {
-			callback(new Error("Malformed response"));
+			callback(new Error('Malformed response'));
 			return;
 		}
 
-		callback(null, body.map(function(entry) {
+		callback(null, body.map((entry) => {
 			entry.timechanged = Helpers.decodeSteamTime(entry.timechanged);
 			return entry;
 		}));
-	}, "steamcommunity");
+	}, 'steamcommunity');
 };
 
 /**
@@ -332,33 +324,33 @@ SteamCommunity.prototype.getUserProfileBackground = function(userID, callback) {
 		userID = new SteamID(userID);
 	}
 
-	this.httpRequest("https://steamcommunity.com/profiles/" + userID.getSteamID64(), (err, response, body) => {
+	this.httpRequest(`https://steamcommunity.com/profiles/${userID.getSteamID64()}`, (err, response, body) => {
 		if (err) {
 			callback(err);
 			return;
 		}
 
-		var $ = Cheerio.load(body);
+		let $ = Cheerio.load(body);
 
-		var $privateProfileInfo = $('.profile_private_info');
+		let $privateProfileInfo = $('.profile_private_info');
 		if ($privateProfileInfo.length > 0) {
 			callback(new Error($privateProfileInfo.text().trim()));
 			return;
 		}
 
 		if ($('body').hasClass('has_profile_background')) {
-			var backgroundUrl = $('div.profile_background_image_content').css('background-image');
-			var matcher = backgroundUrl.match(/\(([^)]+)\)/);
+			let backgroundUrl = $('div.profile_background_image_content').css('background-image');
+			let matcher = backgroundUrl.match(/\(([^)]+)\)/);
 
 			if (matcher.length != 2 || !matcher[1].length) {
-				callback(new Error("Malformed response"));
+				callback(new Error('Malformed response'));
 			} else {
 				callback(null, matcher[1]);
 			}
 		} else {
 			callback(null, null);
 		}
-	}, "steamcommunity");
+	}, 'steamcommunity');
 };
 
 SteamCommunity.prototype.getUserInventoryContexts = function(userID, callback) {
@@ -372,44 +364,43 @@ SteamCommunity.prototype.getUserInventoryContexts = function(userID, callback) {
 	}
 
 	if (!userID) {
-		callback(new Error("No SteamID specified and not logged in"));
+		callback(new Error('No SteamID specified and not logged in'));
 		return;
 	}
 
-	var self = this;
-	this.httpRequest("https://steamcommunity.com/profiles/" + userID.getSteamID64() + "/inventory/", function(err, response, body) {
+	this.httpRequest(`https://steamcommunity.com/profiles/${userID.getSteamID64()}/inventory/`, (err, response, body) => {
 		if (err) {
 			callback(err);
 			return;
 		}
 
-		var match = body.match(/var g_rgAppContextData = ([^\n]+);\r?\n/);
+		let match = body.match(/var g_rgAppContextData = ([^\n]+);\r?\n/);
 		if (!match) {
-			var errorMessage = "Malformed response";
+			let errorMessage = 'Malformed response';
 
-			if(body.match(/0 items in their inventory\./)){
+			if (body.includes('0 items in their inventory.')) {
 				callback(null, {});
 				return;
-			}else if(body.match(/inventory is currently private\./)){
-				errorMessage = "Private inventory";
-			}else if(body.match(/profile\_private\_info/)){
-				errorMessage = "Private profile";
+			} else if (body.includes('inventory is currently private.')) {
+				errorMessage = 'Private inventory';
+			} else if (body.includes('profile_private_info')) {
+				errorMessage = 'Private profile';
 			}
 
 			callback(new Error(errorMessage));
 			return;
 		}
 
-		var data;
+		let data;
 		try {
 			data = JSON.parse(match[1]);
 		} catch(e) {
-			callback(new Error("Malformed response"));
+			callback(new Error('Malformed response'));
 			return;
 		}
 
 		callback(null, data);
-	}, "steamcommunity");
+	}, 'steamcommunity');
 };
 
 /**
@@ -422,27 +413,22 @@ SteamCommunity.prototype.getUserInventoryContexts = function(userID, callback) {
  * @param {function} callback
  */
 SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, tradableOnly, callback) {
-	var self = this;
-
 	if (typeof userID === 'string') {
 		userID = new SteamID(userID);
 	}
 
-	var endpoint = "/profiles/" + userID.getSteamID64();
-	get([], []);
-
-	function get(inventory, currency, start) {
-		self.httpRequest({
-			"uri": "https://steamcommunity.com" + endpoint + "/inventory/json/" + appID + "/" + contextID,
-			"headers": {
-				"Referer": "https://steamcommunity.com" + endpoint + "/inventory"
+	const get = (inventory, currency, start) => {
+		this.httpRequest({
+			uri: `https://steamcommunity.com${endpoint}/inventory/json/${appID}/${contextID}`,
+			headers: {
+				Referer: `https://steamcommunity.com${endpoint}/inventory`
 			},
-			"qs": {
-				"start": start,
-				"trading": tradableOnly ? 1 : undefined
+			qs: {
+				start: start,
+				trading: tradableOnly ? 1 : undefined
 			},
-			"json": true
-		}, function(err, response, body) {
+			json: true
+		}, (err, response, body) => {
 			if (err) {
 				callback(err);
 				return;
@@ -450,15 +436,15 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 
 			if (!body || !body.success || !body.rgInventory || !body.rgDescriptions || !body.rgCurrency) {
 				if (body) {
-					callback(new Error(body.Error || "Malformed response"));
+					callback(new Error(body.Error || 'Malformed response'));
 				} else {
-					callback(new Error("Malformed response"));
+					callback(new Error('Malformed response'));
 				}
 
 				return;
 			}
 
-			var i;
+			let i;
 			for (i in body.rgInventory) {
 				if (!body.rgInventory.hasOwnProperty(i)) {
 					continue;
@@ -476,17 +462,20 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 			}
 
 			if (body.more) {
-				var match = response.request.uri.href.match(/\/(profiles|id)\/([^\/]+)\//);
-				if(match) {
-					endpoint = "/" + match[1] + "/" + match[2];
+				let match = response.request.uri.href.match(/\/(profiles|id)\/([^\/]+)\//);
+				if (match) {
+					endpoint = `/${match[1]}/${match[2]}`;
 				}
 
 				get(inventory, currency, body.more_start);
 			} else {
 				callback(null, inventory, currency);
 			}
-		}, "steamcommunity");
-	}
+		}, 'steamcommunity');
+	};
+
+	let endpoint = `/profiles/${userID.getSteamID64()}`;
+	get([], []);
 };
 
 /**
@@ -501,52 +490,64 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, contextID, tradableOnly, language, callback) {
 	if (typeof language === 'function') {
 		callback = language;
-		language = "english";
+		language = 'english';
 	}
 
 	if (!userID) {
-		callback(new Error("The user's SteamID is invalid or missing."));
+		callback(new Error('The user\'s SteamID is invalid or missing.'));
 		return;
 	}
-
-	var self = this;
 
 	if (typeof userID === 'string') {
 		userID = new SteamID(userID);
 	}
 
-	var pos = 1;
-	get([], []);
+	// A bit of optimization; objects are hash tables so it's more efficient to look up by key than to iterate an array
+	let quickDescriptionLookup = {};
 
-	function get(inventory, currency, start) {
-		self.httpRequest({
-			"uri": "https://steamcommunity.com/inventory/" + userID.getSteamID64() + "/" + appID + "/" + contextID,
-			"headers": {
-				"Referer": "https://steamcommunity.com/profiles/" + userID.getSteamID64() + "/inventory"
+	const getDescription = (descriptions, classID, instanceID) => {
+		let key = classID + '_' + (instanceID || '0'); // instanceID can be undefined, in which case it's 0.
+
+		if (quickDescriptionLookup[key]) {
+			return quickDescriptionLookup[key];
+		}
+
+		for (let i = 0; i < descriptions.length; i++) {
+			quickDescriptionLookup[descriptions[i].classid + '_' + (descriptions[i].instanceid || '0')] = descriptions[i];
+		}
+
+		return quickDescriptionLookup[key];
+	};
+
+	const get = (inventory, currency, start) => {
+		this.httpRequest({
+			uri: `https://steamcommunity.com/inventory/${userID.getSteamID64()}/${appID}/${contextID}`,
+			headers: {
+				Referer: `https://steamcommunity.com/profiles/${userID.getSteamID64()}/inventory`
 			},
-			"qs": {
-				"l": language, // Default language
-				"count": 5000, // Max items per 'page'
-				"start_assetid": start
+			qs: {
+				l: language, // Default language
+				count: 5000, // Max items per 'page'
+				start_assetid: start
 			},
-			"json": true
-		}, function(err, response, body) {
+			json: true
+		}, (err, response, body) => {
 			if (err) {
-				if (err.message == "HTTP error 403" && body === null) {
+				if (err.message == 'HTTP error 403' && body === null) {
 					// 403 with a body of "null" means the inventory/profile is private.
-					if (self.steamID && userID.getSteamID64() == self.steamID.getSteamID64()) {
+					if (this.steamID && userID.getSteamID64() == this.steamID.getSteamID64()) {
 						// We can never get private profile error for our own inventory!
-						self._notifySessionExpired(err);
+						this._notifySessionExpired(err);
 					}
 
-					callback(new Error("This profile is private."));
+					callback(new Error('This profile is private.'));
 					return;
 				}
 
-				if (err.message == "HTTP error 500" && body && body.error) {
+				if (err.message == 'HTTP error 500' && body && body.error) {
 					err = new Error(body.error);
 
-					var match = body.error.match(/^(.+) \((\d+)\)$/);
+					let match = body.error.match(/^(.+) \((\d+)\)$/);
 					if (match) {
 						err.message = match[1];
 						err.eresult = match[2];
@@ -568,16 +569,16 @@ SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, cont
 			if (!body || !body.success || !body.assets || !body.descriptions) {
 				if (body) {
 					// Dunno if the error/Error property even exists on this new endpoint
-					callback(new Error(body.error || body.Error || "Malformed response"));
+					callback(new Error(body.error || body.Error || 'Malformed response'));
 				} else {
-					callback(new Error("Malformed response"));
+					callback(new Error('Malformed response'));
 				}
 
 				return;
 			}
 
-			for (var i = 0; i < body.assets.length; i++) {
-				var description = getDescription(body.descriptions, body.assets[i].classid, body.assets[i].instanceid);
+			for (let i = 0; i < body.assets.length; i++) {
+				let description = getDescription(body.descriptions, body.assets[i].classid, body.assets[i].instanceid);
 
 				if (!tradableOnly || (description && description.tradable)) {
 					body.assets[i].pos = pos++;
@@ -590,25 +591,11 @@ SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, cont
 			} else {
 				callback(null, inventory, currency, body.total_inventory_count);
 			}
-		}, "steamcommunity");
-	}
+		}, 'steamcommunity');
+	};
 
-	// A bit of optimization; objects are hash tables so it's more efficient to look up by key than to iterate an array
-	var quickDescriptionLookup = {};
-
-	function getDescription(descriptions, classID, instanceID) {
-		var key = classID + '_' + (instanceID || '0'); // instanceID can be undefined, in which case it's 0.
-
-		if (quickDescriptionLookup[key]) {
-			return quickDescriptionLookup[key];
-		}
-
-		for (var i = 0; i < descriptions.length; i++) {
-			quickDescriptionLookup[descriptions[i].classid + '_' + (descriptions[i].instanceid || '0')] = descriptions[i];
-		}
-
-		return quickDescriptionLookup[key];
-	}
+	let pos = 1;
+	get([], []);
 };
 
 /**
@@ -640,7 +627,7 @@ SteamCommunity.prototype.sendImageToUser = function(userID, imageContentsBuffer,
 		return;
 	}
 
-	var imageDetails = null;
+	let imageDetails = null;
 	try {
 		imageDetails = imageSize(imageContentsBuffer);
 	} catch (ex) {
@@ -648,11 +635,11 @@ SteamCommunity.prototype.sendImageToUser = function(userID, imageContentsBuffer,
 		return;
 	}
 
-	var imageHash = Crypto.createHash('sha1');
+	let imageHash = Crypto.createHash('sha1');
 	imageHash.update(imageContentsBuffer);
 	imageHash = imageHash.digest('hex');
 
-	var filename = Date.now() + '_image.' + imageDetails.type;
+	let filename = Date.now() + '_image.' + imageDetails.type;
 
 	this.httpRequestPost({
 		uri: 'https://steamcommunity.com/chat/beginfileupload/?l=english',
@@ -673,7 +660,7 @@ SteamCommunity.prototype.sendImageToUser = function(userID, imageContentsBuffer,
 	}, (err, res, body) => {
 		if (err) {
 			if (body && body.success) {
-				var err2 = Helpers.eresultError(body.success);
+				let err2 = Helpers.eresultError(body.success);
 				if (body.message) {
 					err2.message = body.message;
 				}
@@ -689,9 +676,9 @@ SteamCommunity.prototype.sendImageToUser = function(userID, imageContentsBuffer,
 			return;
 		}
 
-		var hmac = body.hmac;
-		var timestamp = body.timestamp;
-		var startResult = body.result;
+		let hmac = body.hmac;
+		let timestamp = body.timestamp;
+		let startResult = body.result;
 
 		if (!startResult || !startResult.ugcid || !startResult.url_host || !startResult.request_headers) {
 			callback(new Error('Malformed response'));
@@ -699,8 +686,8 @@ SteamCommunity.prototype.sendImageToUser = function(userID, imageContentsBuffer,
 		}
 
 		// Okay, now we need to PUT the file to the provided URL
-		var uploadUrl = (startResult.use_https ? 'https' : 'http') + '://' + startResult.url_host + startResult.url_path;
-		var headers = {};
+		let uploadUrl = (startResult.use_https ? 'https' : 'http') + '://' + startResult.url_host + startResult.url_path;
+		let headers = {};
 		startResult.request_headers.forEach((header) => {
 			headers[header.name.toLowerCase()] = header.value;
 		});
