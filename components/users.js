@@ -136,7 +136,7 @@ SteamCommunity.prototype.postUserComment = function(userID, message, callback) {
 		"uri": "https://steamcommunity.com/comment/Profile/post/" + userID.toString() + "/-1",
 		"form": {
 			"comment": message,
-			"count": 6,
+			"count": 1,
 			"sessionid": this.getSessionID()
 		},
 		"json": true
@@ -151,7 +151,107 @@ SteamCommunity.prototype.postUserComment = function(userID, message, callback) {
 		}
 
 		if(body.success) {
+			const $ = Cheerio.load(body.comments_html);
+			const commentID = $('.commentthread_comment').attr('id').split('_')[1];
+
+			callback(null, commentID);
+		} else if(body.error) {
+			callback(new Error(body.error));
+		} else {
+			callback(new Error("Unknown error"));
+		}
+	}, "steamcommunity");
+};
+
+SteamCommunity.prototype.deleteUserComment = function(userID, commentID, callback) {
+	if(typeof userID === 'string') {
+		userID = new SteamID(userID);
+	}
+
+	var self = this;
+	this.httpRequestPost({
+		"uri": "https://steamcommunity.com/comment/Profile/delete/" + userID.toString() + "/-1",
+		"form": {
+			"gidcomment": commentID,
+			"start": 0,
+			"count": 1,
+			"sessionid": this.getSessionID(),
+			"feature2": -1
+		},
+		"json": true
+	}, function(err, response, body) {
+		if(!callback) {
+			return;
+		}
+
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if(body.success && !body.comments_html.includes(commentID)) {
 			callback(null);
+		} else if(body.error) {
+			callback(new Error(body.error));
+		} else if(body.comments_html.includes(commentID)) {
+			callback(new Error("Failed to delete comment"));
+		} else {
+			callback(new Error("Unknown error"));
+		}
+	}, "steamcommunity");
+};
+
+SteamCommunity.prototype.getUserComments = function(userID, options, callback) {
+	if(typeof userID === 'string') {
+		userID = new SteamID(userID);
+	}
+
+	if (typeof options === 'function') {
+		callback = options;
+		options = {};
+	}
+
+	var form = Object.assign({
+		"start": 0,
+		"count": 0,
+		"feature2": -1,
+		"sessionid": this.getSessionID()
+	}, options);
+
+	this.httpRequestPost({
+		"uri": "https://steamcommunity.com/comment/Profile/render/" + userID.toString() + "/-1",
+		"form": form,
+		"json": true
+	}, function(err, response, body) {
+		if(!callback) {
+			return;
+		}
+
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if(body.success) {
+			const $ = Cheerio.load(body.comments_html);
+			const comments = $(".commentthread_comment.responsive_body_text[id]").map((i, elem) => {
+				var $elem = $(elem),
+					$commentContent = $elem.find(".commentthread_comment_text");
+				return {
+					id: $elem.attr("id").split("_")[1],
+					author: {
+						id: new SteamID("[U:1:" + $elem.find("[data-miniprofile]").data("miniprofile") + "]"),
+						name: $elem.find("bdi").text(),
+						avatar: $elem.find(".playerAvatar img[src]").attr("src"),
+						state: $elem.find(".playerAvatar").attr("class").split(" ").pop()
+					},
+					date: new Date($elem.find(".commentthread_comment_timestamp").data("timestamp") * 1000),
+					text: $commentContent.text(),
+					html: $commentContent.html()
+				}
+			}).get();
+
+			callback(null, comments, body.total_count);
 		} else if(body.error) {
 			callback(new Error(body.error));
 		} else {
