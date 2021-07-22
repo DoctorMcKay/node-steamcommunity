@@ -209,16 +209,16 @@ SteamCommunity.prototype.getUserComments = function(userID, options, callback) {
 		options = {};
 	}
 
-	var self = this;
+	var form = Object.assign({
+		"start": 0,
+		"count": 0,
+		"feature2": -1,
+		"sessionid": this.getSessionID()
+	}, options);
+
 	this.httpRequestPost({
 		"uri": "https://steamcommunity.com/comment/Profile/render/" + userID.toString() + "/-1",
-		"form": {
-			"start": 0,
-			"count": 0,
-			"feature2": -1,
-			"sessionid": this.getSessionID(),
-			...options
-		},
+		"form": form,
 		"json": true
 	}, function(err, response, body) {
 		if(!callback) {
