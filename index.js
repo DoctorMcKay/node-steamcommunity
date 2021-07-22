@@ -304,8 +304,8 @@ SteamCommunity.prototype.setCookies = function(cookies) {
 	});
 };
 
-SteamCommunity.prototype.getSessionID = function() {
-	var cookies = this._jar.getCookieString("http://steamcommunity.com").split(';');
+SteamCommunity.prototype.getSessionID = function(host = "http://steamcommunity.com") {
+	var cookies = this._jar.getCookieString(host).split(';');
 	for(var i = 0; i < cookies.length; i++) {
 		var match = cookies[i].trim().match(/([^=]+)=(.+)/);
 		if(match[1] == 'sessionid') {
