@@ -570,7 +570,6 @@ SteamCommunity.prototype.getFriendsList = function(callback) {
 };
 
 require('./components/http.js');
-require('./components/chat.js');
 require('./components/profile.js');
 require('./components/market.js');
 require('./components/groups.js');

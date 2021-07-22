@@ -42,15 +42,3 @@ SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
 		}
 	}, 'steamcommunity');
 };
-
-/**
- * @deprecated No longer works if not logged in via mobile login. Will be removed in a future release.
- * @param {function} callback
- */
-SteamCommunity.prototype.getWebApiOauthToken = function(callback) {
-	if (this.oAuthToken) {
-		return callback(null, this.oAuthToken);
-	}
-
-	callback(new Error('This operation requires an OAuth token, which can only be obtained from node-steamcommunity\'s `login` method.'));
-};
