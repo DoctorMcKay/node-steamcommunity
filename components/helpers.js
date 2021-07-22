@@ -39,15 +39,16 @@ exports.decodeSteamTime = function(time) {
 /**
  * Get an Error object for a particular EResult
  * @param {int} eresult
+ * @param {string} [message] - If eresult is a failure code and message exists, this message will be used in the Error object instead
  * @returns {null|Error}
  */
-exports.eresultError = function(eresult) {
-	if (eresult == EResult.OK) {
+exports.eresultError = function(eresult, message) {
+	if (!eresult || eresult == EResult.OK) {
 		// no error
 		return null;
 	}
 
-	let err = new Error(EResult[eresult] || ("Error " + eresult));
+	let err = new Error(message || EResult[eresult] || ("Error " + eresult));
 	err.eresult = eresult;
 	return err;
 };
