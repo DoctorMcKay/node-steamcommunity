@@ -6,35 +6,42 @@ const Helpers = require('./helpers.js');
 const SteamCommunity = require('../index.js');
 
 SteamCommunity.PrivacyState = {
-	"Private": 1,
-	"FriendsOnly": 2,
-	"Public": 3
+	Private: 1,
+	FriendsOnly: 2,
+	Public: 3
 };
 
-var CommentPrivacyState = {
-	"1": 2,         // private
-	"2": 0,         // friends only
-	"3": 1          // anyone
+const CommentPrivacyState = {
+	'1': 2,         // private
+	'2': 0,         // friends only
+	'3': 1          // anyone
 };
 
+/**
+ * Creates a profile page if you don't already have one.
+ * @param {function} callback
+ */
 SteamCommunity.prototype.setupProfile = function(callback) {
-	var self = this;
-	this._myProfile("edit?welcomed=1", null, function(err, response, body) {
-		if(!callback) {
+	this._myProfile('edit?welcomed=1', null, (err, response, body) => {
+		if (!callback) {
 			return;
 		}
 
-		if(err || response.statusCode != 200) {
-			callback(err || new Error("HTTP error " + response.statusCode));
+		if (err || response.statusCode != 200) {
+			callback(err || new Error('HTTP error ' + response.statusCode));
 		} else {
 			callback(null);
 		}
 	});
 };
 
+/**
+ * Edits your profile details.
+ * @param {object} settings
+ * @param {function} callback
+ */
 SteamCommunity.prototype.editProfile = function(settings, callback) {
-	var self = this;
-	this._myProfile('edit/info', null, function(err, response, body) {
+	this._myProfile('edit/info', null, (err, response, body) => {
 		if (err || response.statusCode != 200) {
 			if (callback) {
 				callback(err || new Error('HTTP error ' + response.statusCode));
@@ -43,8 +50,8 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 			return;
 		}
 
-		var $ = Cheerio.load(body);
-		var existingSettings = $('#profile_edit_config').data('profile-edit');
+		let $ = Cheerio.load(body);
+		let existingSettings = $('#profile_edit_config').data('profile-edit');
 		if (!existingSettings || !existingSettings.strPersonaName) {
 			if (callback) {
 				callback(new Error('Malformed response'));
@@ -53,7 +60,7 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 			return;
 		}
 
-		var values = {
+		let values = {
 			sessionID: self.getSessionID(),
 			type: 'profileSave',
 			weblink_1_title: '',
@@ -72,7 +79,7 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 			json: 1
 		};
 
-		for (var i in settings) {
+		for (let i in settings) {
 			if(!settings.hasOwnProperty(i)) {
 				continue;
 			}
@@ -131,9 +138,9 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 			}
 		}
 
-		self._myProfile('edit', values, function(err, response, body) {
+		this._myProfile('edit', values, (err, response, body) => {
 			if (settings.customURL) {
-				delete self._profileURL;
+				delete this._profileURL;
 			}
 
 			if (!callback) {
@@ -146,10 +153,10 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 			}
 
 			try {
-				var json = JSON.parse(body);
-				if (!json.success || json.success != 1) {
-					callback(new Error(json.errmsg || 'Request was not successful'));
-					return;
+				let json = JSON.parse(body);
+				let err2 = Helpers.eresultError(json.success, json.errmsg);
+				if (err2) {
+					return callback(err2);
 				}
 
 				callback(null);
@@ -170,8 +177,8 @@ SteamCommunity.prototype.profileSettings = function(settings, callback) {
 			return;
 		}
 
-		var $ = Cheerio.load(body);
-		var existingSettings = $('#profile_edit_config').data('profile-edit');
+		let $ = Cheerio.load(body);
+		let existingSettings = $('#profile_edit_config').data('profile-edit');
 		if (!existingSettings || !existingSettings.Privacy) {
 			if (callback) {
 				callback(new Error('Malformed response'));
@@ -182,10 +189,10 @@ SteamCommunity.prototype.profileSettings = function(settings, callback) {
 
 		// PrivacySettings => {PrivacyProfile, PrivacyInventory, PrivacyInventoryGifts, PrivacyOwnedGames, PrivacyPlaytime}
 		// eCommentPermission
-		var privacy = existingSettings.Privacy.PrivacySettings;
-		var commentPermission = existingSettings.Privacy.eCommentPermission;
+		let privacy = existingSettings.Privacy.PrivacySettings;
+		let commentPermission = existingSettings.Privacy.eCommentPermission;
 
-		for (var i in settings) {
+		for (let i in settings) {
 			if (!settings.hasOwnProperty(i)) {
 				continue;
 			}
@@ -230,7 +237,7 @@ SteamCommunity.prototype.profileSettings = function(settings, callback) {
 				Privacy: JSON.stringify(privacy),
 				eCommentPermission: commentPermission
 			}
-		}, null, function(err, response, body) {
+		}, null, (err, response, body) => {
 			if (err || response.statusCode != 200) {
 				if (callback) {
 					callback(err || new Error('HTTP error ' + response.statusCode));
@@ -239,11 +246,9 @@ SteamCommunity.prototype.profileSettings = function(settings, callback) {
 				return;
 			}
 
-			if (body.success != 1) {
-				if (callback) {
-					callback(new Error(body.success ? 'Error ' + body.success : 'Request was not successful'));
-				}
-
+			let err2 = Helpers.eresultError(body.success);
+			if (err2) {
+				callback && callback(err2);
 				return;
 			}
 
@@ -262,71 +267,27 @@ SteamCommunity.prototype.uploadAvatar = function(image, format, callback) {
 
 	// are we logged in?
 	if (!this.steamID) {
-		callback(new Error("Not Logged In"));
+		callback(new Error('Not Logged In'));
 		return;
 	}
 
-	var self = this;
-
-	if(image instanceof Buffer) {
-		doUpload(image);
-	} else if(image.match(/^https?:\/\//)) {
-		this.httpRequestGet({
-			"uri": image,
-			"encoding": null
-		}, function(err, response, body) {
-			if(err || response.statusCode != 200) {
-				if(callback) {
-					callback(err ? new Error(err.message + " downloading image") : new Error("HTTP error " + response.statusCode + " downloading image"));
-				}
-
-				return;
-			}
-
-			if(!format) {
-				format = response.headers['content-type'];
-			}
-
-			doUpload(body);
-		}, "steamcommunity");
-	} else {
-		if(!format) {
-			format = image.match(/\.([^\.]+)$/);
-			if(format) {
-				format = format[1];
-			}
-		}
-
-		FS.readFile(image, function(err, file) {
-			if(err) {
-				if(callback) {
-					callback(err);
-				}
-
-				return;
-			}
-
-			doUpload(file);
-		})
-	}
-
-	function doUpload(buffer) {
-		if(!format) {
-			if(callback) {
-				callback(new Error("Unknown image format"));
+	const doUpload = (buffer) => {
+		if (!format) {
+			if (callback) {
+				callback(new Error('Unknown image format'));
 			}
 
 			return;
 		}
 
-		if(format.match(/^image\//)) {
+		if (format.match(/^image\//)) {
 			format = format.substring(6);
 		}
 
-		var filename = '';
-		var contentType = '';
+		let filename = '';
+		let contentType = '';
 
-		switch(format.toLowerCase()) {
+		switch (format.toLowerCase()) {
 			case 'jpg':
 			case 'jpeg':
 				filename = 'avatar.jpg';
@@ -344,68 +305,96 @@ SteamCommunity.prototype.uploadAvatar = function(image, format, callback) {
 				break;
 
 			default:
-				if(callback) {
-					callback(new Error("Unknown or invalid image format"));
+				if (callback) {
+					callback(new Error('Unknown or invalid image format'));
 				}
 
 				return;
 		}
 
-		self.httpRequestPost({
-			"uri": "https://steamcommunity.com/actions/FileUploader",
-			"formData": {
-				"MAX_FILE_SIZE": buffer.length,
-				"type": "player_avatar_image",
-				"sId": self.steamID.getSteamID64(),
-				"sessionid": self.getSessionID(),
-				"doSub": 1,
-				"json": 1,
-				"avatar": {
-					"value": buffer,
-					"options": {
-						"filename": filename,
-						"contentType": contentType
+		this.httpRequestPost({
+			uri: 'https://steamcommunity.com/actions/FileUploader',
+			formData: {
+				MAX_FILE_SIZE: buffer.length,
+				type: 'player_avatar_image',
+				sId: this.steamID.getSteamID64(),
+				sessionid: this.getSessionID(),
+				doSub: 1,
+				json: 1,
+				avatar: {
+					value: buffer,
+					options: {
+						filename: filename,
+						contentType: contentType
 					}
 				}
 			},
-			"json": true
-		}, function(err, response, body) {
-			if(err) {
-				if(callback) {
+			json: true
+		}, (err, response, body) => {
+			if (err) {
+				callback && callback(err);
+				return;
+			}
+
+			if (body && !body.success && body.message) {
+				callback && callback(new Error(body.message));
+				return;
+			}
+
+			if (response.statusCode != 200) {
+				callback && callback(new Error(`HTTP error ${response.statusCode}`));
+				return;
+			}
+
+			if(!body || !body.success) {
+				callback && callback(new Error('Malformed response'));
+				return;
+			}
+
+			callback && callback(null, body.images.full);
+		}, 'steamcommunity');
+	};
+
+	if (image instanceof Buffer) {
+		doUpload(image);
+	} else if (image.match(/^https?:\/\//)) {
+		this.httpRequestGet({
+			uri: image,
+			encoding: null
+		}, (err, response, body) => {
+			if (err || response.statusCode != 200) {
+				if (callback) {
+					callback(new Error(err ? `${err.message} downloading image` : `HTTP error ${response.statusCode} downloading image`));
+				}
+
+				return;
+			}
+
+			if (!format) {
+				format = response.headers['content-type'];
+			}
+
+			doUpload(body);
+		}, 'steamcommunity');
+	} else {
+		if (!format) {
+			format = image.match(/\.([^.]+)$/);
+			if (format) {
+				format = format[1];
+			}
+		}
+
+		FS.readFile(image, (err, file) => {
+			if (err) {
+				if (callback) {
 					callback(err);
 				}
 
 				return;
 			}
 
-			if(body && !body.success && body.message) {
-				if(callback) {
-					callback(new Error(body.message));
-				}
-
-				return;
-			}
-
-			if(response.statusCode != 200) {
-				if(callback) {
-					callback(new Error("HTTP error " + response.statusCode));
-				}
-
-				return;
-			}
-
-			if(!body || !body.success) {
-				if(callback) {
-					callback(new Error("Malformed response"));
-				}
-
-				return;
-			}
-
-			if(callback) {
-				callback(null, body.images.full);
-			}
-		}, "steamcommunity");
+			doUpload(file);
+		})
 	}
 };
 
@@ -421,10 +410,10 @@ SteamCommunity.prototype.postProfileStatus = function(statusText, options, callb
 		options = {};
 	}
 
-	this._myProfile("ajaxpostuserstatus/", {
-		"appid": options.appID || 0,
-		"sessionid": this.getSessionID(),
-		"status_text": statusText
+	this._myProfile('ajaxpostuserstatus/', {
+		appid: options.appID || 0,
+		sessionid: this.getSessionID(),
+		status_text: statusText
 	}, (err, res, body) => {
 		try {
 			body = JSON.parse(body);
@@ -433,9 +422,9 @@ SteamCommunity.prototype.postProfileStatus = function(statusText, options, callb
 				return;
 			}
 
-			var match = body.blotter_html.match(/id="userstatus_(\d+)_/);
+			let match = body.blotter_html.match(/id="userstatus_(\d+)_/);
 			if (!match) {
-				callback(new Error("Malformed response"));
+				callback(new Error('Malformed response'));
 				return;
 			}
 
@@ -452,9 +441,9 @@ SteamCommunity.prototype.postProfileStatus = function(statusText, options, callb
  * @param {function} [callback]
  */
 SteamCommunity.prototype.deleteProfileStatus = function(postID, callback) {
-	this._myProfile("ajaxdeleteuserstatus/", {
-		"sessionid": this.getSessionID(),
-		"postid": postID
+	this._myProfile('ajaxdeleteuserstatus/', {
+		sessionid: this.getSessionID(),
+		postid: postID
 	}, (err, res, body) => {
 		if (!callback) {
 			return;
@@ -463,7 +452,7 @@ SteamCommunity.prototype.deleteProfileStatus = function(postID, callback) {
 		try {
 			body = JSON.parse(body);
 			if (!body.success) {
-				callback(new Error("Malformed response"));
+				callback(new Error('Malformed response'));
 				return;
 			}
 

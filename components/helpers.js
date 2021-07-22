@@ -43,7 +43,7 @@ exports.decodeSteamTime = function(time) {
  * @returns {null|Error}
  */
 exports.eresultError = function(eresult, message) {
-	if (!eresult || eresult == EResult.OK) {
+	if (eresult == EResult.OK) {
 		// no error
 		return null;
 	}
