@@ -14,7 +14,7 @@ module.exports = SteamCommunity;
 SteamCommunity.SteamID = SteamID;
 SteamCommunity.ConfirmationType = require('./resources/EConfirmationType.js');
 SteamCommunity.EResult = require('./resources/EResult.js');
-SteamCommunity.FriendRelationship = require('./resources/EFriendRelationship.js');
+SteamCommunity.EFriendRelationship = require('./resources/EFriendRelationship.js');
 
 
 function SteamCommunity(options) {
