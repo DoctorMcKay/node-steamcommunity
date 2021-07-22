@@ -541,7 +541,7 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
  * Therefore, you can deduce your friends or blocked list from this object.
  * @param {function} callback
  */
- SteamCommunity.prototype.getFriendsList = function(callback) {
+SteamCommunity.prototype.getFriendsList = function(callback) {
 	this.httpRequestGet({
 		"uri": "https://steamcommunity.com/textfilter/ajaxgetfriendslist",
 		"json": true
