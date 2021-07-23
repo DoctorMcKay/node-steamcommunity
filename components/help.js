@@ -1,5 +1,9 @@
 const SteamCommunity = require('../index.js');
 
+const Helpers = require('./helpers.js');
+
+const HELP_SITE_DOMAIN = 'https://help.steampowered.com';
+
 /**
  * Restore a previously removed steam package from your steam account.
  * @param {int|string} packageID
@@ -7,30 +11,14 @@ const SteamCommunity = require('../index.js');
  */
 SteamCommunity.prototype.restorePackage = function(packageID, callback) {
 	this.httpRequestPost({
-		uri: 'https://help.steampowered.com/wizard/AjaxDoPackageRestore',
+		uri: HELP_SITE_DOMAIN + '/wizard/AjaxDoPackageRestore',
 		form: {
 			packageid: packageID,
-			sessionid: this.getSessionID('https://help.steampowered.com'),
+			sessionid: this.getSessionID(HELP_SITE_DOMAIN),
 			wizard_ajax: 1
 		},
 		json: true
-	}, (err, res, body) => {
-		if (!callback) {
-			return;
-		}
-
-		if (err) {
-			callback(err);
-			return;
-		}
-
-		if (!body.success) {
-			callback(new Error(body.errorMsg || 'Unexpected error'));
-			return;
-		}
-
-		callback(null);
-	});
+	}, wizardAjaxHandler(callback));
 };
 
 /**
@@ -40,14 +28,23 @@ SteamCommunity.prototype.restorePackage = function(packageID, callback) {
  */
 SteamCommunity.prototype.removePackage = function(packageID, callback) {
 	this.httpRequestPost({
-		uri: 'https://help.steampowered.com/wizard/AjaxDoPackageRemove',
+		uri: HELP_SITE_DOMAIN + '/wizard/AjaxDoPackageRemove',
 		form: {
 			packageid: packageID,
-			sessionid: this.getSessionID('https://help.steampowered.com'),
+			sessionid: this.getSessionID(HELP_SITE_DOMAIN),
 			wizard_ajax: 1
 		},
 		json: true
-	}, (err, res, body) => {
+	}, wizardAjaxHandler(callback));
+};
+
+/**
+ * Returns a handler for wizard ajax HTTP requests.
+ * @param {function} callback
+ * @returns {(function(*=, *, *): void)|*}
+ */
+function wizardAjaxHandler(callback) {
+	return (err, res, body) => {
 		if (!callback) {
 			return;
 		}
@@ -63,5 +60,5 @@ SteamCommunity.prototype.removePackage = function(packageID, callback) {
 		}
 
 		callback(null);
-	});
-};
+	};
+}
