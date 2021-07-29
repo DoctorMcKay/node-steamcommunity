@@ -44,15 +44,13 @@ function CEconItem(item, description, contextID) {
 
 	// Restore old property names of tags
 	if (this.tags) {
-		this.tags = this.tags.map(function(tag) {
-			return {
-				internal_name: tag.internal_name,
-				name: tag.localized_tag_name || tag.name,
-				category: tag.category,
-				color: tag.color || '',
-				category_name: tag.localized_category_name || tag.category_name
-			};
-		});
+		this.tags = this.tags.map((tag) => ({
+			internal_name: tag.internal_name,
+			name: tag.localized_tag_name || tag.name,
+			category: tag.category,
+			color: tag.color || '',
+			category_name: tag.localized_category_name || tag.category_name
+		}));
 	}
 
 	// Restore market_fee_app, if applicable

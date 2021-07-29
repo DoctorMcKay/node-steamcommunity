@@ -19,7 +19,7 @@ SteamCommunity.prototype.getSteamUser = function(id, callback) {
 			return;
 		}
 
-		XML2JS.parseString(body, function(err, result) {
+		XML2JS.parseString(body, (err, result) => {
 			if (err || (!result.response && !result.profile)) {
 				callback(err || new Error('No valid response'));
 				return;

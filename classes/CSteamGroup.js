@@ -19,7 +19,7 @@ SteamCommunity.prototype.getSteamGroup = function(id, callback) {
 			return;
 		}
 
-		XML2JS.parseString(body, function(err, result) {
+		XML2JS.parseString(body, (err, result) => {
 			if (err) {
 				callback(err);
 				return;

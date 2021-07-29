@@ -552,6 +552,8 @@ SteamCommunity.prototype.getAllGroupComments = function(gid, from, count, callba
 
 		let $ = Cheerio.load(JSON.parse(body).comments_html);
 
+		// !! DO NOT replace this function with an arrow function. We depend on the `this` context inside the function,
+		// which is the comment element.
 		$('.commentthread_comment_content').each(function() {
 			let comment = {};
 

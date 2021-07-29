@@ -22,7 +22,7 @@ SteamCommunity.prototype.getMarketItem = function(appid, hashName, currency, cal
 		}
 
 		let item = new CMarketItem(appid, hashName, this, body, $);
-		item.updatePrice(currency, function(err) {
+		item.updatePrice(currency, (err) => {
 			if (err) {
 				callback(err);
 			} else {
@@ -62,13 +62,11 @@ function CMarketItem(appid, hashName, community, body, $) {
 	if (match) {
 		try {
 			this.medianSalePrices = JSON.parse(match[1]);
-			this.medianSalePrices = this.medianSalePrices.map(function(item) {
-				return {
-					hour: new Date(item[0]),
-					price: item[1],
-					quantity: parseInt(item[2], 10)
-				};
-			});
+			this.medianSalePrices = this.medianSalePrices.map((item) => ({
+				hour: new Date(item[0]),
+				price: item[1],
+				quantity: parseInt(item[2], 10)
+			}));
 		} catch (e) {
 			// ignore
 		}

@@ -38,7 +38,7 @@ SteamCommunity.prototype.marketSearch = function(options, callback) {
 				referer: 'https://steamcommunity.com/market/search'
 			},
 			json: true
-		}, function(err, response, body) {
+		}, (err, response, body) => {
 			if (err) {
 				callback(err);
 				return;
