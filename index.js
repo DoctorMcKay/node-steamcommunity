@@ -14,7 +14,7 @@ Util.inherits(SteamCommunity, EventEmitter);
 module.exports = SteamCommunity;
 
 SteamCommunity.SteamID = SteamID;
-SteamCommunity.ConfirmationType = require('./resources/EConfirmationType.js');
+SteamCommunity.EConfirmationType = require('./resources/EConfirmationType.js');
 SteamCommunity.EResult = require('./resources/EResult.js');
 SteamCommunity.EFriendRelationship = require('./resources/EFriendRelationship.js');
 
