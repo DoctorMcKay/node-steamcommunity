@@ -68,10 +68,8 @@ SteamCommunity.prototype.login = function(details, callback) {
 
 	let disableMobile = details.disableMobile;
 
-	let self = this;
-
 	// Delete the cache
-	delete self._profileURL;
+	delete this._profileURL;
 
 	// headers required to convince steam that we're logging in from a mobile device so that we can get the oAuth data
 	let mobileHeaders = {};
@@ -89,11 +87,21 @@ SteamCommunity.prototype.login = function(details, callback) {
 		mobileHeaders = {Referer: 'https://steamcommunity.com/login'};
 	}
 
+	const deleteMobileCookies = () => {
+		let cookie = Request.cookie('mobileClientVersion=');
+		cookie.expires = new Date(0);
+		this._setCookie(cookie);
+
+		cookie = Request.cookie('mobileClient=');
+		cookie.expires = new Date(0);
+		this._setCookie(cookie);
+	};
+
 	this.httpRequestPost('https://steamcommunity.com/login/getrsakey/', {
 		form: {username: details.accountName},
 		headers: mobileHeaders,
 		json: true
-	}, function(err, response, body) {
+	}, (err, response, body) => {
 		// Remove the mobile cookies
 		if (err) {
 			deleteMobileCookies();
@@ -112,7 +120,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 
 		let formObj = {
 			captcha_text: details.captcha || '',
-			captchagid: self._captchaGid,
+			captchagid: this._captchaGid,
 			emailauth: details.authCode || '',
 			emailsteamid: '',
 			password: hex2b64(key.encrypt(details.password)),
@@ -130,12 +138,12 @@ SteamCommunity.prototype.login = function(details, callback) {
 			formObj.loginfriendlyname = '#login_emailauth_friendlyname_mobile';
 		}
 
-		self.httpRequestPost({
+		this.httpRequestPost({
 			uri: 'https://steamcommunity.com/login/dologin/',
 			json: true,
 			form: formObj,
 			headers: mobileHeaders
-		}, function(err, response, body) {
+		}, (err, response, body) => {
 			deleteMobileCookies();
 
 			if (err) {
@@ -157,7 +165,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 				error = new Error('CAPTCHA');
 				error.captchaurl = 'https://steamcommunity.com/login/rendercaptcha/?gid=' + body.captcha_gid;
 
-				self._captchaGid = body.captcha_gid;
+				this._captchaGid = body.captcha_gid;
 
 				callback(error);
 			} else if (!body.success) {
@@ -167,68 +175,53 @@ SteamCommunity.prototype.login = function(details, callback) {
 			} else {
 				let sessionID = generateSessionID();
 				let oAuth;
-				self._setCookie(Request.cookie('sessionid=' + sessionID));
+				this._setCookie(Request.cookie('sessionid=' + sessionID));
 
-				let cookies = self._jar.getCookieString('https://steamcommunity.com').split(';').map(function(cookie) {
-					return cookie.trim();
-				});
+				let cookies = this._jar.getCookieString('https://steamcommunity.com').split(';').map(cookie => cookie.trim());
 
 				if (!disableMobile){
 					oAuth = JSON.parse(body.oauth);
-					self.steamID = new SteamID(oAuth.steamid);
-					self.oAuthToken = oAuth.oauth_token;
+					this.steamID = new SteamID(oAuth.steamid);
+					this.oAuthToken = oAuth.oauth_token;
 				} else {
 					for (let i = 0; i < cookies.length; i++) {
 						let parts = cookies[i].split('=');
 						if (parts[0] == 'steamLogin') {
-							self.steamID = new SteamID(decodeURIComponent(parts[1]).split('||')[0]);
+							this.steamID = new SteamID(decodeURIComponent(parts[1]).split('||')[0]);
 							break;
 						}
 					}
 
-					self.oAuthToken = null;
+					this.oAuthToken = null;
 				}
 
 				// Find the Steam Guard cookie
 				let steamguard = null;
 				for (let i = 0; i < cookies.length; i++) {
 					let parts = cookies[i].split('=');
-					if (parts[0] == 'steamMachineAuth' + self.steamID) {
-						steamguard = self.steamID.toString() + '||' + decodeURIComponent(parts[1]);
+					if (parts[0] == 'steamMachineAuth' + this.steamID) {
+						steamguard = this.steamID.toString() + '||' + decodeURIComponent(parts[1]);
 						break;
 					}
 				}
 
-				self.setCookies(cookies);
+				this.setCookies(cookies);
 
 				callback(null, sessionID, cookies, steamguard, disableMobile ? null : oAuth.oauth_token);
 			}
 		}, 'steamcommunity');
 	}, 'steamcommunity');
-
-	function deleteMobileCookies() {
-		let cookie = Request.cookie('mobileClientVersion=');
-		cookie.expires = new Date(0);
-		self._setCookie(cookie);
-
-		cookie = Request.cookie('mobileClient=');
-		cookie.expires = new Date(0);
-		self._setCookie(cookie);
-	}
 };
 
 SteamCommunity.prototype.oAuthLogin = function(steamguard, token, callback) {
 	steamguard = steamguard.split('||');
 	let steamID = new SteamID(steamguard[0]);
 
-	let self = this;
 	this.httpRequestPost({
 		uri: 'https://api.steampowered.com/IMobileAuthService/GetWGToken/v1/',
-		form: {
-			access_token: token
-		},
+		form: {access_token: token},
 		json: true
-	}, function(err, response, body) {
+	}, (err, response, body) => {
 		if (err) {
 			callback(err);
 			return;
@@ -243,11 +236,11 @@ SteamCommunity.prototype.oAuthLogin = function(steamguard, token, callback) {
 			'steamLogin=' + encodeURIComponent(steamID.getSteamID64() + '||' + body.response.token),
 			'steamLoginSecure=' + encodeURIComponent(steamID.getSteamID64() + '||' + body.response.token_secure),
 			'steamMachineAuth' + steamID.getSteamID64() + '=' + steamguard[1],
-			'sessionid=' + self.getSessionID()
+			'sessionid=' + this.getSessionID()
 		];
 
-		self.setCookies(cookies);
-		callback(null, self.getSessionID(), cookies);
+		this.setCookies(cookies);
+		callback(null, this.getSessionID(), cookies);
 	}, 'steamcommunity');
 };
 
@@ -324,8 +317,7 @@ function generateSessionID() {
 }
 
 SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
-	let self = this;
-	let sessionID = self.getSessionID();
+	let sessionID = this.getSessionID();
 
 	this.httpRequestPost('https://steamcommunity.com/parental/ajaxunlock', {
 		json: true,
@@ -333,7 +325,7 @@ SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
 			pin: pin,
 			sessionid: sessionID
 		}
-	}, function(err, response, body) {
+	}, (err, response, body) => {
 		if (!callback) {
 			return;
 		}
@@ -366,7 +358,7 @@ SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
 		}
 
 		callback();
-	}.bind(this), 'steamcommunity');
+	}, 'steamcommunity');
 };
 
 SteamCommunity.prototype.getNotifications = function(callback) {
@@ -493,33 +485,7 @@ SteamCommunity.prototype.clearPersonaNameHistory = function(callback) {
 };
 
 SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
-	let self = this;
-
-	if (this._profileURL) {
-		completeRequest(this._profileURL);
-	} else {
-		this.httpRequest('https://steamcommunity.com/my', {followRedirect: false}, function(err, response, body) {
-			if (err || response.statusCode != 302) {
-				callback(err || 'HTTP error ' + response.statusCode);
-				return;
-			}
-
-			let match = response.headers.location.match(/steamcommunity\.com(\/(id|profiles)\/[^/]+)\/?/);
-			if (!match) {
-				callback(new Error('Can\'t get profile URL'));
-				return;
-			}
-
-			self._profileURL = match[1];
-			setTimeout(function () {
-				delete self._profileURL; // delete the cache
-			}, 60000).unref();
-
-			completeRequest(match[1]);
-		}, 'steamcommunity');
-	}
-
-	function completeRequest(url) {
+	const completeRequest = (url) => {
 		let options = endpoint.endpoint ? endpoint : {};
 		options.uri = 'https://steamcommunity.com' + url + '/' + (endpoint.endpoint || endpoint);
 
@@ -531,7 +497,31 @@ SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
 			options.method = 'GET';
 		}
 
-		self.httpRequest(options, callback, 'steamcommunity');
+		this.httpRequest(options, callback, 'steamcommunity');
+	};
+
+	if (this._profileURL) {
+		completeRequest(this._profileURL);
+	} else {
+		this.httpRequest('https://steamcommunity.com/my', {followRedirect: false}, (err, response, body) => {
+			if (err || response.statusCode != 302) {
+				callback(err || 'HTTP error ' + response.statusCode);
+				return;
+			}
+
+			let match = response.headers.location.match(/steamcommunity\.com(\/(id|profiles)\/[^/]+)\/?/);
+			if (!match) {
+				callback(new Error('Can\'t get profile URL'));
+				return;
+			}
+
+			this._profileURL = match[1];
+			setTimeout(() => {
+				delete this._profileURL; // delete the cache
+			}, 60000).unref();
+
+			completeRequest(match[1]);
+		}, 'steamcommunity');
 	}
 };
 

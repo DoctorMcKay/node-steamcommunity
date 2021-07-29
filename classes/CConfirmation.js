@@ -3,7 +3,7 @@ const SteamCommunity = require('../index.js');
 module.exports = CConfirmation;
 
 function CConfirmation(community, data) {
-	Object.defineProperty(this, "_community", {"value": community});
+	Object.defineProperty(this, '_community', {value: community});
 
 	this.id = data.id.toString();
 	this.type = data.type;
@@ -19,7 +19,7 @@ function CConfirmation(community, data) {
 CConfirmation.prototype.getOfferID = function(time, key, callback) {
 	if (this.type && this.creator) {
 		if (this.type != SteamCommunity.ConfirmationType.Trade) {
-			callback(new Error("Not a trade confirmation"));
+			callback(new Error('Not a trade confirmation'));
 			return;
 		}
 

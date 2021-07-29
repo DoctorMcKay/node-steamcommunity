@@ -241,7 +241,7 @@ SteamCommunity.prototype.getUserComments = function(userID, options, callback) {
 					date: new Date($elem.find('.commentthread_comment_timestamp').data('timestamp') * 1000),
 					text: $commentContent.text().trim(),
 					html: $commentContent.html().trim()
-				}
+				};
 			}).get();
 
 			callback(null, comments, body.total_count);
@@ -444,25 +444,16 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 				return;
 			}
 
-			let i;
-			for (i in body.rgInventory) {
-				if (!body.rgInventory.hasOwnProperty(i)) {
-					continue;
-				}
-
+			for (let i in body.rgInventory) {
 				inventory.push(new CEconItem(body.rgInventory[i], body.rgDescriptions, contextID));
 			}
 
-			for (i in body.rgCurrency) {
-				if (!body.rgCurrency.hasOwnProperty(i)) {
-					continue;
-				}
-
+			for (let i in body.rgCurrency) {
 				currency.push(new CEconItem(body.rgInventory[i], body.rgDescriptions, contextID));
 			}
 
 			if (body.more) {
-				let match = response.request.uri.href.match(/\/(profiles|id)\/([^\/]+)\//);
+				let match = response.request.uri.href.match(/\/(profiles|id)\/([^/]+)\//);
 				if (match) {
 					endpoint = `/${match[1]}/${match[2]}`;
 				}

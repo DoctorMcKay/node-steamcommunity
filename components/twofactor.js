@@ -86,7 +86,11 @@ SteamCommunity.prototype.finalizeTwoFactor = function(secret, activationCode, ca
 			if (body.status == SteamCommunity.EResult.TwoFactorActivationCodeMismatch) {
 				callback(new Error('Invalid activation code'));
 			} else if (body.want_more) {
-				attemptsLeft--;
+				if (--attemptsLeft <= 0) {
+					// We made more than 30 attempts, something must be wrong
+					return callback(Helpers.eresultError(SteamCommunity.EResult.Fail));
+				}
+
 				diff += 30;
 
 				finalize();
@@ -96,7 +100,7 @@ SteamCommunity.prototype.finalizeTwoFactor = function(secret, activationCode, ca
 				callback(null);
 			}
 		}, 'steamcommunity');
-	}
+	};
 
 	SteamTotp.getTimeOffset((err, offset, latency) => {
 		if (err) {

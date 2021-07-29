@@ -1,7 +1,5 @@
 const SteamCommunity = require('../index.js');
 
-const Helpers = require('./helpers.js');
-
 const HELP_SITE_DOMAIN = 'https://help.steampowered.com';
 
 /**

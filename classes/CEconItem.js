@@ -1,14 +1,11 @@
 module.exports = CEconItem;
 
 function CEconItem(item, description, contextID) {
-	var thing;
-	for (thing in item) {
-		if (item.hasOwnProperty(thing)) {
-			this[thing] = item[thing];
-		}
+	for (let thing in item) {
+		this[thing] = item[thing];
 	}
 
-	var isCurrency = !!(this.is_currency || this.currency) || typeof this.currencyid !== 'undefined'; // I don't want to put this on the object yet; it's nice to have the ids at the top of printed output
+	let isCurrency = !!(this.is_currency || this.currency) || typeof this.currencyid !== 'undefined'; // I don't want to put this on the object yet; it's nice to have the ids at the top of printed output
 
 	if (isCurrency) {
 		this.currencyid = this.id = (this.id || this.currencyid);
@@ -27,10 +24,8 @@ function CEconItem(item, description, contextID) {
 			description = description[this.classid + '_' + this.instanceid];
 		}
 
-		for (thing in description) {
-			if (description.hasOwnProperty(thing)) {
-				this[thing] = description[thing];
-			}
+		for (let thing in description) {
+			this[thing] = description[thing];
 		}
 	}
 
@@ -51,18 +46,18 @@ function CEconItem(item, description, contextID) {
 	if (this.tags) {
 		this.tags = this.tags.map(function(tag) {
 			return {
-				"internal_name": tag.internal_name,
-				"name": tag.localized_tag_name || tag.name,
-				"category": tag.category,
-				"color": tag.color || "",
-				"category_name": tag.localized_category_name || tag.category_name
+				internal_name: tag.internal_name,
+				name: tag.localized_tag_name || tag.name,
+				category: tag.category,
+				color: tag.color || '',
+				category_name: tag.localized_category_name || tag.category_name
 			};
 		});
 	}
 
 	// Restore market_fee_app, if applicable
-	var match;
-	if (this.appid == 753 && this.contextid == 6 && this.market_hash_name && (match = this.market_hash_name.match(/^(\d+)\-/))) {
+	let match;
+	if (this.appid == 753 && this.contextid == 6 && this.market_hash_name && (match = this.market_hash_name.match(/^(\d+)-/))) {
 		this.market_fee_app = parseInt(match[1], 10);
 	}
 
@@ -82,7 +77,7 @@ function CEconItem(item, description, contextID) {
 		this.cache_expiration = this.item_expiration;
 	}
 
-	if (this.actions === "") {
+	if (this.actions === '') {
 		this.actions = [];
 	}
 
@@ -94,15 +89,15 @@ function CEconItem(item, description, contextID) {
 }
 
 CEconItem.prototype.getImageURL = function() {
-	return "https://steamcommunity-a.akamaihd.net/economy/image/" + this.icon_url + "/";
+	return 'https://steamcommunity-a.akamaihd.net/economy/image/' + this.icon_url + '/';
 };
 
 CEconItem.prototype.getLargeImageURL = function() {
-	if(!this.icon_url_large) {
+	if (!this.icon_url_large) {
 		return this.getImageURL();
 	}
 
-	return "https://steamcommunity-a.akamaihd.net/economy/image/" + this.icon_url_large + "/";
+	return 'https://steamcommunity-a.akamaihd.net/economy/image/' + this.icon_url_large + '/';
 };
 
 CEconItem.prototype.getTag = function(category) {
@@ -110,7 +105,7 @@ CEconItem.prototype.getTag = function(category) {
 		return null;
 	}
 
-	for (var i = 0; i < this.tags.length; i++) {
+	for (let i = 0; i < this.tags.length; i++) {
 		if (this.tags[i].category == category) {
 			return this.tags[i];
 		}

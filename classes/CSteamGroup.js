@@ -5,30 +5,29 @@ const Helpers = require('../components/helpers.js');
 const SteamCommunity = require('../index.js');
 
 SteamCommunity.prototype.getSteamGroup = function(id, callback) {
-	if(typeof id !== 'string' && !Helpers.isSteamID(id)) {
-		throw new Error("id parameter should be a group URL string or a SteamID object");
+	if (typeof id !== 'string' && !Helpers.isSteamID(id)) {
+		throw new Error('id parameter should be a group URL string or a SteamID object');
 	}
 
-	if(typeof id === 'object' && (id.universe != SteamID.Universe.PUBLIC || id.type != SteamID.Type.CLAN)) {
-		throw new Error("SteamID must stand for a clan account in the public universe");
+	if (typeof id === 'object' && (id.universe != SteamID.Universe.PUBLIC || id.type != SteamID.Type.CLAN)) {
+		throw new Error('SteamID must stand for a clan account in the public universe');
 	}
 
-	var self = this;
-	this.httpRequest("https://steamcommunity.com/" + (typeof id === 'string' ? "groups/" + id : "gid/" + id.toString()) + "/memberslistxml/?xml=1", function(err, response, body) {
+	this.httpRequest('https://steamcommunity.com/' + (typeof id === 'string' ? 'groups/' + id : 'gid/' + id.toString()) + '/memberslistxml/?xml=1', (err, response, body) => {
 		if (err) {
 			callback(err);
 			return;
 		}
 
 		XML2JS.parseString(body, function(err, result) {
-			if(err) {
+			if (err) {
 				callback(err);
 				return;
 			}
 
-			callback(null, new CSteamGroup(self, result.memberList));
+			callback(null, new CSteamGroup(this, result.memberList));
 		});
-	}, "steamcommunity");
+	}, 'steamcommunity');
 };
 
 function CSteamGroup(community, groupData) {
@@ -50,16 +49,16 @@ CSteamGroup.prototype.getAvatarURL = function(size, protocol) {
 	size = size || '';
 	protocol = protocol || 'http://';
 
-	var url = protocol + "steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/" + this.avatarHash.substring(0, 2) + "/" + this.avatarHash;
-	if(size == 'full' || size == 'medium') {
-		return url + "_" + size + ".jpg";
+	let url = protocol + 'steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/' + this.avatarHash.substring(0, 2) + '/' + this.avatarHash;
+	if (size == 'full' || size == 'medium') {
+		return url + '_' + size + '.jpg';
 	} else {
-		return url + ".jpg";
+		return url + '.jpg';
 	}
 };
 
 CSteamGroup.prototype.getMembers = function(addresses, callback) {
-	if(typeof addresses === 'function') {
+	if (typeof addresses === 'function') {
 		callback = addresses;
 		addresses = null;
 	}
@@ -84,11 +83,11 @@ CSteamGroup.prototype.postAnnouncement = function(headline, content, hidden, cal
 };
 
 CSteamGroup.prototype.editAnnouncement = function(annoucementID, headline, content, callback) {
-	this._community.editGroupAnnouncement(this.steamID, annoucementID, headline, content, callback)
+	this._community.editGroupAnnouncement(this.steamID, annoucementID, headline, content, callback);
 };
 
 CSteamGroup.prototype.deleteAnnouncement = function(annoucementID, callback) {
-	this._community.deleteGroupAnnouncement(this.steamID, annoucementID, callback)
+	this._community.deleteGroupAnnouncement(this.steamID, annoucementID, callback);
 };
 
 CSteamGroup.prototype.scheduleEvent = function(name, type, description, time, server, callback) {

@@ -1,6 +1,5 @@
 const Cheerio = require('cheerio');
 const FS = require('fs');
-const SteamID = require('steamid');
 
 const Helpers = require('./helpers.js');
 const SteamCommunity = require('../index.js');
@@ -12,9 +11,9 @@ SteamCommunity.PrivacyState = {
 };
 
 const CommentPrivacyState = {
-	'1': 2,         // private
-	'2': 0,         // friends only
-	'3': 1          // anyone
+	1: 2,         // private
+	2: 0,         // friends only
+	3: 1          // anyone
 };
 
 /**
@@ -80,11 +79,7 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 		};
 
 		for (let i in settings) {
-			if(!settings.hasOwnProperty(i)) {
-				continue;
-			}
-
-			switch(i) {
+			switch (i) {
 				case 'name':
 					values.personaName = settings[i];
 					break;
@@ -193,10 +188,6 @@ SteamCommunity.prototype.profileSettings = function(settings, callback) {
 		let commentPermission = existingSettings.Privacy.eCommentPermission;
 
 		for (let i in settings) {
-			if (!settings.hasOwnProperty(i)) {
-				continue;
-			}
-
 			switch (i) {
 				case 'profile':
 					privacy.PrivacyProfile = settings[i];
@@ -260,7 +251,7 @@ SteamCommunity.prototype.profileSettings = function(settings, callback) {
 };
 
 SteamCommunity.prototype.uploadAvatar = function(image, format, callback) {
-	if(typeof format === 'function') {
+	if (typeof format === 'function') {
 		callback = format;
 		format = null;
 	}
@@ -346,7 +337,7 @@ SteamCommunity.prototype.uploadAvatar = function(image, format, callback) {
 				return;
 			}
 
-			if(!body || !body.success) {
+			if (!body || !body.success) {
 				callback && callback(new Error('Malformed response'));
 				return;
 			}
@@ -394,7 +385,7 @@ SteamCommunity.prototype.uploadAvatar = function(image, format, callback) {
 			}
 
 			doUpload(file);
-		})
+		});
 	}
 };
 

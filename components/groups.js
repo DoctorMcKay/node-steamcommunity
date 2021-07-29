@@ -143,7 +143,7 @@ SteamCommunity.prototype.getAllGroupAnnouncements = function(gid, time, callback
 					date: new Date(announcement.pubDate[0]),
 					author: (typeof announcement.author === 'undefined') ? null : announcement.author[0],
 					aid: splitLink[splitLink.length - 1]
-				}
+				};
 			}).filter(announcement => announcement.date > time);
 
 			return callback(null, announcements);
@@ -171,7 +171,7 @@ SteamCommunity.prototype.postGroupAnnouncement = function(gid, headline, content
 	};
 
 	if (hidden) {
-		form.is_hidden = 'is_hidden'
+		form.is_hidden = 'is_hidden';
 	}
 
 	this.httpRequestPost({
@@ -251,7 +251,7 @@ SteamCommunity.prototype.scheduleGroupEvent = function(gid, name, type, descript
 			break;
 
 		default:
-			if (typeof server != object) {
+			if (typeof server != 'object') {
 				server = {ip: '', password: ''};
 			}
 	}
@@ -314,7 +314,7 @@ SteamCommunity.prototype.editGroupEvent = function(gid, id, name, type, descript
 			break;
 
 		default:
-			if (typeof server != object) {
+			if (typeof server != 'object') {
 				server = {ip: '', password: ''};
 			}
 	}
