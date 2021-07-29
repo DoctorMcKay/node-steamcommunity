@@ -394,7 +394,7 @@ SteamCommunity.prototype.getUserInventoryContexts = function(userID, callback) {
 		let data;
 		try {
 			data = JSON.parse(match[1]);
-		} catch(e) {
+		} catch (e) {
 			callback(new Error('Malformed response'));
 			return;
 		}
