@@ -25,4 +25,4 @@ jobs:
               run: npm install --ignore-scripts
 
             - name: Run ESLint
-              run: eslint . --ext .js,.jsx,.ts.,tsx
+              run: npx eslint . --ext .js,.jsx,.ts.,tsx
