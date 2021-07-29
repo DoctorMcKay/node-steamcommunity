@@ -3,6 +3,7 @@ const Got = require('got');
 const {hex2b64} = require('node-bignumber');
 const Request = require('request');
 const {Key: RSA} = require('node-bignumber');
+const StdLib = require('@doctormckay/stdlib');
 const SteamID = require('steamid');
 const {CookieJar} = require('tough-cookie');
 const Util = require('util');
@@ -58,151 +59,156 @@ SteamCommunity.prototype.login = function(details, callback) {
 		throw new Error('Missing either accountName or password to login; both are needed');
 	}
 
-	if (details.steamguard) {
-		let parts = details.steamguard.split('||');
-		this._setCookie(`steamMachineAuth${parts[0]}=${encodeURIComponent(parts[1])}`, true);
-	}
+	let callbackArgs = ['sessionID', 'cookies', 'steamguard', 'oauthToken'];
+	return StdLib.Promises.callbackPromise(callbackArgs, callback, false, (resolve, reject) => {
+		if (details.steamguard) {
+			let parts = details.steamguard.split('||');
+			this._setCookie(`steamMachineAuth${parts[0]}=${encodeURIComponent(parts[1])}`, true);
+		}
 
-	let disableMobile = details.disableMobile;
+		let disableMobile = details.disableMobile;
 
-	// Delete the cache
-	delete this._profileURL;
+		// Delete the cache
+		delete this._profileURL;
 
-	// headers required to convince steam that we're logging in from a mobile device so that we can get the oAuth data
-	let mobileHeaders = {};
-	if (!disableMobile) {
-		mobileHeaders = {
-			'X-Requested-With': 'com.valvesoftware.android.steam.community',
-			Referer: 'https://steamcommunity.com/mobilelogin?oauth_client_id=DE45CD61&oauth_scope=read_profile%20write_profile%20read_client%20write_client',
-			'User-Agent': this._options.mobileUserAgent || details.mobileUserAgent || 'Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; Google Nexus 4 - 4.1.1 - API 16 - 768x1280 Build/JRO03S) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30',
-			Accept: 'text/javascript, text/html, application/xml, text/xml, */*'
+		// headers required to convince steam that we're logging in from a mobile device so that we can get the oAuth data
+		let mobileHeaders = {};
+		if (!disableMobile) {
+			mobileHeaders = {
+				'X-Requested-With': 'com.valvesoftware.android.steam.community',
+				Referer: 'https://steamcommunity.com/mobilelogin?oauth_client_id=DE45CD61&oauth_scope=read_profile%20write_profile%20read_client%20write_client',
+				'User-Agent': this._options.mobileUserAgent || details.mobileUserAgent || 'Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; Google Nexus 4 - 4.1.1 - API 16 - 768x1280 Build/JRO03S) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30',
+				Accept: 'text/javascript, text/html, application/xml, text/xml, */*'
+			};
+
+			this._setCookie('mobileClientVersion=0 (2.1.3)');
+			this._setCookie('mobileClient=android');
+		} else {
+			mobileHeaders = {Referer: 'https://steamcommunity.com/login'};
+		}
+
+		const deleteMobileCookies = () => {
+			this._setCookie('mobileClientVersion=; max-age=0');
+			this._setCookie('mobileClient=; max-age=0');
 		};
 
-		this._setCookie('mobileClientVersion=0 (2.1.3)');
-		this._setCookie('mobileClient=android');
-	} else {
-		mobileHeaders = {Referer: 'https://steamcommunity.com/login'};
-	}
-
-	const deleteMobileCookies = () => {
-		this._setCookie('mobileClientVersion=; max-age=0');
-		this._setCookie('mobileClient=; max-age=0');
-	};
-
-	this.httpRequestPost('https://steamcommunity.com/login/getrsakey/', {
-		form: {username: details.accountName},
-		headers: mobileHeaders,
-		json: true
-	}, (err, response, body) => {
-		// Remove the mobile cookies
-		if (err) {
-			deleteMobileCookies();
-			callback(err);
-			return;
-		}
-
-		if (!body.publickey_mod || !body.publickey_exp) {
-			deleteMobileCookies();
-			callback(new Error('Invalid RSA key received'));
-			return;
-		}
-
-		let key = new RSA();
-		key.setPublic(body.publickey_mod, body.publickey_exp);
-
-		let formObj = {
-			captcha_text: details.captcha || '',
-			captchagid: this._captchaGid,
-			emailauth: details.authCode || '',
-			emailsteamid: '',
-			password: hex2b64(key.encrypt(details.password)),
-			remember_login: 'true',
-			rsatimestamp: body.timestamp,
-			twofactorcode: details.twoFactorCode || '',
-			username: details.accountName,
-			loginfriendlyname: '',
-			donotcache: Date.now()
-		};
-
-		if (!disableMobile){
-			formObj.oauth_client_id = 'DE45CD61';
-			formObj.oauth_scope = 'read_profile write_profile read_client write_client';
-			formObj.loginfriendlyname = '#login_emailauth_friendlyname_mobile';
-		}
-
-		this.httpRequestPost({
-			uri: 'https://steamcommunity.com/login/dologin/',
-			json: true,
-			form: formObj,
-			headers: mobileHeaders
+		this.httpRequestPost('https://steamcommunity.com/login/getrsakey/', {
+			form: {username: details.accountName},
+			headers: mobileHeaders,
+			json: true
 		}, (err, response, body) => {
-			deleteMobileCookies();
-
+			// Remove the mobile cookies
 			if (err) {
-				callback(err);
-				return;
+				deleteMobileCookies();
+				return reject(err);
 			}
 
-			let error;
-			if (!body.success && body.emailauth_needed) {
-				// Steam Guard (email)
-				error = new Error('SteamGuard');
-				error.emaildomain = body.emaildomain;
+			if (!body.publickey_mod || !body.publickey_exp) {
+				deleteMobileCookies();
+				return reject(new Error('Invalid RSA key received'));
+			}
 
-				callback(error);
-			} else if (!body.success && body.requires_twofactor) {
-				// Steam Guard (app)
-				callback(new Error('SteamGuardMobile'));
-			} else if (!body.success && body.captcha_needed && body.message.match(/Please verify your humanity/)) {
-				error = new Error('CAPTCHA');
-				error.captchaurl = 'https://steamcommunity.com/login/rendercaptcha/?gid=' + body.captcha_gid;
+			let key = new RSA();
+			key.setPublic(body.publickey_mod, body.publickey_exp);
 
-				this._captchaGid = body.captcha_gid;
+			let formObj = {
+				captcha_text: details.captcha || '',
+				captchagid: this._captchaGid,
+				emailauth: details.authCode || '',
+				emailsteamid: '',
+				password: hex2b64(key.encrypt(details.password)),
+				remember_login: 'true',
+				rsatimestamp: body.timestamp,
+				twofactorcode: details.twoFactorCode || '',
+				username: details.accountName,
+				loginfriendlyname: '',
+				donotcache: Date.now()
+			};
 
-				callback(error);
-			} else if (!body.success) {
-				callback(new Error(body.message || 'Unknown error'));
-			} else if (!disableMobile && !body.oauth) {
-				callback(new Error('Malformed response'));
-			} else {
-				let sessionID = this.getSessionID();
-				let oAuth;
+			if (!disableMobile) {
+				formObj.oauth_client_id = 'DE45CD61';
+				formObj.oauth_scope = 'read_profile write_profile read_client write_client';
+				formObj.loginfriendlyname = '#login_emailauth_friendlyname_mobile';
+			}
 
-				let cookies = this._jar.getCookieStringSync('https://steamcommunity.com').split(';').map(cookie => cookie.trim());
+			this.httpRequestPost({
+				uri: 'https://steamcommunity.com/login/dologin/',
+				json: true,
+				form: formObj,
+				headers: mobileHeaders
+			}, (err, response, body) => {
+				deleteMobileCookies();
 
-				if (!disableMobile){
-					oAuth = JSON.parse(body.oauth);
-					this.steamID = new SteamID(oAuth.steamid);
-					this.oAuthToken = oAuth.oauth_token;
+				if (err) {
+					return reject(err);
+				}
+
+				let error;
+				if (!body.success && body.emailauth_needed) {
+					// Steam Guard (email)
+					error = new Error('SteamGuard');
+					error.emaildomain = body.emaildomain;
+
+					return reject(error);
+				} else if (!body.success && body.requires_twofactor) {
+					// Steam Guard (app)
+					return reject(new Error('SteamGuardMobile'));
+				} else if (!body.success && body.captcha_needed && body.message.match(/Please verify your humanity/)) {
+					error = new Error('CAPTCHA');
+					error.captchaurl = 'https://steamcommunity.com/login/rendercaptcha/?gid=' + body.captcha_gid;
+
+					this._captchaGid = body.captcha_gid;
+
+					return reject(error);
+				} else if (!body.success) {
+					return reject(new Error(body.message || 'Unknown error'));
+				} else if (!disableMobile && !body.oauth) {
+					return reject(new Error('Malformed response'));
 				} else {
+					let sessionID = this.getSessionID();
+					let oAuth;
+
+					let cookies = this._jar.getCookieStringSync('https://steamcommunity.com').split(';').map(cookie => cookie.trim());
+
+					if (!disableMobile) {
+						oAuth = JSON.parse(body.oauth);
+						this.steamID = new SteamID(oAuth.steamid);
+						this.oAuthToken = oAuth.oauth_token;
+					} else {
+						for (let i = 0; i < cookies.length; i++) {
+							let parts = cookies[i].split('=');
+							if (parts[0] == 'steamLogin') {
+								this.steamID = new SteamID(decodeURIComponent(parts[1]).split('||')[0]);
+								break;
+							}
+						}
+
+						this.oAuthToken = null;
+					}
+
+					// Find the Steam Guard cookie
+					let steamguard = null;
 					for (let i = 0; i < cookies.length; i++) {
 						let parts = cookies[i].split('=');
-						if (parts[0] == 'steamLogin') {
-							this.steamID = new SteamID(decodeURIComponent(parts[1]).split('||')[0]);
+						if (parts[0] == 'steamMachineAuth' + this.steamID) {
+							steamguard = this.steamID.toString() + '||' + decodeURIComponent(parts[1]);
 							break;
 						}
 					}
 
-					this.oAuthToken = null;
+					// Call setCookies to propagate our cookies to the other domains
+					this.setCookies(cookies);
+
+					return resolve({
+						sessionID,
+						cookies,
+						steamguard,
+						oauthToken: disableMobile ? null : oAuth.oauth_token
+					});
 				}
-
-				// Find the Steam Guard cookie
-				let steamguard = null;
-				for (let i = 0; i < cookies.length; i++) {
-					let parts = cookies[i].split('=');
-					if (parts[0] == 'steamMachineAuth' + this.steamID) {
-						steamguard = this.steamID.toString() + '||' + decodeURIComponent(parts[1]);
-						break;
-					}
-				}
-
-				// Call setCookies to propagate our cookies to the other domains
-				this.setCookies(cookies);
-
-				callback(null, sessionID, cookies, steamguard, disableMobile ? null : oAuth.oauth_token);
-			}
+			}, 'steamcommunity');
 		}, 'steamcommunity');
-	}, 'steamcommunity');
+	});
 };
 
 SteamCommunity.prototype.oAuthLogin = function(steamguard, token, callback) {
