@@ -36,5 +36,8 @@
 	},
 	"devDependencies": {
 		"eslint": "^7.31.0"
+	},
+	"scripts": {
+		"lint": "npx eslint . --ext .js,.jsx,.ts,.tsx"
 	}
 }
