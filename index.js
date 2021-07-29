@@ -1,13 +1,15 @@
 const {EventEmitter} = require('events');
+const Got = require('got');
 const {hex2b64} = require('node-bignumber');
 const Request = require('request');
 const {Key: RSA} = require('node-bignumber');
 const SteamID = require('steamid');
+const {CookieJar} = require('tough-cookie');
 const Util = require('util');
 
 const Helpers = require('./components/helpers.js');
 
-const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36';
+const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36';
 
 Util.inherits(SteamCommunity, EventEmitter);
 
@@ -22,7 +24,7 @@ SteamCommunity.EFriendRelationship = require('./resources/EFriendRelationship.js
 function SteamCommunity(options) {
 	options = options || {};
 
-	this._jar = Request.jar();
+	this._jar = new CookieJar();
 	this._captchaGid = -1;
 	this._httpRequestID = 0;
 
@@ -35,11 +37,6 @@ function SteamCommunity(options) {
 		}
 	};
 
-	if (typeof options == 'string') {
-		options = {
-			localAddress: options
-		};
-	}
 	this._options = options;
 
 	if (options.localAddress) {
@@ -50,10 +47,10 @@ function SteamCommunity(options) {
 	this.request = this.request.defaults(defaults);
 
 	// English
-	this._setCookie(Request.cookie('Steam_Language=english'));
+	this._setCookie('Steam_Language=english');
 
 	// UTC
-	this._setCookie(Request.cookie('timezoneOffset=0,0'));
+	this._setCookie('timezoneOffset=0,0');
 }
 
 SteamCommunity.prototype.login = function(details, callback) {
@@ -63,7 +60,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 
 	if (details.steamguard) {
 		let parts = details.steamguard.split('||');
-		this._setCookie(Request.cookie('steamMachineAuth' + parts[0] + '=' + encodeURIComponent(parts[1])), true);
+		this._setCookie(`steamMachineAuth${parts[0]}=${encodeURIComponent(parts[1])}`, true);
 	}
 
 	let disableMobile = details.disableMobile;
@@ -81,20 +78,15 @@ SteamCommunity.prototype.login = function(details, callback) {
 			Accept: 'text/javascript, text/html, application/xml, text/xml, */*'
 		};
 
-		this._setCookie(Request.cookie('mobileClientVersion=0 (2.1.3)'));
-		this._setCookie(Request.cookie('mobileClient=android'));
+		this._setCookie('mobileClientVersion=0 (2.1.3)');
+		this._setCookie('mobileClient=android');
 	} else {
 		mobileHeaders = {Referer: 'https://steamcommunity.com/login'};
 	}
 
 	const deleteMobileCookies = () => {
-		let cookie = Request.cookie('mobileClientVersion=');
-		cookie.expires = new Date(0);
-		this._setCookie(cookie);
-
-		cookie = Request.cookie('mobileClient=');
-		cookie.expires = new Date(0);
-		this._setCookie(cookie);
+		this._setCookie('mobileClientVersion=; max-age=0');
+		this._setCookie('mobileClient=; max-age=0');
 	};
 
 	this.httpRequestPost('https://steamcommunity.com/login/getrsakey/', {
@@ -173,11 +165,10 @@ SteamCommunity.prototype.login = function(details, callback) {
 			} else if (!disableMobile && !body.oauth) {
 				callback(new Error('Malformed response'));
 			} else {
-				let sessionID = generateSessionID();
+				let sessionID = this.getSessionID();
 				let oAuth;
-				this._setCookie(Request.cookie('sessionid=' + sessionID));
 
-				let cookies = this._jar.getCookieString('https://steamcommunity.com').split(';').map(cookie => cookie.trim());
+				let cookies = this._jar.getCookieStringSync('https://steamcommunity.com').split(';').map(cookie => cookie.trim());
 
 				if (!disableMobile){
 					oAuth = JSON.parse(body.oauth);
@@ -205,6 +196,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 					}
 				}
 
+				// Call setCookies to propagate our cookies to the other domains
 				this.setCookies(cookies);
 
 				callback(null, sessionID, cookies, steamguard, disableMobile ? null : oAuth.oauth_token);
@@ -278,43 +270,50 @@ SteamCommunity.prototype.getClientLogonToken = function(callback) {
 	});
 };
 
+/**
+ * Sets a single cookie in our cookie jar.
+ * @param {string} cookie
+ * @param {boolean} [secure=false]
+ * @private
+ */
 SteamCommunity.prototype._setCookie = function(cookie, secure) {
 	let protocol = secure ? 'https' : 'http';
-	cookie.secure = !!secure;
 
-	this._jar.setCookie(cookie.clone(), protocol + '://steamcommunity.com');
-	this._jar.setCookie(cookie.clone(), protocol + '://store.steampowered.com');
-	this._jar.setCookie(cookie.clone(), protocol + '://help.steampowered.com');
+	this._jar.setCookieSync(cookie, `${protocol}://steamcommunity.com`);
+	this._jar.setCookieSync(cookie, `${protocol}://store.steampowered.com`);
+	this._jar.setCookieSync(cookie, `${protocol}://help.steampowered.com`);
 };
 
+/**
+ * Set one or more cookies in this SteamCommunity's cookie jar.
+ * @param {string|string[]} cookies
+ */
 SteamCommunity.prototype.setCookies = function(cookies) {
+	if (!Array.isArray(cookies)) {
+		cookies = [cookies];
+	}
+
 	cookies.forEach((cookie) => {
 		let cookieName = cookie.match(/(.+)=/)[1];
 		if (cookieName == 'steamLogin' || cookieName == 'steamLoginSecure') {
 			this.steamID = new SteamID(cookie.match(/=(\d+)/)[1]);
 		}
 
-		this._setCookie(Request.cookie(cookie), !!(cookieName.match(/^steamMachineAuth/) || cookieName.match(/Secure$/)));
+		this._setCookie(cookie, !!(cookieName.match(/^steamMachineAuth/) || cookieName.match(/Secure$/)));
 	});
 };
 
-SteamCommunity.prototype.getSessionID = function(host = 'http://steamcommunity.com') {
-	let cookies = this._jar.getCookieString(host).split(';');
-	for (let i = 0; i < cookies.length; i++) {
-		let match = cookies[i].trim().match(/([^=]+)=(.+)/);
-		if (match[1] == 'sessionid') {
-			return decodeURIComponent(match[2]);
-		}
+SteamCommunity.prototype.getSessionID = function() {
+	let sessionIdCookie = this._jar.getCookiesSync('http://steamcommunity.com').find(cookie => cookie.key == 'sessionid');
+	if (sessionIdCookie) {
+		return sessionIdCookie.value;
 	}
 
-	let sessionID = generateSessionID();
-	this._setCookie(Request.cookie('sessionid=' + sessionID));
+	// Generate a new session id
+	let sessionID = require('crypto').randomBytes(12).toString('hex');
+	this._setCookie(`sessionid=${sessionID}`);
 	return sessionID;
 };
-
-function generateSessionID() {
-	return require('crypto').randomBytes(12).toString('hex');
-}
 
 SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
 	let sessionID = this.getSessionID();
