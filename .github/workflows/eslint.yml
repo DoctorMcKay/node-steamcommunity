@@ -1,0 +1,32 @@
+name: ESLint
+
+on: [push, pull_request]
+
+jobs:
+    lint:
+        runs-on: ubuntu-latest
+
+        strategy:
+            matrix:
+                node-version: [8.x]
+
+        steps:
+            - uses: actions/checkout@v1
+              with:
+                  fetch-depth: 1
+
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v1
+              with:
+                  node-version: ${{ matrix.node-version }}
+
+            - name: npm install
+              working-directory: .
+              run: npm install --ignore-scripts
+
+            - name: Run ESLint
+              uses: ninosaurus/eslint-check@v5
+              with:
+                  eslint-config-path: "./.eslintrc.js"
+                  custom-directory: "."
+                  repo-token: ${{secrets.GITHUB_TOKEN}}
