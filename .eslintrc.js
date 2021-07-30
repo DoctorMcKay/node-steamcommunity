@@ -24,7 +24,9 @@ module.exports = {
 		// Require spaces before and after keywords (like "if")
 		'keyword-spacing': 'error',
 		// Don't allow unused variables, but allow unused function args (e.g. in callbacks) and global vars
-		'no-unused-vars': ['error', {vars: 'local', args: 'none'}]
+		'no-unused-vars': ['error', {vars: 'local', args: 'none'}],
+		// Require using dot notation (obj.prop instead of obj['prop']) where possible
+		'dot-notation': 'error'
 
 		// We will NOT be using eqeqeq for a few reasons:
 		//  1. I would have to go through and check every single `==` to make sure that it's not depending on loose equality checks.
