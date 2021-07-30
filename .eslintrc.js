@@ -24,7 +24,7 @@ module.exports = {
 		// Require spaces before and after keywords (like "if")
 		'keyword-spacing': 'error',
 		// Don't allow unused variables, but allow unused function args (e.g. in callbacks) and global vars
-		'no-unused-vars': ['error', {vars: 'local', args: 'none'}],
+		'no-unused-vars': ['error', {vars: 'local', args: 'none', varsIgnorePattern: '^_'}],
 		// Require using dot notation (obj.prop instead of obj['prop']) where possible
 		'dot-notation': 'error',
 		// Don't use spaces before parens in anonymous or named functions
