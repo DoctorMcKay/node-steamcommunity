@@ -552,19 +552,18 @@ SteamCommunity.prototype.getAllGroupComments = function(gid, from, count, callba
 
 		let $ = Cheerio.load(JSON.parse(body).comments_html);
 
-		// !! DO NOT replace this function with an arrow function. We depend on the `this` context inside the function,
-		// which is the comment element.
-		$('.commentthread_comment_content').each(function() {
+		$('.commentthread_comment_content').each((i, element) => {
 			let comment = {};
 
-			let $selector = $(this).find('.commentthread_author_link');
-			comment.authorName = $($selector).find('bdi').text();
-			comment.authorId = $($selector).attr('href').replace(/https?:\/\/steamcommunity.com\/(id|profiles)\//, '');
+			let $element = $(element);
+			let $selector = $($element.find('.commentthread_author_link'));
+			comment.authorName = $selector.find('bdi').text();
+			comment.authorId = $selector.attr('href').replace(/https?:\/\/steamcommunity.com\/(id|profiles)\//, '');
 			comment.date = Helpers.decodeSteamTime($(this).find('.commentthread_comment_timestamp').text().trim());
 
-			$selector = $(this).find('.commentthread_comment_text');
-			comment.commentId = $($selector).attr('id').replace('comment_content_', '');
-			comment.text = $($selector).html().trim();
+			$selector = $($element.find('.commentthread_comment_text'));
+			comment.commentId = $selector.attr('id').replace('comment_content_', '');
+			comment.text = $selector.html().trim();
 
 			comments.push(comment);
 		});
