@@ -1,14 +1,12 @@
 const EResult = require('../resources/EResult.js');
 
+/**
+ * Make sure that a provided input is a valid SteamID object.
+ * @param {object} input
+ * @returns {boolean}
+ */
 exports.isSteamID = function(input) {
-	let keys = Object.keys(input);
-	if (keys.length != 4) {
-		return false;
-	}
-
-	// Make sure it has the keys we expect
-	keys.sort();
-	return keys.join(',') == 'accountid,instance,type,universe';
+	return ['universe', 'type', 'instance', 'accountid'].every(prop => typeof input[prop] == 'number' || typeof input[prop] == 'bigint');
 };
 
 exports.decodeSteamTime = function(time) {
