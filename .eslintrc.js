@@ -26,7 +26,9 @@ module.exports = {
 		// Don't allow unused variables, but allow unused function args (e.g. in callbacks) and global vars
 		'no-unused-vars': ['error', {vars: 'local', args: 'none'}],
 		// Require using dot notation (obj.prop instead of obj['prop']) where possible
-		'dot-notation': 'error'
+		'dot-notation': 'error',
+		// Don't use spaces before parens in anonymous or named functions
+		'space-before-function-paren': ['error', {anonymous: 'never', named: 'never', asyncArrow: 'always'}]
 
 		// We will NOT be using eqeqeq for a few reasons:
 		//  1. I would have to go through and check every single `==` to make sure that it's not depending on loose equality checks.

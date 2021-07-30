@@ -17,7 +17,7 @@ SteamCommunity.prototype.getMarketApps = function(callback) {
 		let $ = Cheerio.load(body);
 		if ($('.market_search_game_button_group')) {
 			let apps = {};
-			$('.market_search_game_button_group a.game_button').each(function (i, element) {
+			$('.market_search_game_button_group a.game_button').each((i, element) => {
 				let e = Cheerio.load(element);
 				let name = e('.game_button_game_name').text().trim();
 				let url = element.attribs.href;

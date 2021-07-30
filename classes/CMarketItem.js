@@ -91,7 +91,7 @@ function CMarketItem(appid, hashName, community, body, $) {
 	// TODO: Buying listings and placing buy orders
 }
 
-CMarketItem.prototype.updatePrice = function (currency, callback) {
+CMarketItem.prototype.updatePrice = function(currency, callback) {
 	if (this.commodity) {
 		this.updatePriceForCommodity(currency, callback);
 	} else {
@@ -142,7 +142,7 @@ CMarketItem.prototype.updatePriceForCommodity = function(currency, callback) {
 	}, 'steamcommunity');
 };
 
-CMarketItem.prototype.updatePriceForNonCommodity = function (currency, callback) {
+CMarketItem.prototype.updatePriceForNonCommodity = function(currency, callback) {
 	if (this.commodity) {
 		throw new Error('Cannot update price for commodity item');
 	}
