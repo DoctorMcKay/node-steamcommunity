@@ -68,7 +68,7 @@ function CSteamUser(community, userData, customurl) {
 	this.isLimitedAccount = processItem('isLimitedAccount') == 1;
 	this.customURL = processItem('customURL', customurl);
 
-	if (this.visibilityState == 3) {
+	if (this.visibilityState == SteamCommunity.PrivacyState.Public) {
 		let memberSinceValue = processItem('memberSince', '0').replace(/(\d{1,2})(st|nd|th)/, '$1');
 
 		if (memberSinceValue.indexOf(',') === -1) {
