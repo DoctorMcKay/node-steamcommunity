@@ -1,0 +1,20 @@
+declare const _exports: {
+    Offline: number;
+    Online: number;
+    Busy: number;
+    Away: number;
+    Snooze: number;
+    LookingToTrade: number;
+    LookingToPlay: number;
+    Invisible: number;
+    "0": string;
+    "1": string;
+    "2": string;
+    "3": string;
+    "4": string;
+    "5": string;
+    "6": string;
+    "7": string;
+};
+export = _exports;
+export type exports = any;

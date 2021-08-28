@@ -1,0 +1,20 @@
+declare const _exports: {
+    None: number;
+    Blocked: number;
+    RequestRecipient: number;
+    Friend: number;
+    RequestInitiator: number;
+    Ignored: number;
+    IgnoredFriend: number;
+    SuggestedFriend: number;
+    "0": string;
+    "1": string;
+    "2": string;
+    "3": string;
+    "4": string;
+    "5": string;
+    "6": string;
+    "7": string;
+};
+export = _exports;
+export type exports = any;
