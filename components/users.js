@@ -322,6 +322,58 @@ SteamCommunity.prototype.getUserAliases = function(userID, callback) {
 	}, "steamcommunity");
 };
 
+SteamCommunity.prototype.getUserAwards = function(userID, callback) {
+	if (!userID) {
+		callback(new Error("No SteamID specified"));
+		return;
+	}
+
+	if (typeof userID === 'string') {
+		userID = new SteamID(userID);
+	}
+
+	this.httpRequestGet({
+		"uri": "https://steamcommunity.com/profiles/" + userID.getSteamID64() + "/awards/?l=english",
+		"json": true
+	}, function(err, response, body) {
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		var $ = Cheerio.load(body);
+		var awards = {"received": [], "given": []};
+		var points = {
+			"received": parseInt($(".profile_awards_header_subtitle:first").text().split("(")[1].match(/\d/g).join(""), 10),
+			"given": parseInt($(".profile_awards_header_subtitle:last").text().split("(")[1].match(/\d/g).join(""), 10),
+		};
+
+		$(".profile_awards_section:first .profile_award").each(function () {
+			var split = $(this).find('.profile_award_name').text().split("(");
+			var name = split[0].trim();
+			var icon = $(this).find('.profile_award_icon').attr('src');
+			var id = parseInt(icon.split("/").pop().split(".")[0], 10);
+			var amount = parseInt(split[1].match(/\d/g).join(""), 10);
+			for (var j = 0; j < amount; j++) {
+				awards.received.push({id, name, icon});
+			}
+		});
+
+		$(".profile_awards_section:last .profile_award").each(function () {
+			var split = $(this).find('.profile_award_name').text().split("(");
+			var name = split[0].trim();
+			var icon = $(this).find('.profile_award_icon').attr('src');
+			var id = parseInt(icon.split("/").pop().split(".")[0], 10);
+			var amount = parseInt(split[1].match(/\d/g).join(""), 10);
+			for (var j = 0; j < amount; j++) {
+				awards.given.push({id, name, icon});
+			}
+		});
+
+		callback(null, awards, points);
+	}, "steamcommunity");
+};
+
 /**
  * Get the background URL of user's profile.
  * @param {SteamID|string} userID - The user's SteamID as a SteamID object or a string which can parse into one

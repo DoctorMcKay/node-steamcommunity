@@ -139,7 +139,6 @@ CSteamUser.prototype.acceptFriendRequest = function(callback) {
 
 CSteamUser.prototype.removeFriend = function(callback) {
 	this._community.removeFriend(this.steamID, callback);
-
 };
 
 CSteamUser.prototype.blockCommunication = function(callback) {
@@ -168,6 +167,14 @@ CSteamUser.prototype.inviteToGroup = function(groupID, callback) {
 
 CSteamUser.prototype.getAliases = function(callback) {
 	this._community.getUserAliases(this.steamID, callback);
+};
+
+CSteamUser.prototype.getAwards = function(callback) {
+	this._community.getUserAwards(this.steamID, callback);
+};
+
+CSteamUser.prototype.awardProfile = function(reactionID, callback) {
+	this._community.awardUserProfile(this.steamID, reactionID, callback);
 };
 
 CSteamUser.prototype.getInventoryContexts = function(callback) {
