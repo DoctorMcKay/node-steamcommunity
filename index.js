@@ -251,6 +251,48 @@ SteamCommunity.prototype.oAuthLogin = function(steamguard, token, callback) {
 };
 
 /**
+ * Sign in through Steam on a third party website via OpenID.
+ * @param {string} url - The Steam OpenID login URL to the third party website.
+ * @param {function} callback
+ */
+SteamCommunity.prototype.openidLogin = function(url, callback) {
+	var self = this;
+	self.httpRequestGet({
+		"uri": url,
+		"followAllRedirects": true
+	}, function(err, response, body) {
+		if(err) {
+			callback(err);
+			return;
+		}
+
+		var $ = Cheerio.load(body);
+		var form = $('#openidForm');
+		if (!form) { // Should exist, even if not logged in
+			callback(new Error('Malformed response'));
+			return;
+		}
+
+		if ($('.OpenID_loggedInText').length === 0) {
+			callback(new Error('Not logged in'));
+			return;
+		}
+
+		var values = {};
+		form.serializeArray().forEach(function(item) {
+			values[item.name] = item.value;
+		});
+
+		self.httpRequestPost("https://steamcommunity.com/openid/login/", {
+			"formData": values,
+			"followAllRedirects": true
+		}, callback);
+	});
+};
+
+SteamCommunity.prototype.signInThroughSteam = SteamCommunity.prototype.openidLogin;
+
+/**
  * Get a token that can be used to log onto Steam using steam-user.
  * @param {function} callback
  */
