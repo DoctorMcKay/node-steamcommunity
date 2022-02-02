@@ -234,10 +234,9 @@ SteamCommunity.prototype.createBoosterPack = function(appid, useUntradableGems, 
 			appid,
 			series: 1,
 			// tradability_preference can be a value 1-3
-			// 1: Prefer using tradable gems
-			// 2: Prefer using tradable gems (this value is sent when you don't have any untradable gems and thus aren't
-			//    prompted whether you want to use tradable or untradable gems, but it appears to work the same as 1)
-			// 3: Prefer using untradable gems
+			// 1: Prefer using tradable gems, but use untradable if necessary
+			// 2: Only use tradable gems
+			// 3: Prefer using untradable gems, but use tradable if necessary
 			tradability_preference: useUntradableGems ? 3 : 2
 		},
 		json: true,
