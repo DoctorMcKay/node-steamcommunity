@@ -106,6 +106,15 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 					values.customURL = settings[i];
 					break;
 
+				case 'primaryGroup':
+					if(typeof settings[i] === 'object' && settings[i].getSteamID64) {
+						values.primary_group_steamid = settings[i].getSteamID64();
+					} else {
+						values.primary_group_steamid = new SteamID(settings[i]).getSteamID64();
+					}
+
+					break;
+
 				// These don't work right now
 				/*
 				case 'background':
@@ -116,15 +125,6 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 				case 'featuredBadge':
 					// Currently, game badges aren't supported
 					values.favorite_badge_badgeid = settings[i];
-					break;
-
-				case 'primaryGroup':
-					if(typeof settings[i] === 'object' && settings[i].getSteamID64) {
-						values.primary_group_steamid = settings[i].getSteamID64();
-					} else {
-						values.primary_group_steamid = new SteamID(settings[i]).getSteamID64();
-					}
-
 					break;
 				*/
 				// TODO: profile showcases
