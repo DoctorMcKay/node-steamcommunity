@@ -6,6 +6,7 @@ const SteamID = require('steamid');
 const Helpers = require('./components/helpers.js');
 
 const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36";
+SteamCommunity.USER_AGENT = USER_AGENT;
 
 require('util').inherits(SteamCommunity, require('events').EventEmitter);
 
@@ -578,6 +579,7 @@ require('./components/webapi.js');
 require('./components/twofactor.js');
 require('./components/confirmations.js');
 require('./components/help.js');
+require('./components/login.js');
 require('./classes/CMarketItem.js');
 require('./classes/CMarketSearchResult.js');
 require('./classes/CSteamGroup.js');
