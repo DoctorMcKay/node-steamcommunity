@@ -166,6 +166,9 @@ SteamCommunity.prototype.loginNew = function(details, callback) {
 				this.setCookies([txResult]); // this should already be set, but just make sure. this also sets our steamID property
 				return {cookies: [txResult], steamID: steamid};
 			}
+
+			// No refresh token received
+			await new Promise(resolve => setTimeout(resolve, interval * 1000));
 		}
 
 		// Polling timed out
