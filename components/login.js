@@ -167,6 +167,9 @@ SteamCommunity.prototype.loginNew = function(details, callback) {
 				return {cookies: [txResult], steamID: steamid};
 			}
 		}
+
+		// Polling timed out
+		throw new Error('Login attempt timed out');
 	};
 
 	exec().then(result => callback(null, result)).catch(err => callback(err));
