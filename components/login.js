@@ -190,6 +190,7 @@ SteamCommunity.prototype._loginApiReq = function(httpMethod, apiMethod, inputDat
 		// We don't *have* to send data as protobufs; service APIs accept data as input_json or just as standard get/post
 		// arguments, and they'll send back json too if we do this. But the official Valve implementation uses protobufs,
 		// and we want to match that as closely as possible.
+		// A script to decode a login session from a har file is provided under /scripts/decode-loginsession.js
 		let proto = Protos[`CAuthentication_${apiMethod}_Request`];
 		let inputBuffer = proto.encode(inputData).finish();
 		httpReqOptions[httpMethod == 'GET' ? 'qs' : 'form'] = {input_protobuf_encoded: inputBuffer.toString('base64')};
