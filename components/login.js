@@ -7,7 +7,7 @@ const Helpers = require('./helpers.js');
 const Protos = require('../protobufs/generated/_load.js');
 
 const EAuthSessionGuardType = require('../resources/EAuthSessionGuardType.js');
-const EPlatformType = require('../resources/EPlatformType.js');
+const EAuthTokenPlatformType = require('../resources/EAuthTokenPlatformType.js');
 const EResult = require('../resources/EResult.js');
 const ESessionPersistence = require('../resources/ESessionPersistence.js');
 
@@ -43,7 +43,7 @@ SteamCommunity.prototype.loginNew = function(details, callback) {
 			encrypted_password: hex2b64(key.encrypt(details.password)), // dunno why valve is sending this as a base64 string and not bytes...
 			encryption_timestamp: timestamp,
 			remember_login: true,
-			platform_type: EPlatformType.Win64,
+			platform_type: EAuthTokenPlatformType.WebBrowser,
 			persistence: ESessionPersistence.Persistent,
 			website_id: 'Community'
 		});
