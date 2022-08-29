@@ -1,11 +1,15 @@
 const {Key: RSA, hex2b64} = require('node-bignumber');
+const Request = require('request');
 
 const SteamCommunity = require('../index.js');
 
 const Helpers = require('./helpers.js');
 const Protos = require('../protobufs/generated/_load.js');
 
+const EAuthSessionGuardType = require('../resources/EAuthSessionGuardType.js');
 const EPlatformType = require('../resources/EPlatformType.js');
+const EResult = require('../resources/EResult.js');
+const ESessionPersistence = require('../resources/ESessionPersistence.js');
 
 const API_HEADERS = {
 	origin: 'https://steamcommunity.com',
@@ -18,8 +22,6 @@ SteamCommunity.prototype.loginNew = function(details, callback) {
 		callback(new Error('Missing either accountName or password to login; both are needed'));
 		return;
 	}
-
-	// TODO figure out email steam guard cookies
 
 	let exec = async () => {
 		this.emit('debug', 'login: retrieving rsa public key');
@@ -36,13 +38,13 @@ SteamCommunity.prototype.loginNew = function(details, callback) {
 		this.emit('debug', 'login: beginning auth session with credentials');
 
 		let startSessionResponse = await this._loginApiReq('POST', 'BeginAuthSessionViaCredentials', {
-			device_friendly_name: SteamCommunity.USER_AGENT,
+			device_friendly_name: details.deviceFriendlyName || SteamCommunity.USER_AGENT,
 			account_name: details.accountName,
 			encrypted_password: hex2b64(key.encrypt(details.password)), // dunno why valve is sending this as a base64 string and not bytes...
 			encryption_timestamp: timestamp,
 			remember_login: true,
 			platform_type: EPlatformType.Win64,
-			persistence: 1,
+			persistence: ESessionPersistence.Persistent,
 			website_id: 'Community'
 		});
 
@@ -54,25 +56,72 @@ SteamCommunity.prototype.loginNew = function(details, callback) {
 			/** @var {Proto_CAuthentication_AllowedConfirmation} conf */
 			let conf = startSessionResponse.allowed_confirmations[i];
 			switch (conf.confirmation_type) {
-				case 2:
-					// Email code required
+				case EAuthSessionGuardType.EmailCode:
+					// email code required
 					if (details.authCode) {
 						this.emit('debug', 'login: using steam guard email code');
 						await this._loginApiReq('POST', 'UpdateAuthSessionWithSteamGuardCode', {
 							client_id: clientId,
 							steamid,
 							code: details.authCode,
-							code_type: 2
+							code_type: EAuthSessionGuardType.EmailCode
 						});
 
 						break;
+					} else if (startSessionResponse.allowed_confirmations.some(c => c.confirmation_type == EAuthSessionGuardType.MachineToken)) {
+						// We need to check if this machine is already authed. Even if we know we don't have a steam guard token,
+						// this is what sends the email.
+
+						let headers = API_HEADERS;
+						if (details.steamguard) {
+							let [steamid, token] = details.steamguard.split('||');
+							headers.cookie = `steamMachineAuth${steamid}=${token}`;
+						}
+
+						this.emit('debug', 'login: email code or machine token required; trying machine token first');
+
+						let machineAuthResponse = await new Promise((resolve, reject) => {
+							this.httpRequestPost({
+								uri: 'https://login.steampowered.com/jwt/checkdevice',
+								form: {
+									clientid: clientId,
+									steamid
+								},
+								headers,
+								json: true
+							}, (err, res, body) => {
+								if (err) {
+									return reject(err);
+								}
+
+								if (res.statusCode != 200) {
+									return reject(new Error(`HTTP error ${res.statusCode} in checkdevice`));
+								}
+
+								this.emit('debug', 'login: checkdevice result: ' + (EResult[body.result] || body.eresult));
+								resolve(body.result == EResult.OK);
+							});
+						});
+
+						if (!machineAuthResponse) {
+							// An email was sent
+							this.emit('debug', 'login: a steam guard email was sent to ' + conf.associated_message);
+							let err = new Error('SteamGuard');
+							err.emaildomain = conf.associated_message;
+							throw err;
+						}
+
+						this.emit('debug', 'login: checkdevice succeeded');
+						// Auth succeeded
+						break;
 					} else {
+						this.emit('debug', 'login: an email code is required and machine token is not allowed');
 						let err = new Error('SteamGuard');
 						err.emaildomain = conf.associated_message;
 						throw err;
 					}
 
-				case 3:
+				case EAuthSessionGuardType.DeviceCode:
 					// TOTP code required
 					if (details.twoFactorCode) {
 						this.emit('debug', 'login: using steam guard totp code');
@@ -80,7 +129,7 @@ SteamCommunity.prototype.loginNew = function(details, callback) {
 							client_id: clientId,
 							steamid,
 							code: details.twoFactorCode,
-							code_type: 3
+							code_type: EAuthSessionGuardType.DeviceCode
 						});
 
 						break;
@@ -109,7 +158,7 @@ SteamCommunity.prototype.loginNew = function(details, callback) {
 			if (refreshToken) {
 				// Access token doesn't seem to be used for anything that I can see right now
 				let finalizeResponse = await new Promise((resolve, reject) => {
-					this.emit('debug', 'login: finalizing login using refresh token');
+					this.emit('debug', 'login: finalizing login using refresh token: ' + refreshToken);
 					this.httpRequestPost({
 						uri: 'https://login.steampowered.com/jwt/finalizelogin',
 						form: {
@@ -162,9 +211,11 @@ SteamCommunity.prototype.loginNew = function(details, callback) {
 					});
 				}));
 
-				let txResult = await Promise.any(transfers);
+				let txResult = await promiseAny(transfers);
 				this.setCookies([txResult]); // this should already be set, but just make sure. this also sets our steamID property
-				return {cookies: [txResult], steamID: steamid};
+
+				// TODO: this steamguard value isn't yet valid until we logout with it
+				return {cookies: [txResult], steamID: steamid, steamguard: `${steamid}||${refreshToken}`};
 			}
 
 			// No refresh token received
@@ -175,7 +226,11 @@ SteamCommunity.prototype.loginNew = function(details, callback) {
 		throw new Error('Login attempt timed out');
 	};
 
-	exec().then(result => callback(null, result)).catch(err => callback(err));
+	// Use process.nextTick before invoking callbacks to avoid swallowing errors thrown in the user's code,
+	// since that would get treated as an unhandled promise rejection.
+	exec()
+		.then(result => process.nextTick(() => callback(null, result)))
+		.catch(err => process.nextTick(() => callback(err)));
 }
 
 SteamCommunity.prototype._loginApiReq = function(httpMethod, apiMethod, inputData) {
@@ -261,3 +316,28 @@ SteamCommunity.prototype._loginApiReq = function(httpMethod, apiMethod, inputDat
 		});
 	})
 };
+
+/**
+ * @param {Promise[]} promises
+ * @returns {Promise}
+ */
+function promiseAny(promises) {
+	// for node <15 compat
+	return new Promise((resolve, reject) => {
+		let pendingPromises = promises.length;
+		let rejections = [];
+		promises.forEach((promise) => {
+			promise.then((result) => {
+				pendingPromises--;
+				resolve(result);
+			}).catch((err) => {
+				pendingPromises--;
+				rejections.push(err);
+
+				if (pendingPromises == 0) {
+					reject(rejections[0]);
+				}
+			})
+		});
+	});
+}

@@ -20,6 +20,9 @@
 		"type": "git",
 		"url": "https://github.com/DoctorMcKay/node-steamcommunity.git"
 	},
+	"scripts": {
+		"generate-protos": "node scripts/generate-protos.js"
+	},
 	"dependencies": {
 		"async": "^2.6.3",
 		"cheerio": "0.22.0",
