@@ -10,9 +10,13 @@ SteamCommunity.TargetType = {
 
 SteamCommunity.prototype.getPointsSummary = function(callback) {
 	this.httpRequestGet({
-		"uri": "https://api.steampowered.com/ILoyaltyRewardsService/GetSummary/v1?access_token=" +
-			this.getAccessToken() + "&input_json=%7B%22steamid%22:%22" +
-			this.steamID.toString() + "%22%7D",
+		"uri": "https://api.steampowered.com/ILoyaltyRewardsService/GetSummary/v1",
+		"qs": {
+			"access_token": this.getAccessToken(),
+			"input_json": JSON.stringify({
+				"steamid": this.steamID.toString()
+			})
+		},
 		"json": true
 	}, (err, response, body) => {
 		if (err) {
@@ -31,7 +35,10 @@ SteamCommunity.prototype.getPointsSummary = function(callback) {
 
 SteamCommunity.prototype.listReactions = function(callback) {
 	this.httpRequestGet({
-		"uri": "https://api.steampowered.com/ILoyaltyRewardsService/GetReactionConfig/v1?input_json=%7B%7D",
+		"uri": "https://api.steampowered.com/ILoyaltyRewardsService/GetReactionConfig/v1",
+		"qs": {
+			"input_json": "{}"
+		},
 		"json": true
 	}, (err, response, body) => {
 		if (err) {
@@ -50,9 +57,16 @@ SteamCommunity.prototype.listReactions = function(callback) {
 
 SteamCommunity.prototype.award = function(targetType, targetID, reactionID, callback) {
 	this.httpRequestPost({
-		"uri": "https://api.steampowered.com/ILoyaltyRewardsService/AddReaction/v1?access_token=" + this.getAccessToken(),
+		"uri": "https://api.steampowered.com/ILoyaltyRewardsService/AddReaction/v1",
+		"qs": {
+			"access_token": this.getAccessToken()
+		},
 		"form": {
-			"input_json": `{ "target_type": "${targetType}", "targetid": "${targetID}", "reactionid": "${reactionID}" }`
+			"input_json": JSON.stringify({
+				"target_type": targetType,
+				"targetid": targetID,
+				"reactionid": reactionID
+			})
 		},
 		"json": true
 	}, function(err, response, body) { // TODO: Investigate body

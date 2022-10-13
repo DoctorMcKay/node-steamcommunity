@@ -333,7 +333,10 @@ SteamCommunity.prototype.getUserAwards = function(userID, callback) {
 	}
 
 	this.httpRequestGet({
-		"uri": "https://steamcommunity.com/profiles/" + userID.getSteamID64() + "/awards/?l=english",
+		"uri": "https://steamcommunity.com/profiles/" + userID.getSteamID64() + "/awards",
+		"qs": {
+			"l": "english"
+		},
 		"json": true
 	}, function(err, response, body) {
 		if (err) {
@@ -707,7 +710,10 @@ SteamCommunity.prototype.sendImageToUser = function(userID, imageContentsBuffer,
 	var filename = Date.now() + '_image.' + imageDetails.type;
 
 	this.httpRequestPost({
-		uri: 'https://steamcommunity.com/chat/beginfileupload/?l=english',
+		uri: 'https://steamcommunity.com/chat/beginfileupload/',
+		qs: {
+			"l": "english",
+		},
 		headers: {
 			referer: 'https://steamcommunity.com/chat/'
 		},
