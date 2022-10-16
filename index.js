@@ -266,6 +266,12 @@ SteamCommunity.prototype.openidLogin = function(url, callback) {
 			return;
 		}
 
+		var { host, pathname } = response.request.uri;
+		if (host !== 'steamcommunity.com' || !pathname.startWith('/openid/login')) {
+			callback(new Error(`Unexpected redirect to ${host}${pathname} (expected steamcommunity.com/openid/login)`));
+			return;
+		}
+
 		var $ = Cheerio.load(body);
 		var form = $('#openidForm');
 		if (!form) { // Should exist, even if not logged in
@@ -274,7 +280,7 @@ SteamCommunity.prototype.openidLogin = function(url, callback) {
 		}
 
 		if ($('.OpenID_loggedInText').length === 0) {
-			callback(new Error('Not logged in'));
+			callback(new Error('Not Logged In'));
 			return;
 		}
 
