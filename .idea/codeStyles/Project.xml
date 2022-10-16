@@ -1,8 +1,5 @@
 <component name="ProjectCodeStyleConfiguration">
   <code_scheme name="Project" version="173">
-    <XML>
-      <option name="XML_LEGACY_SETTINGS_IMPORTED" value="true" />
-    </XML>
     <codeStyleSettings language="JSON">
       <indentOptions>
         <option name="USE_TAB_CHARACTER" value="true" />

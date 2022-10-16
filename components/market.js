@@ -149,6 +149,124 @@ SteamCommunity.prototype.openBoosterPack = function(appid, assetid, callback) {
 };
 
 /**
+ * Get the booster pack catalog to see what booster packs you can create
+ * @param {function} callback
+ */
+SteamCommunity.prototype.getBoosterPackCatalog = function(callback) {
+	this.httpRequestGet('https://steamcommunity.com/tradingcards/boostercreator/', (err, res, body) => {
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		let idx = body.indexOf('CBoosterCreatorPage.Init(');
+		if (idx == -1) {
+			callback(new Error('Malformed response'));
+			return;
+		}
+
+		let lines = body.slice(idx).split('\n').map(l => l.trim());
+
+		for (let i = 1; i <= 4; i++) {
+			if (typeof lines[i] != 'string' || !lines[i].match(/,$/)) {
+				let err = new Error('Malformed response');
+				err.line = i;
+				callback(err);
+				return;
+			}
+
+			lines[i] = lines[i].replace(/,$/, '');
+		}
+
+		let boosterPackCatalog, totalGems, tradableGems, untradableGems;
+		try {
+			boosterPackCatalog = JSON.parse(lines[1]);
+			totalGems = parseInt(lines[2].match(/\d+/)[0], 10);
+			tradableGems = parseInt(lines[3].match(/\d+/)[0], 10);
+			untradableGems = parseInt(lines[4].match(/\d+/)[0], 10);
+		} catch (ex) {
+			let err = new Error('Malformed response');
+			err.inner = ex;
+			callback(err);
+			return;
+		}
+
+		let keyedCatalog = {};
+		boosterPackCatalog.forEach((app) => {
+			app.price = parseInt(app.price, 10);
+			app.unavailable = app.unavailable || false;
+			app.availableAtTime = app.available_at_time || null;
+
+			if (typeof app.availableAtTime == 'string') {
+				app.availableAtTime = Helpers.decodeSteamTime(app.availableAtTime);
+			}
+
+			delete app.available_at_time;
+
+			keyedCatalog[app.appid] = app;
+		});
+
+		callback(null, {
+			totalGems,
+			tradableGems,
+			untradableGems,
+			catalog: keyedCatalog
+		});
+	});
+};
+
+/**
+ * Create a booster pack using gems.
+ * @param {int} appid
+ * @param {boolean} [useUntradableGems=false]
+ * @param callback
+ */
+SteamCommunity.prototype.createBoosterPack = function(appid, useUntradableGems, callback) {
+	if (typeof useUntradableGems == 'function') {
+		callback = useUntradableGems;
+		useUntradableGems = false;
+	}
+
+	this.httpRequestPost({
+		uri: 'https://steamcommunity.com/tradingcards/ajaxcreatebooster/',
+		form: {
+			sessionid: this.getSessionID(),
+			appid,
+			series: 1,
+			// tradability_preference can be a value 1-3
+			// 1: Prefer using tradable gems, but use untradable if necessary
+			// 2: Only use tradable gems
+			// 3: Prefer using untradable gems, but use tradable if necessary
+			tradability_preference: useUntradableGems ? 3 : 2
+		},
+		json: true,
+		checkHttpError: false
+	}, (err, res, body) => {
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (body.purchase_eresult && body.purchase_eresult != 1) {
+			callback(Helpers.eresultError(body.purchase_eresult));
+			return;
+		}
+
+		// We can now check HTTP status codes
+		if (this._checkHttpError(err, res, callback, body)) {
+			return;
+		}
+
+		callback(null, {
+			totalGems: parseInt(body.goo_amount, 10),
+			tradableGems: parseInt(body.tradable_goo_amount, 10),
+			untradableGems: parseInt(body.untradable_goo_amount, 10),
+			resultItem: body.purchase_result
+		});
+	});
+};
+
+/**
  * Get details about a gift in your inventory.
  * @param {string} giftID
  * @param {function} callback

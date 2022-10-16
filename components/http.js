@@ -124,7 +124,7 @@ SteamCommunity.prototype._checkCommunityError = function(html, callback) {
 		return err;
 	}
 
-	if (typeof html === 'string' && html.match(/g_steamID = false;/) && html.match(/<h1>Sign In<\/h1>/)) {
+	if (typeof html === 'string' && html.indexOf('g_steamID = false;') > -1 && html.indexOf('<title>Sign In</title>') > -1) {
 		err = new Error("Not Logged In");
 		callback(err);
 		this._notifySessionExpired(err);
