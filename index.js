@@ -295,6 +295,9 @@ SteamCommunity.prototype._setCookie = function(cookie, secure) {
 };
 
 SteamCommunity.prototype.setCookies = function(cookies) {
+	
+	if(cookies == undefined) return;
+	
 	cookies.forEach((cookie) => {
 		var cookieName = cookie.match(/(.+)=/)[1];
 		if (cookieName == 'steamLogin' || cookieName == 'steamLoginSecure') {
