@@ -60,6 +60,58 @@ SteamCommunity.prototype.postSharedfileComment = function(userID, sid, message, 
 };
 
 /**
+ * Subscribes to a sharedfile's comment section. Note: Checkbox on webpage does not update
+ * @param {SteamID | String} userID ID of the user associated to this sharedfile
+ * @param {String} sid ID of the sharedfileof
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+Bot.prototype.subscribeSharedfileComments = function(userID, sid, callback) {
+    if (typeof userID === "string") {
+        userID = new SteamID(userID);
+    }
+
+    this.httpRequestPost({
+        "uri": `https://steamcommunity.com/comment/PublishedFile_Public/subscribe/${userID.toString()}/${sid}/`,
+        "form": {
+            "count": 10,
+            "sessionid": this.getSessionID()
+        }
+    }, function(err, response, body) { // eslint-disable-line
+        if (!callback) {
+            return;
+        }
+
+        callback(null || err);
+    }, "steamcommunity");
+};
+
+/**
+ * Unsubscribes from a sharedfile's comment section. Note: Checkbox on webpage does not update
+ * @param {SteamID | String} userID - ID of the user associated to this sharedfile
+ * @param {String} sid - ID of the sharedfileof
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+Bot.prototype.unsubscribeSharedfileComments = function(userID, sid, callback) {
+    if (typeof userID === "string") {
+        userID = new SteamID(userID);
+    }
+
+    this.httpRequestPost({
+        "uri": `https://steamcommunity.com/comment/PublishedFile_Public/unsubscribe/${userID.toString()}/${sid}/`,
+        "form": {
+            "count": 10,
+            "sessionid": this.getSessionID()
+        }
+    }, function(err, response, body) { // eslint-disable-line
+        if (!callback) {
+            return;
+        }
+
+        callback(null || err);
+    }, "steamcommunity");
+};
+
+/**
  * Downvotes a sharedfile
  * @param {String} sid - ID of the sharedfile
  * @param {function} callback - Takes only an Error object/null as the first argument
