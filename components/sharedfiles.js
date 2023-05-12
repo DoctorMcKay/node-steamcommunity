@@ -32,6 +32,28 @@ SteamCommunity.prototype.deleteSharedfileComment = function(userID, sid, cid, ca
 };
 
 /**
+ * Favorites a sharedfile
+ * @param {String} sid - ID of the sharedfile
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+/* SteamCommunity.prototype.favoriteSharedfile = function(sid, callback) {
+    this.httpRequestPost({
+        "uri": "https://steamcommunity.com/sharedfiles/favorite",
+        "form": {
+            "id": sid,
+            "appid": , // TODO: How to get appid the sharedfile is associated to?
+            "sessionid": this.getSessionID()
+        }
+    }, function(err, response, body) {
+        if (!callback) {
+            return;
+        }
+
+        callback(null || err);
+    }, "steamcommunity");
+}; */
+
+/**
  * Posts a comment to a sharedfile
  * @param {SteamID | String} userID - ID of the user associated to this sharedfile
  * @param {String} sid - ID of the sharedfile
@@ -84,6 +106,28 @@ Bot.prototype.subscribeSharedfileComments = function(userID, sid, callback) {
         callback(null || err);
     }, "steamcommunity");
 };
+
+/**
+ * Unfavorites a sharedfile
+ * @param {String} sid - ID of the sharedfile
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+/* SteamCommunity.prototype.unfavoriteSharedfile = function(sid, callback) {
+    this.httpRequestPost({
+        "uri": "https://steamcommunity.com/sharedfiles/unfavorite",
+        "form": {
+            "id": sid,
+            "appid": , // TODO: How to get appid the sharedfile is associated to?
+            "sessionid": this.getSessionID()
+        }
+    }, function(err, response, body) {
+        if (!callback) {
+            return;
+        }
+
+        callback(null || err);
+    }, "steamcommunity");
+}; */
 
 /**
  * Unsubscribes from a sharedfile's comment section. Note: Checkbox on webpage does not update
