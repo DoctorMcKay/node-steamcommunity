@@ -87,7 +87,7 @@ SteamCommunity.prototype.postSharedfileComment = function(userID, sid, message, 
  * @param {String} sid ID of the sharedfileof
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
-Bot.prototype.subscribeSharedfileComments = function(userID, sid, callback) {
+SteamCommunity.prototype.subscribeSharedfileComments = function(userID, sid, callback) {
     if (typeof userID === "string") {
         userID = new SteamID(userID);
     }
@@ -135,7 +135,7 @@ Bot.prototype.subscribeSharedfileComments = function(userID, sid, callback) {
  * @param {String} sid - ID of the sharedfileof
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
-Bot.prototype.unsubscribeSharedfileComments = function(userID, sid, callback) {
+SteamCommunity.prototype.unsubscribeSharedfileComments = function(userID, sid, callback) {
     if (typeof userID === "string") {
         userID = new SteamID(userID);
     }
