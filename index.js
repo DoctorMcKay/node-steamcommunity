@@ -573,6 +573,7 @@ require('./components/profile.js');
 require('./components/market.js');
 require('./components/groups.js');
 require('./components/users.js');
+require("./components/sharedfiles.js");
 require('./components/inventoryhistory.js');
 require('./components/webapi.js');
 require('./components/twofactor.js');
