@@ -1,7 +1,6 @@
 var SteamCommunity = require('../index.js');
 var SteamID = require('steamid');
 
-// Note: a CSteamSharedfile class does not exist because we can't get data using the "normal" xml way to fill a CSteamSharedfile object
 
 /**
  * Deletes a comment from a sharedfile's comment section
@@ -85,7 +84,7 @@ SteamCommunity.prototype.postSharedfileComment = function(userID, sid, message, 
 /**
  * Subscribes to a sharedfile's comment section. Note: Checkbox on webpage does not update
  * @param {SteamID | String} userID ID of the user associated to this sharedfile
- * @param {String} sid ID of the sharedfileof
+ * @param {String} sid ID of the sharedfile
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
 SteamCommunity.prototype.subscribeSharedfileComments = function(userID, sid, callback) {
@@ -134,7 +133,7 @@ SteamCommunity.prototype.unfavoriteSharedfile = function(sid, appid, callback) {
 /**
  * Unsubscribes from a sharedfile's comment section. Note: Checkbox on webpage does not update
  * @param {SteamID | String} userID - ID of the user associated to this sharedfile
- * @param {String} sid - ID of the sharedfileof
+ * @param {String} sid - ID of the sharedfile
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
 SteamCommunity.prototype.unsubscribeSharedfileComments = function(userID, sid, callback) {

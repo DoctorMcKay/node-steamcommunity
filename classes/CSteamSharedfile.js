@@ -129,9 +129,8 @@ SteamCommunity.prototype.getSteamSharedfile = function(sid, callback) {
         } catch (err) {
             callback(err, null);
         }
-    });
-}
-
+    }, "steamcommunity");
+};
 
 function CSteamSharedfile(community, data) {
     this._community = community;
