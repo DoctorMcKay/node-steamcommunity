@@ -64,14 +64,6 @@ SteamCommunity.prototype.getSteamSharedfile = function(sid, callback) {
             sharedfile.appID = Number($("#ShareItemBtn").attr()["onclick"].replace(`ShowSharePublishedFilePopup( '${sid}', '`, "").replace("' );", ""))
 
 
-            // Find owner profile link, convert to steamID64 using steamIdResolver lib and create a SteamID object
-            let ownerHref = $(".friendBlockLinkOverlay").attr()["href"];
-
-            steamIdResolver.customUrlToSteamID64(ownerHref, (err, steamID64) => { // Note: Callback will be called before this is done, takes around 1 sec to populate
-                if (!err) sharedfile.owner = new SteamID(steamID64);
-            });
-
-
             // Find fileSize if not guide
             sharedfile.fileSize = detailsStatsObj["File Size"] || null; // TODO: Convert to bytes? It seems like to always be MB but no guarantee
 
@@ -124,7 +116,15 @@ SteamCommunity.prototype.getSteamSharedfile = function(sid, callback) {
             if (breadcrumb.includes("Guide"))      sharedfile.type = ESharedfileType.Guide;
 
 
-            callback(null, new CSteamSharedfile(this, sharedfile));
+            // Find owner profile link, convert to steamID64 using steamIdResolver lib and create a SteamID object
+            let ownerHref = $(".friendBlockLinkOverlay").attr()["href"];
+
+            steamIdResolver.customUrlToSteamID64(ownerHref, (err, steamID64) => { // This request takes <1 sec
+                if (!err) sharedfile.owner = new SteamID(steamID64);
+
+                // Make callback when ID was resolved as otherwise owner will always be null
+                callback(null, new CSteamSharedfile(this, sharedfile));
+            });
 
         } catch (err) {
             callback(err, null);
@@ -156,7 +156,7 @@ function CSteamSharedfile(community, data) {
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
 CSteamSharedfile.prototype.deleteComment = function(cid, callback) {
-    this._community.deleteSharedfileComment(this.userID, this.sid, cid, callback);
+    this._community.deleteSharedfileComment(this.userID, this.id, cid, callback);
 };
 
 /**
@@ -164,7 +164,7 @@ CSteamSharedfile.prototype.deleteComment = function(cid, callback) {
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
 CSteamSharedfile.prototype.favorite = function(callback) {
-    this._community.favoriteSharedfile(this.sid, this.appID, callback);
+    this._community.favoriteSharedfile(this.id, this.appID, callback);
 };
 
 /**
@@ -173,7 +173,7 @@ CSteamSharedfile.prototype.favorite = function(callback) {
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
 CSteamSharedfile.prototype.comment = function(message, callback) {
-    this._community.postSharedfileComment(this.owner, this.sid, message, callback);
+    this._community.postSharedfileComment(this.owner, this.id, message, callback);
 };
 
 /**
@@ -181,7 +181,7 @@ CSteamSharedfile.prototype.comment = function(message, callback) {
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
 CSteamSharedfile.prototype.subscribe = function(callback) {
-    this._community.subscribeSharedfileComments(this.owner, this.sid, callback);
+    this._community.subscribeSharedfileComments(this.owner, this.id, callback);
 };
 
 /**
@@ -189,7 +189,7 @@ CSteamSharedfile.prototype.subscribe = function(callback) {
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
 CSteamSharedfile.prototype.unfavorite = function(callback) {
-    this._community.unfavoriteSharedfile(this.sid, this.appID, callback);
+    this._community.unfavoriteSharedfile(this.id, this.appID, callback);
 };
 
 /**
@@ -197,7 +197,7 @@ CSteamSharedfile.prototype.unfavorite = function(callback) {
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
 CSteamSharedfile.prototype.unsubscribe = function(callback) {
-    this._community.unsubscribeSharedfileComments(this.owner, this.sid, callback);
+    this._community.unsubscribeSharedfileComments(this.owner, this.id, callback);
 };
 
 /**
@@ -205,7 +205,7 @@ CSteamSharedfile.prototype.unsubscribe = function(callback) {
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
 CSteamSharedfile.prototype.voteDown = function(callback) {
-    this._community.voteDownSharedfile(this.sid, callback);
+    this._community.voteDownSharedfile(this.id, callback);
 };
 
 /**
@@ -213,5 +213,5 @@ CSteamSharedfile.prototype.voteDown = function(callback) {
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
 CSteamSharedfile.prototype.voteUp = function(callback) {
-    this._community.voteUpSharedfile(this.sid, callback);
+    this._community.voteUpSharedfile(this.id, callback);
 };
