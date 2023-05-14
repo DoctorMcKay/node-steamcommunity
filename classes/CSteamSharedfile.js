@@ -1,7 +1,8 @@
 const Cheerio = require("cheerio");
 const SteamID = require("steamid");
+const Helpers = require('../components/helpers.js');
 const SteamCommunity  = require("../index.js");
-const steamIdResolver = require("steamid-resolver");
+const SteamIdResolver = require("steamid-resolver");
 const ESharedfileType = require("../resources/ESharedfileType.js");
 
 
@@ -67,28 +68,11 @@ SteamCommunity.prototype.getSteamSharedfile = function(sid, callback) {
             // Find fileSize if not guide
             sharedfile.fileSize = detailsStatsObj["File Size"] || null; // TODO: Convert to bytes? It seems like to always be MB but no guarantee
 
-            // Find postDate and convert to timestamp (Warning: Will get ugly)
-            let posted = detailsStatsObj["Posted"].replace(/,|@/g, "").split(" "); // Remove comma behind month and @, the date & time separator. Split by space to get: Day, Month, Year (if not current) and time
-            let months = { "Jan": "01", "Feb": "02", "Mar": "03", "Apr": "04", "May": "05", "Jun": "06", "Jul": "07", "Aug": "08", "Sep": "09", "Oct": "10", "Nov": "11", "Dec": "12" }; // Map all month abbreviations
 
-            if (posted[0].split(":")[0].length == 1) posted[0] = "0" + posted[0]; // Add zero if day is <10 to have a fixed length 
+            // Find postDate and convert to timestamp
+            let posted = detailsStatsObj["Posted"].trim();
 
-            posted[1] = months[posted[1]]; // Replace month abbreviation with corresponding Number
-
-            if (!posted[2]) posted[2] = new Date().getUTCFullYear().toString(); // Add current year if Steam did not list one
-                else posted.splice(3, 1); // ...otherwise remove element 3 as it will be an empty String
-
-            // Convert AM/PM time to 24h format - Credit: https://stackoverflow.com/a/40197728 (Modified)
-            if (posted[3].split(":")[0].length == 1) posted[3] = "0" + posted[3]; // Add zero if hour is <10 to have a fixed length 
-
-            let time     = posted[3].substring(0, 5);
-            let modifier = posted[3].substring(5, 7);
-            let [hours, minutes] = time.split(":");
-            
-            if (hours === "12") hours = "00";
-            if (modifier === "pm") hours = parseInt(hours, 10) + 12;
-
-            sharedfile.postDate = Date.parse(`${posted[2]}-${posted[1]}-${posted[0]}T${hours}:${minutes}:00.000Z`); // Construct Date String and parse it to get Unix timestamp
+            sharedfile.postDate = Date.parse(Helpers.decodeSteamTime(posted)); // Pass String into helper and parse the returned String to get a Unix timestamp
 
 
             // Find resolution if artwork or screenshot
@@ -116,10 +100,10 @@ SteamCommunity.prototype.getSteamSharedfile = function(sid, callback) {
             if (breadcrumb.includes("Guide"))      sharedfile.type = ESharedfileType.Guide;
 
 
-            // Find owner profile link, convert to steamID64 using steamIdResolver lib and create a SteamID object
+            // Find owner profile link, convert to steamID64 using SteamIdResolver lib and create a SteamID object
             let ownerHref = $(".friendBlockLinkOverlay").attr()["href"];
 
-            steamIdResolver.customUrlToSteamID64(ownerHref, (err, steamID64) => { // This request takes <1 sec
+            SteamIdResolver.customUrlToSteamID64(ownerHref, (err, steamID64) => { // This request takes <1 sec
                 if (!err) sharedfile.owner = new SteamID(steamID64);
 
                 // Make callback when ID was resolved as otherwise owner will always be null
