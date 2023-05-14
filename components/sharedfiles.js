@@ -34,14 +34,15 @@ SteamCommunity.prototype.deleteSharedfileComment = function(userID, sid, cid, ca
 /**
  * Favorites a sharedfile
  * @param {String} sid - ID of the sharedfile
+ * @param {String} appid - ID of the app associated to this sharedfile
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
-/* SteamCommunity.prototype.favoriteSharedfile = function(sid, callback) {
+SteamCommunity.prototype.favoriteSharedfile = function(sid, appid, callback) {
     this.httpRequestPost({
         "uri": "https://steamcommunity.com/sharedfiles/favorite",
         "form": {
             "id": sid,
-            "appid": , // TODO: How to get appid the sharedfile is associated to?
+            "appid": appid,
             "sessionid": this.getSessionID()
         }
     }, function(err, response, body) {
@@ -51,7 +52,7 @@ SteamCommunity.prototype.deleteSharedfileComment = function(userID, sid, cid, ca
 
         callback(null || err);
     }, "steamcommunity");
-}; */
+};
 
 /**
  * Posts a comment to a sharedfile
@@ -110,14 +111,15 @@ SteamCommunity.prototype.subscribeSharedfileComments = function(userID, sid, cal
 /**
  * Unfavorites a sharedfile
  * @param {String} sid - ID of the sharedfile
+ * @param {String} appid - ID of the app associated to this sharedfile
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
-/* SteamCommunity.prototype.unfavoriteSharedfile = function(sid, callback) {
+SteamCommunity.prototype.unfavoriteSharedfile = function(sid, appid, callback) {
     this.httpRequestPost({
         "uri": "https://steamcommunity.com/sharedfiles/unfavorite",
         "form": {
             "id": sid,
-            "appid": , // TODO: How to get appid the sharedfile is associated to?
+            "appid": appid,
             "sessionid": this.getSessionID()
         }
     }, function(err, response, body) {
@@ -127,7 +129,7 @@ SteamCommunity.prototype.subscribeSharedfileComments = function(userID, sid, cal
 
         callback(null || err);
     }, "steamcommunity");
-}; */
+};
 
 /**
  * Unsubscribes from a sharedfile's comment section. Note: Checkbox on webpage does not update
