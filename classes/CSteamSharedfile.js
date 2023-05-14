@@ -149,3 +149,69 @@ function CSteamSharedfile(community, data) {
     this.favoritesCount = data.favoritesCount;
     this.upvoteCount = data.upvoteCount; */
 }
+
+/**
+ * Deletes a comment from this sharedfile's comment section
+ * @param {String} cid - ID of the comment to delete
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+CSteamSharedfile.prototype.deleteComment = function(cid, callback) {
+    this._community.deleteSharedfileComment(this.userID, this.sid, cid, callback);
+};
+
+/**
+ * Favorites this sharedfile
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+CSteamSharedfile.prototype.favorite = function(callback) {
+    this._community.favoriteSharedfile(this.sid, this.appID, callback);
+};
+
+/**
+ * Posts a comment to this sharedfile
+ * @param {String} message - Content of the comment to post
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+CSteamSharedfile.prototype.comment = function(message, callback) {
+    this._community.postSharedfileComment(this.owner, this.sid, message, callback);
+};
+
+/**
+ * Subscribes to this sharedfile's comment section. Note: Checkbox on webpage does not update
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+CSteamSharedfile.prototype.subscribe = function(callback) {
+    this._community.subscribeSharedfileComments(this.owner, this.sid, callback);
+};
+
+/**
+ * Unfavorites this sharedfile
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+CSteamSharedfile.prototype.unfavorite = function(callback) {
+    this._community.unfavoriteSharedfile(this.sid, this.appID, callback);
+};
+
+/**
+ * Unsubscribes from this sharedfile's comment section. Note: Checkbox on webpage does not update
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+CSteamSharedfile.prototype.unsubscribe = function(callback) {
+    this._community.unsubscribeSharedfileComments(this.owner, this.sid, callback);
+};
+
+/**
+ * Downvotes this sharedfile
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+CSteamSharedfile.prototype.voteDown = function(callback) {
+    this._community.voteDownSharedfile(this.sid, callback);
+};
+
+/**
+ * Upvotes this sharedfile
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+CSteamSharedfile.prototype.voteUp = function(callback) {
+    this._community.voteUpSharedfile(this.sid, callback);
+};
