@@ -2,14 +2,13 @@ const Cheerio = require('cheerio');
 const SteamID = require('steamid');
 const Helpers = require('../components/helpers.js');
 const SteamCommunity  = require('../index.js');
-const SteamIdResolver = require('steamid-resolver');
 const ESharedfileType = require('../resources/ESharedfileType.js');
 
 
 /**
  * Scrape a sharedfile's DOM to get all available information
  * @param {String} sid - ID of the sharedfile
- * @param {function} callback -  First argument is null/Error, second is object containing all available information
+ * @param {function} callback - First argument is null/Error, second is object containing all available information
  */
 SteamCommunity.prototype.getSteamSharedfile = function(sid, callback) {
 
@@ -123,9 +122,9 @@ SteamCommunity.prototype.getSteamSharedfile = function(sid, callback) {
 			// Find owner profile link, convert to steamID64 using SteamIdResolver lib and create a SteamID object
 			let ownerHref = $(".friendBlockLinkOverlay").attr()["href"];
 
-			SteamIdResolver.customUrlToSteamID64(ownerHref, (err, steamID64) => { // This request takes <1 sec
+			Helpers.resolveVanityURL(ownerHref, (err, data) => { // This request takes <1 sec
 				if (!err) {
-					sharedfile.owner = new SteamID(steamID64);
+					sharedfile.owner = new SteamID(data.steamID);
 				}
 
 				// Make callback when ID was resolved as otherwise owner will always be null
