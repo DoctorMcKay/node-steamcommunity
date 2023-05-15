@@ -7,14 +7,14 @@ const ESharedfileType = require('../resources/ESharedfileType.js');
 
 /**
  * Scrape a sharedfile's DOM to get all available information
- * @param {String} sid - ID of the sharedfile
+ * @param {String} sharedFileId - ID of the sharedfile
  * @param {function} callback - First argument is null/Error, second is object containing all available information
  */
-SteamCommunity.prototype.getSteamSharedfile = function(sid, callback) {
+SteamCommunity.prototype.getSteamSharedfile = function(sharedFileId, callback) {
 
 	// Construct object holding all the data we can scrape
 	let sharedfile = {
-		id: sid,
+		id: sharedFileId,
 		type: null,
 		appID: null,
 		owner: null,
@@ -28,7 +28,7 @@ SteamCommunity.prototype.getSteamSharedfile = function(sid, callback) {
 
 
 	// Get DOM of sharedfile
-	this.httpRequestGet(`https://steamcommunity.com/sharedfiles/filedetails/?id=${sid}`, (err, res, body) => {
+	this.httpRequestGet(`https://steamcommunity.com/sharedfiles/filedetails/?id=${sharedFileId}`, (err, res, body) => {
 		try {
 
 			/* --------------------- Preprocess output --------------------- */
@@ -66,7 +66,7 @@ SteamCommunity.prototype.getSteamSharedfile = function(sid, callback) {
 			/* --------------------- Find and map values --------------------- */
 
 			// Find appID in share button onclick event
-			sharedfile.appID = Number($("#ShareItemBtn").attr()["onclick"].replace(`ShowSharePublishedFilePopup( '${sid}', '`, "").replace("' );", ""));
+			sharedfile.appID = Number($("#ShareItemBtn").attr()["onclick"].replace(`ShowSharePublishedFilePopup( '${sharedFileId}', '`, "").replace("' );", ""));
 
 
 			// Find fileSize if not guide
