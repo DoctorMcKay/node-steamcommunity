@@ -23,7 +23,9 @@ SteamCommunity.prototype.getSteamSharedfile = function(sharedFileId, callback) {
 		resolution: null,
 		uniqueVisitorsCount: null,
 		favoritesCount: null,
-		upvoteCount: null
+		upvoteCount: null,
+		isUpvoted: null,
+		isDownvoted: null
 	};
 
 
@@ -101,6 +103,11 @@ SteamCommunity.prototype.getSteamSharedfile = function(sharedFileId, callback) {
 			if (upvoteCount) {
 				sharedfile.upvoteCount = Number(upvoteCount);
 			}
+
+
+			// Determine if this account has already voted on this sharedfile
+			sharedfile.isUpvoted   = String($(".workshopItemControlCtn > #VoteUpBtn")[0].attribs["class"]).includes("toggled");   // Check if upvote btn class contains "toggled"
+			sharedfile.isDownvoted = String($(".workshopItemControlCtn > #VoteDownBtn")[0].attribs["class"]).includes("toggled"); // Check if downvote btn class contains "toggled"
 
 
 			// Determine type by looking at the second breadcrumb. Find the first separator as it has a unique name and go to the next element which holds our value of interest
