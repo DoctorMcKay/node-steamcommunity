@@ -24,6 +24,7 @@ SteamCommunity.prototype.getSteamSharedfile = function(sharedFileId, callback) {
 		uniqueVisitorsCount: null,
 		favoritesCount: null,
 		upvoteCount: null,
+		guideNumRatings: null,
 		isUpvoted: null,
 		isDownvoted: null
 	};
@@ -103,6 +104,12 @@ SteamCommunity.prototype.getSteamSharedfile = function(sharedFileId, callback) {
 			if (upvoteCount) {
 				sharedfile.upvoteCount = Number(upvoteCount);
 			}
+
+
+			// Find numRatings if this is a guide as they use a different voting system
+			let numRatings = $(".ratingSection > .numRatings").text().replace(" ratings", "")
+
+			sharedfile.guideNumRatings = Number(numRatings) || null; // Set to null if not a guide or if the guide does not have enough ratings to show a value
 
 
 			// Determine if this account has already voted on this sharedfile
