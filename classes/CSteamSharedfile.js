@@ -107,7 +107,7 @@ SteamCommunity.prototype.getSteamSharedfile = function(sharedFileId, callback) {
 
 
 			// Find numRatings if this is a guide as they use a different voting system
-			let numRatings = $(".ratingSection > .numRatings").text().replace(" ratings", "")
+			let numRatings = $(".ratingSection > .numRatings").text().replace(" ratings", "");
 
 			sharedfile.guideNumRatings = Number(numRatings) || null; // Set to null if not a guide or if the guide does not have enough ratings to show a value
 
@@ -151,22 +151,20 @@ SteamCommunity.prototype.getSteamSharedfile = function(sharedFileId, callback) {
 	}, "steamcommunity");
 };
 
+/**
+ * Constructor - Creates a new Sharedfile object
+ * @class
+ * @param {SteamCommunity} community
+ * @param {{ id: string, type: ESharedfileType, appID: number, owner: SteamID|null, fileSize: string|null, postDate: number, resolution: string|null, uniqueVisitorsCount: number, favoritesCount: number, upvoteCount: number|null, guideNumRatings: Number|null, isUpvoted: boolean, isDownvoted: boolean }} data
+ */
 function CSteamSharedfile(community, data) {
+	/**
+	 * @type {SteamCommunity}
+	 */
 	this._community = community;
 
 	// Clone all the data we recieved
-	Object.assign(this, data); // TODO: This is cleaner but might break IntelliSense. I'm leaving the block below to be reactivated if necessary
-
-	/* this.id = data.id;
-	this.type = data.type;
-	this.appID = data.appID;
-	this.owner = data.owner;
-	this.fileSize = data.fileSize;
-	this.postDate = data.postDate;
-	this.resolution = data.resolution;
-	this.uniqueVisitorsCount = data.uniqueVisitorsCount;
-	this.favoritesCount = data.favoritesCount;
-	this.upvoteCount = data.upvoteCount; */
+	Object.assign(this, data);
 }
 
 /**
