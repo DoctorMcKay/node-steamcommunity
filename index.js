@@ -198,7 +198,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 
 				self.setCookies(cookies);
 
-				callback(null, sessionID, cookies, steamguard, !disableMobile && body.oauth ? oAuth.oauth_token : null);
+				callback(null, sessionID, cookies, steamguard, !disableMobile && body.oauth ? oAuth.oauth_token : null, body);
 			}
 		}, "steamcommunity");
 	}, "steamcommunity");
