@@ -161,8 +161,6 @@ SteamCommunity.prototype.login = function(details, callback) {
 				callback(error);
 			} else if (!body.success) {
 				callback(new Error(body.message || "Unknown error"));
-			} else if (!disableMobile && !body.oauth) {
-				callback(new Error("Malformed response"));
 			} else {
 				var sessionID = generateSessionID();
 				var oAuth;
@@ -172,7 +170,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 					return cookie.trim();
 				});
 
-				if (!disableMobile){
+				if (!disableMobile && body.oauth) {
 					oAuth = JSON.parse(body.oauth);
 					self.steamID = new SteamID(oAuth.steamid);
 					self.oAuthToken = oAuth.oauth_token;
@@ -200,7 +198,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 
 				self.setCookies(cookies);
 
-				callback(null, sessionID, cookies, steamguard, disableMobile ? null : oAuth.oauth_token);
+				callback(null, sessionID, cookies, steamguard, !disableMobile && body.oauth ? oAuth.oauth_token : null);
 			}
 		}, "steamcommunity");
 	}, "steamcommunity");
