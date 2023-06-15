@@ -214,6 +214,12 @@ SteamCommunity.prototype.login = function(details, callback) {
 	}
 };
 
+/**
+ * @deprecated
+ * @param {string} steamguard
+ * @param {string} token
+ * @param {function} callback
+ */
 SteamCommunity.prototype.oAuthLogin = function(steamguard, token, callback) {
 	steamguard = steamguard.split('||');
 	var steamID = new SteamID(steamguard[0]);
@@ -300,6 +306,10 @@ SteamCommunity.prototype.setCookies = function(cookies) {
 
 		this._setCookie(Request.cookie(cookie), !!(cookieName.match(/^steamMachineAuth/) || cookieName.match(/Secure$/)));
 	});
+
+	// The account we're logged in as might have changed, so verify that our mobile access token (if any) is still valid
+	// for this account.
+	this._verifyMobileAccessToken();
 };
 
 SteamCommunity.prototype.getSessionID = function(host = "http://steamcommunity.com") {

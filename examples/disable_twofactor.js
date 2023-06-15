@@ -48,15 +48,34 @@ function doLogin(accountName, password, authCode, captcha, rCode) {
 		}
 
 		console.log('Logged on!');
-		community.disableTwoFactor('R' + rCode, (err) => {
-			if (err) {
-				console.log(err);
-				process.exit();
-				return;
-			}
 
-			console.log('Two-factor authentication disabled!');
-			process.exit();
+		if (community.mobileAccessToken) {
+			// If we already have a mobile access token, we don't need to prompt for one.
+			doRevoke(rCode);
+			return;
+		}
+
+		console.log('You need to provide a mobile app access token to continue.');
+		console.log('You can generate one using steam-session (https://www.npmjs.com/package/steam-session).');
+		console.log('The access token needs to be generated using EAuthTokenPlatformType.MobileApp.');
+		console.log('Make sure you provide an *ACCESS* token, not a refresh token.');
+
+		rl.question('Access Token: ', (accessToken) => {
+			community.setMobileAppAccessToken(accessToken);
+			doRevoke(rCode);
 		});
+	});
+}
+
+function doRevoke(rCode) {
+	community.disableTwoFactor('R' + rCode, (err) => {
+		if (err) {
+			console.log(err);
+			process.exit();
+			return;
+		}
+
+		console.log('Two-factor authentication disabled!');
+		process.exit();
 	});
 }
