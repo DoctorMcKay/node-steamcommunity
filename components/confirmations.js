@@ -9,14 +9,21 @@ var EConfirmationType = require('../resources/EConfirmationType.js');
 /**
  * Get a list of your account's currently outstanding confirmations.
  * @param {int} time - The unix timestamp with which the following key was generated
- * @param {string} key - The confirmation key that was generated using the preceeding time and the tag "conf" (this key can be reused)
+ * @param {string} key - The confirmation key that was generated using the preceeding time and the tag 'conf' (this key can be reused)
  * @param {SteamCommunity~getConfirmations} callback - Called when the list of confirmations is received
  */
 SteamCommunity.prototype.getConfirmations = function(time, key, callback) {
 	var self = this;
 
+	// Ugly hack to maintain backward compatibility
+	var tag = 'conf';
+	if (typeof key == 'object') {
+		tag = key.tag;
+		key = key.key;
+	}
+
 	// The official Steam app uses the tag 'list', but 'conf' still works so let's use that for backward compatibility.
-	request(this, 'getlist', key, time, 'conf', null, true, function(err, body) {
+	request(this, 'getlist', key, time, tag, null, true, function(err, body) {
 		if (err) {
 			callback(err);
 			return;
@@ -104,8 +111,15 @@ SteamCommunity.prototype.getConfirmationOfferID = function(confID, time, key, ca
  * @param {SteamCommunity~genericErrorCallback} callback - Called when the request is complete
  */
 SteamCommunity.prototype.respondToConfirmation = function(confID, confKey, time, key, accept, callback) {
+	// Ugly hack to maintain backward compatibility
+	var tag = accept ? 'allow' : 'cancel';
+	if (typeof key == 'object') {
+		tag = key.tag;
+		key = key.key;
+	}
+
 	// The official app uses tags reject/accept, but cancel/allow still works so use these for backward compatibility
-	request(this, (confID instanceof Array) ? 'multiajaxop' : 'ajaxop', key, time, accept ? 'allow' : 'cancel', {
+	request(this, (confID instanceof Array) ? 'multiajaxop' : 'ajaxop', key, time, tag, {
 		op: accept ? 'allow' : 'cancel',
 		cid: confID,
 		ck: confKey
@@ -166,7 +180,8 @@ SteamCommunity.prototype.acceptConfirmationForObject = function(identitySecret, 
 	function doConfirmation() {
 		var offset = self._timeOffset;
 		var time = SteamTotp.time(offset);
-		self.getConfirmations(time, SteamTotp.getConfirmationKey(identitySecret, time, "conf"), function(err, confs) {
+		var confKey = SteamTotp.getConfirmationKey(identitySecret, time, 'list');
+		self.getConfirmations(time, {tag: 'list', key: confKey}, function(err, confs) {
 			if (err) {
 				callback(err);
 				return;
@@ -174,7 +189,7 @@ SteamCommunity.prototype.acceptConfirmationForObject = function(identitySecret, 
 
 			var conf = confs.filter(function(conf) { return conf.creator == objectID; });
 			if (conf.length == 0) {
-				callback(new Error("Could not find confirmation for object " + objectID));
+				callback(new Error('Could not find confirmation for object ' + objectID));
 				return;
 			}
 
@@ -191,7 +206,8 @@ SteamCommunity.prototype.acceptConfirmationForObject = function(identitySecret, 
 				self._usedConfTimes.splice(0, self._usedConfTimes.length - 60); // we don't need to save more than 60 entries
 			}
 
-			conf.respond(time, SteamTotp.getConfirmationKey(identitySecret, time, "allow"), true, callback);
+			confKey = SteamTotp.getConfirmationKey(identitySecret, time, 'accept');
+			conf.respond(time, {tag: 'accept', key: confKey}, true, callback);
 		});
 	}
 };
@@ -231,7 +247,7 @@ SteamCommunity.prototype.acceptAllConfirmations = function(time, confKey, allowK
 
 function request(community, url, key, time, tag, params, json, callback) {
 	if (!community.steamID) {
-		throw new Error("Must be logged in before trying to do anything with confirmations");
+		throw new Error('Must be logged in before trying to do anything with confirmations');
 	}
 
 	params = params || {};
@@ -239,16 +255,16 @@ function request(community, url, key, time, tag, params, json, callback) {
 	params.a = community.steamID.getSteamID64();
 	params.k = key;
 	params.t = time;
-	params.m = "react";
+	params.m = 'react';
 	params.tag = tag;
 
 	var req = {
-		"method": url == 'multiajaxop' ? 'POST' : 'GET',
-		"uri": "https://steamcommunity.com/mobileconf/" + url,
-		"json": !!json
+		method: url == 'multiajaxop' ? 'POST' : 'GET',
+		uri: 'https://steamcommunity.com/mobileconf/' + url,
+		json: !!json
 	};
 
-	if (req.method == "GET") {
+	if (req.method == 'GET') {
 		req.qs = params;
 	} else {
 		req.form = params;
@@ -261,7 +277,7 @@ function request(community, url, key, time, tag, params, json, callback) {
 		}
 
 		callback(null, body);
-	}, "steamcommunity");
+	}, 'steamcommunity');
 }
 
 // Confirmation checker
