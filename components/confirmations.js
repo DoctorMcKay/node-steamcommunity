@@ -43,7 +43,7 @@ SteamCommunity.prototype.getConfirmations = function(time, key, callback) {
 			receiving: conf.type == EConfirmationType.Trade ? ((conf.summary || [])[1] || '') : '',
 			sending: (conf.summary || [])[0] || '',
 			time: (new Date(conf.creation_time * 1000)).toISOString(), // for backward compatibility
-			timestamp: conf.creation_time,
+			timestamp: new Date(conf.creation_time * 1000),
 			icon: conf.icon || ''
 		}));
 
