@@ -56,38 +56,57 @@ function doLogin(accountName, password, authCode, captcha) {
 		}
 
 		console.log('Logged on!');
-		community.enableTwoFactor((err, response) => {
-			if (err) {
-				if (err.eresult == EResult.Fail) {
-					console.log('Error: Failed to enable two-factor authentication. Do you have a phone number attached to your account?');
-					process.exit();
-					return;
-				}
 
-				if (err.eresult == EResult.RateLimitExceeded) {
-					console.log('Error: RateLimitExceeded. Try again later.');
-					process.exit();
-					return;
-				}
+		if (community.mobileAccessToken) {
+			// If we already have a mobile access token, we don't need to prompt for one.
+			doSetup();
+			return;
+		}
 
-				console.log(err);
-				process.exit();
-				return;
-			}
+		console.log('You need to provide a mobile app access token to continue.');
+		console.log('You can generate one using steam-session (https://www.npmjs.com/package/steam-session).');
+		console.log('The access token needs to be generated using EAuthTokenPlatformType.MobileApp.');
+		console.log('Make sure you provide an *ACCESS* token, not a refresh token.');
 
-			if (response.status != EResult.OK) {
-				console.log(`Error: Status ${response.status}`);
-				process.exit();
-				return;
-			}
-
-			let filename = `twofactor_${community.steamID.getSteamID64()}.json`;
-			console.log(`Writing secrets to ${filename}`);
-			console.log(`Revocation code: ${response.revocation_code}`);
-			FS.writeFileSync(filename, JSON.stringify(response, null, '\t'));
-
-			promptActivationCode(response);
+		rl.question('Access Token: ', (accessToken) => {
+			community.setMobileAppAccessToken(accessToken);
+			doSetup();
 		});
+	});
+}
+
+function doSetup() {
+	community.enableTwoFactor((err, response) => {
+		if (err) {
+			if (err.eresult == EResult.Fail) {
+				console.log('Error: Failed to enable two-factor authentication. Do you have a phone number attached to your account?');
+				process.exit();
+				return;
+			}
+
+			if (err.eresult == EResult.RateLimitExceeded) {
+				console.log('Error: RateLimitExceeded. Try again later.');
+				process.exit();
+				return;
+			}
+
+			console.log(err);
+			process.exit();
+			return;
+		}
+
+		if (response.status != EResult.OK) {
+			console.log(`Error: Status ${response.status}`);
+			process.exit();
+			return;
+		}
+
+		let filename = `twofactor_${community.steamID.getSteamID64()}.json`;
+		console.log(`Writing secrets to ${filename}`);
+		console.log(`Revocation code: ${response.revocation_code}`);
+		FS.writeFileSync(filename, JSON.stringify(response, null, '\t'));
+
+		promptActivationCode(response);
 	});
 }
 
