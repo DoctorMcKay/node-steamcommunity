@@ -37,7 +37,7 @@ SteamCommunity.prototype.getConfirmations = function(time, key, callback) {
 				return;
 			}
 
-			callback(new Error('Failed to get confirmation list'));
+			callback(new Error(body.message || body.detail || 'Failed to get confirmation list'));
 			return;
 		}
 
