@@ -26,6 +26,10 @@ async function main() {
 		community.setCookies(cookies);
 		community.setMobileAppAccessToken(accessToken);
 
+		// Enabling or disabling 2FA is presently the only action in node-steamcommunity which requires an access token.
+		// In all other cases, using `community.setCookies(cookies)` is all you need to do in order to be logged in,
+		// although there's never any harm in setting a mobile app access token.
+
 		doRevoke();
 	});
 
