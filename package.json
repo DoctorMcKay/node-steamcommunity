@@ -30,6 +30,9 @@
 		"steamid": "^1.1.3",
 		"xml2js": "^0.4.22"
 	},
+	"devDependencies": {
+		"steam-session": "^1.2.3"
+	},
 	"engines": {
 		"node": ">=4.0.0"
 	}
