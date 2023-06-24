@@ -1,17 +1,18 @@
 const Cheerio = require('cheerio');
 const SteamID = require('steamid');
-const Helpers = require('../components/helpers.js');
+
 const SteamCommunity  = require('../index.js');
-const ESharedfileType = require('../resources/ESharedfileType.js');
+const Helpers = require('../components/helpers.js');
+
+const ESharedFileType = require('../resources/ESharedFileType.js');
 
 
 /**
  * Scrape a sharedfile's DOM to get all available information
- * @param {String} sharedFileId - ID of the sharedfile
+ * @param {string} sharedFileId - ID of the sharedfile
  * @param {function} callback - First argument is null/Error, second is object containing all available information
  */
-SteamCommunity.prototype.getSteamSharedfile = function(sharedFileId, callback) {
-
+SteamCommunity.prototype.getSteamSharedFile = function(sharedFileId, callback) {
 	// Construct object holding all the data we can scrape
 	let sharedfile = {
 		id: sharedFileId,
@@ -28,7 +29,6 @@ SteamCommunity.prototype.getSteamSharedfile = function(sharedFileId, callback) {
 		isUpvoted: null,
 		isDownvoted: null
 	};
-
 
 	// Get DOM of sharedfile
 	this.httpRequestGet(`https://steamcommunity.com/sharedfiles/filedetails/?id=${sharedFileId}`, (err, res, body) => {
@@ -121,15 +121,15 @@ SteamCommunity.prototype.getSteamSharedfile = function(sharedFileId, callback) {
 			let breadcrumb = $(".breadcrumbs > .breadcrumb_separator").next().get(0).children[0].data || "";
 
 			if (breadcrumb.includes("Screenshot")) {
-				sharedfile.type = ESharedfileType.Screenshot;
+				sharedfile.type = ESharedFileType.Screenshot;
 			}
 
 			if (breadcrumb.includes("Artwork")) {
-				sharedfile.type = ESharedfileType.Artwork;
+				sharedfile.type = ESharedFileType.Artwork;
 			}
 
 			if (breadcrumb.includes("Guide")) {
-				sharedfile.type = ESharedfileType.Guide;
+				sharedfile.type = ESharedFileType.Guide;
 			}
 
 
@@ -142,7 +142,7 @@ SteamCommunity.prototype.getSteamSharedfile = function(sharedFileId, callback) {
 				}
 
 				// Make callback when ID was resolved as otherwise owner will always be null
-				callback(null, new CSteamSharedfile(this, sharedfile));
+				callback(null, new CSteamSharedFile(this, sharedfile));
 			});
 
 		} catch (err) {
@@ -152,18 +152,18 @@ SteamCommunity.prototype.getSteamSharedfile = function(sharedFileId, callback) {
 };
 
 /**
- * Constructor - Creates a new Sharedfile object
+ * Constructor - Creates a new SharedFile object
  * @class
  * @param {SteamCommunity} community
- * @param {{ id: string, type: ESharedfileType, appID: number, owner: SteamID|null, fileSize: string|null, postDate: number, resolution: string|null, uniqueVisitorsCount: number, favoritesCount: number, upvoteCount: number|null, guideNumRatings: Number|null, isUpvoted: boolean, isDownvoted: boolean }} data
+ * @param {{ id: string, type: ESharedFileType, appID: number, owner: SteamID|null, fileSize: string|null, postDate: number, resolution: string|null, uniqueVisitorsCount: number, favoritesCount: number, upvoteCount: number|null, guideNumRatings: Number|null, isUpvoted: boolean, isDownvoted: boolean }} data
  */
-function CSteamSharedfile(community, data) {
+function CSteamSharedFile(community, data) {
 	/**
 	 * @type {SteamCommunity}
 	 */
 	this._community = community;
 
-	// Clone all the data we recieved
+	// Clone all the data we received
 	Object.assign(this, data);
 }
 
@@ -172,16 +172,16 @@ function CSteamSharedfile(community, data) {
  * @param {String} cid - ID of the comment to delete
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
-CSteamSharedfile.prototype.deleteComment = function(cid, callback) {
-	this._community.deleteSharedfileComment(this.userID, this.id, cid, callback);
+CSteamSharedFile.prototype.deleteComment = function(cid, callback) {
+	this._community.deleteSharedFileComment(this.userID, this.id, cid, callback);
 };
 
 /**
  * Favorites this sharedfile
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
-CSteamSharedfile.prototype.favorite = function(callback) {
-	this._community.favoriteSharedfile(this.id, this.appID, callback);
+CSteamSharedFile.prototype.favorite = function(callback) {
+	this._community.favoriteSharedFile(this.id, this.appID, callback);
 };
 
 /**
@@ -189,30 +189,30 @@ CSteamSharedfile.prototype.favorite = function(callback) {
  * @param {String} message - Content of the comment to post
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
-CSteamSharedfile.prototype.comment = function(message, callback) {
-	this._community.postSharedfileComment(this.owner, this.id, message, callback);
+CSteamSharedFile.prototype.comment = function(message, callback) {
+	this._community.postSharedFileComment(this.owner, this.id, message, callback);
 };
 
 /**
  * Subscribes to this sharedfile's comment section. Note: Checkbox on webpage does not update
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
-CSteamSharedfile.prototype.subscribe = function(callback) {
-	this._community.subscribeSharedfileComments(this.owner, this.id, callback);
+CSteamSharedFile.prototype.subscribe = function(callback) {
+	this._community.subscribeSharedFileComments(this.owner, this.id, callback);
 };
 
 /**
  * Unfavorites this sharedfile
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
-CSteamSharedfile.prototype.unfavorite = function(callback) {
-	this._community.unfavoriteSharedfile(this.id, this.appID, callback);
+CSteamSharedFile.prototype.unfavorite = function(callback) {
+	this._community.unfavoriteSharedFile(this.id, this.appID, callback);
 };
 
 /**
  * Unsubscribes from this sharedfile's comment section. Note: Checkbox on webpage does not update
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
-CSteamSharedfile.prototype.unsubscribe = function(callback) {
-	this._community.unsubscribeSharedfileComments(this.owner, this.id, callback);
+CSteamSharedFile.prototype.unsubscribe = function(callback) {
+	this._community.unsubscribeSharedFileComments(this.owner, this.id, callback);
 };

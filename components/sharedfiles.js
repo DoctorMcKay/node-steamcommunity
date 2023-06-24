@@ -1,5 +1,6 @@
-var SteamCommunity = require('../index.js');
 var SteamID = require('steamid');
+
+var SteamCommunity = require('../index.js');
 
 
 /**
@@ -9,7 +10,7 @@ var SteamID = require('steamid');
  * @param {String} cid - ID of the comment to delete
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
-SteamCommunity.prototype.deleteSharedfileComment = function(userID, sharedFileId, cid, callback) {
+SteamCommunity.prototype.deleteSharedFileComment = function(userID, sharedFileId, cid, callback) {
 	if (typeof userID === "string") {
 		userID = new SteamID(userID);
 	}
@@ -26,7 +27,7 @@ SteamCommunity.prototype.deleteSharedfileComment = function(userID, sharedFileId
 			return;
 		}
 
-		callback(null || err);
+		callback(err);
 	}, "steamcommunity");
 };
 
@@ -36,7 +37,7 @@ SteamCommunity.prototype.deleteSharedfileComment = function(userID, sharedFileId
  * @param {String} appid - ID of the app associated to this sharedfile
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
-SteamCommunity.prototype.favoriteSharedfile = function(sharedFileId, appid, callback) {
+SteamCommunity.prototype.favoriteSharedFile = function(sharedFileId, appid, callback) {
 	this.httpRequestPost({
 		"uri": "https://steamcommunity.com/sharedfiles/favorite",
 		"form": {
@@ -49,7 +50,7 @@ SteamCommunity.prototype.favoriteSharedfile = function(sharedFileId, appid, call
 			return;
 		}
 
-		callback(null || err);
+		callback(err);
 	}, "steamcommunity");
 };
 
@@ -60,7 +61,7 @@ SteamCommunity.prototype.favoriteSharedfile = function(sharedFileId, appid, call
  * @param {String} message - Content of the comment to post
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
-SteamCommunity.prototype.postSharedfileComment = function(userID, sharedFileId, message, callback) {
+SteamCommunity.prototype.postSharedFileComment = function(userID, sharedFileId, message, callback) {
 	if (typeof userID === "string") {
 		userID = new SteamID(userID);
 	}
@@ -77,7 +78,7 @@ SteamCommunity.prototype.postSharedfileComment = function(userID, sharedFileId, 
 			return;
 		}
 
-		callback(null || err);
+		callback(err);
 	}, "steamcommunity");
 };
 
@@ -87,7 +88,7 @@ SteamCommunity.prototype.postSharedfileComment = function(userID, sharedFileId, 
  * @param {String} sharedFileId ID of the sharedfile
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
-SteamCommunity.prototype.subscribeSharedfileComments = function(userID, sharedFileId, callback) {
+SteamCommunity.prototype.subscribeSharedFileComments = function(userID, sharedFileId, callback) {
 	if (typeof userID === "string") {
 		userID = new SteamID(userID);
 	}
@@ -103,7 +104,7 @@ SteamCommunity.prototype.subscribeSharedfileComments = function(userID, sharedFi
 			return;
 		}
 
-		callback(null || err);
+		callback(err);
 	}, "steamcommunity");
 };
 
@@ -113,7 +114,7 @@ SteamCommunity.prototype.subscribeSharedfileComments = function(userID, sharedFi
  * @param {String} appid - ID of the app associated to this sharedfile
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
-SteamCommunity.prototype.unfavoriteSharedfile = function(sharedFileId, appid, callback) {
+SteamCommunity.prototype.unfavoriteSharedFile = function(sharedFileId, appid, callback) {
 	this.httpRequestPost({
 		"uri": "https://steamcommunity.com/sharedfiles/unfavorite",
 		"form": {
@@ -126,7 +127,7 @@ SteamCommunity.prototype.unfavoriteSharedfile = function(sharedFileId, appid, ca
 			return;
 		}
 
-		callback(null || err);
+		callback(err);
 	}, "steamcommunity");
 };
 
@@ -136,7 +137,7 @@ SteamCommunity.prototype.unfavoriteSharedfile = function(sharedFileId, appid, ca
  * @param {String} sharedFileId - ID of the sharedfile
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
-SteamCommunity.prototype.unsubscribeSharedfileComments = function(userID, sharedFileId, callback) {
+SteamCommunity.prototype.unsubscribeSharedFileComments = function(userID, sharedFileId, callback) {
 	if (typeof userID === "string") {
 		userID = new SteamID(userID);
 	}
@@ -152,6 +153,6 @@ SteamCommunity.prototype.unsubscribeSharedfileComments = function(userID, shared
 			return;
 		}
 
-		callback(null || err);
+		callback(err);
 	}, "steamcommunity");
 };

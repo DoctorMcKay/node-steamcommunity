@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/../node-steamcommunity Wiki/.idea/node-steamcommunity Wiki.iml" filepath="$PROJECT_DIR$/../node-steamcommunity Wiki/.idea/node-steamcommunity Wiki.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/steamcommunity.iml" filepath="$PROJECT_DIR$/.idea/steamcommunity.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../steamcommunity Wiki/.idea/steamcommunity Wiki.iml" filepath="$PROJECT_DIR$/../steamcommunity Wiki/.idea/steamcommunity Wiki.iml" />
     </modules>
   </component>
 </project>

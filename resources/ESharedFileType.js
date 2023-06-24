@@ -1,5 +1,5 @@
 /**
- * @enum ESharedfileType
+ * @enum ESharedFileType
  */
 module.exports = {
 	"Screenshot": 0,
