@@ -14,6 +14,7 @@ module.exports = SteamCommunity;
 SteamCommunity.SteamID = SteamID;
 SteamCommunity.ConfirmationType = require('./resources/EConfirmationType.js');
 SteamCommunity.EResult = require('./resources/EResult.js');
+SteamCommunity.ESharedFileType = require('./resources/ESharedFileType.js');
 SteamCommunity.EFriendRelationship = require('./resources/EFriendRelationship.js');
 
 
