@@ -137,9 +137,12 @@ SteamCommunity.prototype.getSteamSharedFile = function(sharedFileId, callback) {
 			let ownerHref = $(".friendBlockLinkOverlay").attr()["href"];
 
 			Helpers.resolveVanityURL(ownerHref, (err, data) => { // This request takes <1 sec
-				if (!err) {
-					sharedfile.owner = new SteamID(data.steamID);
+				if (err) {
+					callback(err);
+					return;
 				}
+
+				sharedfile.owner = new SteamID(data.steamID);
 
 				// Make callback when ID was resolved as otherwise owner will always be null
 				callback(null, new CSteamSharedFile(this, sharedfile));
