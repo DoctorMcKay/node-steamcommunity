@@ -1,5 +1,6 @@
 var SteamCommunity = require('../index.js');
 var CEconItem = require('../classes/CEconItem.js');
+var Helpers = require('./helpers.js');
 var SteamID = require('steamid');
 var request = require('request');
 var Cheerio = require('cheerio');
@@ -142,7 +143,7 @@ SteamCommunity.prototype.getInventoryHistory = function(options, callback) {
 		}
 
 		if (options.resolveVanityURLs) {
-			Async.map(vanityURLs, resolveVanityURL, function(err, results) {
+			Async.map(vanityURLs, Helpers.resolveVanityURL, function(err, results) {
 				if (err) {
 					callback(err);
 					return;
@@ -170,19 +171,3 @@ SteamCommunity.prototype.getInventoryHistory = function(options, callback) {
 	}, "steamcommunity");
 };
 
-function resolveVanityURL(vanityURL, callback) {
-	request("https://steamcommunity.com/id/" + vanityURL + "/?xml=1", function(err, response, body) {
-		if (err) {
-			callback(err);
-			return;
-		}
-
-		var match = body.match(/<steamID64>(\d+)<\/steamID64>/);
-		if (!match || !match[1]) {
-			callback(new Error("Couldn't find Steam ID"));
-			return;
-		}
-
-		callback(null, {"vanityURL": vanityURL, "steamID": match[1]});
-	});
-}

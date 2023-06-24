@@ -581,6 +581,7 @@ require('./components/profile.js');
 require('./components/market.js');
 require('./components/groups.js');
 require('./components/users.js');
+require('./components/sharedfiles.js');
 require('./components/inventoryhistory.js');
 require('./components/webapi.js');
 require('./components/twofactor.js');
@@ -589,6 +590,7 @@ require('./components/help.js');
 require('./classes/CMarketItem.js');
 require('./classes/CMarketSearchResult.js');
 require('./classes/CSteamGroup.js');
+require('./classes/CSteamSharedfile.js');
 require('./classes/CSteamUser.js');
 
 /**
