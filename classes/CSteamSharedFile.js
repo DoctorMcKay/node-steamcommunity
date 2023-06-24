@@ -176,7 +176,7 @@ function CSteamSharedFile(community, data) {
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
 CSteamSharedFile.prototype.deleteComment = function(cid, callback) {
-	this._community.deleteSharedFileComment(this.userID, this.id, cid, callback);
+	this._community.deleteSharedFileComment(this.owner, this.id, cid, callback);
 };
 
 /**
