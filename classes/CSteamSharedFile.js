@@ -79,7 +79,7 @@ SteamCommunity.prototype.getSteamSharedFile = function(sharedFileId, callback) {
 			// Find postDate and convert to timestamp
 			let posted = detailsStatsObj["Posted"].trim();
 
-			sharedfile.postDate = Date.parse(Helpers.decodeSteamTime(posted)); // Pass String into helper and parse the returned String to get a Unix timestamp
+			sharedfile.postDate = Helpers.decodeSteamTime(posted);
 
 
 			// Find resolution if artwork or screenshot
