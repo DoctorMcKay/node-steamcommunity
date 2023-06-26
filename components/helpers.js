@@ -99,8 +99,8 @@ exports.resolveVanityURL = function(url, callback) {
 				return;
 			}
 
-			let steamID64 = parsed.profile.steamID64;
-			let vanityURL = parsed.profile.customURL;
+			let steamID64 = parsed.profile.steamID64[0];
+			let vanityURL = parsed.profile.customURL[0];
 
 			callback(null, {"vanityURL": vanityURL, "steamID": steamID64});
 		});
