@@ -56,9 +56,9 @@ async function main() {
 		let codeAction = startResult.validActions.find(action => codeActionTypes.includes(action.type));
 		if (codeAction) {
 			if (codeAction.type == SteamSession.EAuthSessionGuardType.EmailCode) {
+				// We wouldn't expect this to happen since mobile confirmations are only possible with 2FA enabled, but just in case...
 				console.log(`A code has been sent to your email address at ${codeAction.detail}.`);
 			} else {
-				// We wouldn't expect this to happen since we're trying to enable 2FA, but just in case...
 				console.log('You need to provide a Steam Guard Mobile Authenticator code.');
 			}
 
