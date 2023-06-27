@@ -205,40 +205,6 @@ SteamCommunity.prototype.acceptConfirmationForObject = function(identitySecret, 
 			}, 1000 * 60 * 60 * 12).unref();
 		});
 	}
-
-	function doConfirmation() {
-		var offset = self._timeOffset;
-		var time = SteamTotp.time(offset);
-		var confKey = SteamTotp.getConfirmationKey(identitySecret, time, 'list');
-		self.getConfirmations(time, {tag: 'list', key: confKey}, function(err, confs) {
-			if (err) {
-				callback(err);
-				return;
-			}
-
-			var conf = confs.filter(function(conf) { return conf.creator == objectID; });
-			if (conf.length == 0) {
-				callback(new Error('Could not find confirmation for object ' + objectID));
-				return;
-			}
-
-			conf = conf[0];
-
-			// make sure we don't reuse the same time
-			var localOffset = 0;
-			do {
-				time = SteamTotp.time(offset) + localOffset++;
-			} while (self._usedConfTimes.indexOf(time) != -1);
-
-			self._usedConfTimes.push(time);
-			if (self._usedConfTimes.length > 60) {
-				self._usedConfTimes.splice(0, self._usedConfTimes.length - 60); // we don't need to save more than 60 entries
-			}
-
-			confKey = SteamTotp.getConfirmationKey(identitySecret, time, 'accept');
-			conf.respond(time, {tag: 'accept', key: confKey}, true, callback);
-		});
-	}
 };
 
 /**
