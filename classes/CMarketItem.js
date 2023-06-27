@@ -105,7 +105,7 @@ CMarketItem.prototype.updatePriceForCommodity = function(currency, callback) {
 	}
 
 	this._community.httpRequest({
-		uri: 'https://steamcommunity.com/market/itemordershistogram?country=US&language=english&currency=' + currency + '&item_nameid=' + this.commodityID,
+		url: 'https://steamcommunity.com/market/itemordershistogram?country=US&language=english&currency=' + currency + '&item_nameid=' + this.commodityID,
 		json: true
 	}, (err, response, body) => {
 		if (err) {
@@ -148,7 +148,7 @@ CMarketItem.prototype.updatePriceForNonCommodity = function(currency, callback) 
 	}
 
 	this._community.httpRequest({
-		uri: 'https://steamcommunity.com/market/listings/' +
+		url: 'https://steamcommunity.com/market/listings/' +
 			this._appid + '/' +
 			encodeURIComponent(this._hashName) +
 			'/render/?query=&start=0&count=10&country=US&language=english&currency=' + currency,

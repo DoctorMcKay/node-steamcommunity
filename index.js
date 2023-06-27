@@ -156,7 +156,7 @@ SteamCommunity.prototype.getClientLogonToken = function(callback) {
 	return StdLib.Promises.callbackPromise(null, callback, false, async (resolve, reject) => {
 		let {jsonBody} = await this.httpRequest({
 			method: 'GET',
-			uri: 'https://steamcommunity.com/chat/clientjstoken',
+			url: 'https://steamcommunity.com/chat/clientjstoken',
 			source: 'steamcommunity'
 		});
 

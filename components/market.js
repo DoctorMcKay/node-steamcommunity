@@ -221,7 +221,7 @@ SteamCommunity.prototype.createBoosterPack = function(appid, useUntradableGems, 
 	}
 
 	this.httpRequestPost({
-		uri: 'https://steamcommunity.com/tradingcards/ajaxcreatebooster/',
+		url: 'https://steamcommunity.com/tradingcards/ajaxcreatebooster/',
 		form: {
 			sessionid: this.getSessionID(),
 			appid,
@@ -267,7 +267,7 @@ SteamCommunity.prototype.createBoosterPack = function(appid, useUntradableGems, 
  */
 SteamCommunity.prototype.getGiftDetails = function(giftID, callback) {
 	this.httpRequestPost({
-		uri: `https://steamcommunity.com/gifts/${giftID}/validateunpack`,
+		url: `https://steamcommunity.com/gifts/${giftID}/validateunpack`,
 		form: {
 			sessionid: this.getSessionID()
 		},
@@ -303,7 +303,7 @@ SteamCommunity.prototype.getGiftDetails = function(giftID, callback) {
  */
 SteamCommunity.prototype.redeemGift = function(giftID, callback) {
 	this.httpRequestPost({
-		uri: `https://steamcommunity.com/gifts/${giftID}/unpack`,
+		url: `https://steamcommunity.com/gifts/${giftID}/unpack`,
 		form: {
 			sessionid: this.getSessionID()
 		},

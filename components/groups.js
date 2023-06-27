@@ -76,7 +76,7 @@ SteamCommunity.prototype.joinGroup = function(gid, callback) {
 	}
 
 	this.httpRequestPost({
-		uri: `https://steamcommunity.com/gid/${gid.getSteamID64()}`,
+		url: `https://steamcommunity.com/gid/${gid.getSteamID64()}`,
 		form: {
 			action: 'join',
 			sessionID: this.getSessionID()
@@ -119,7 +119,7 @@ SteamCommunity.prototype.getAllGroupAnnouncements = function(gid, time, callback
 	}
 
 	this.httpRequest({
-		uri: `https://steamcommunity.com/gid/${gid.getSteamID64()}/rss/`
+		url: `https://steamcommunity.com/gid/${gid.getSteamID64()}/rss/`
 	}, (err, response, body) => {
 		if (err) {
 			callback(err);
@@ -175,7 +175,7 @@ SteamCommunity.prototype.postGroupAnnouncement = function(gid, headline, content
 	}
 
 	this.httpRequestPost({
-		uri: `https://steamcommunity.com/gid/${gid.getSteamID64()}/announcements`,
+		url: `https://steamcommunity.com/gid/${gid.getSteamID64()}/announcements`,
 		form
 	}, (err, response, body) => {
 		if (!callback) {
@@ -192,7 +192,7 @@ SteamCommunity.prototype.editGroupAnnouncement = function(gid, aid, headline, co
 	}
 
 	let submitData = {
-		uri: `https://steamcommunity.com/gid/${gid.getSteamID64()}/announcements`,
+		url: `https://steamcommunity.com/gid/${gid.getSteamID64()}/announcements`,
 		form: {
 			sessionID: this.getSessionID(),
 			gid: aid,
@@ -220,7 +220,7 @@ SteamCommunity.prototype.deleteGroupAnnouncement = function(gid, aid, callback) 
 	}
 
 	let submitData = {
-		uri: `https://steamcommunity.com/gid/${gid.getSteamID64()}/announcements/delete/${aid}?sessionID=${this.getSessionID()}`
+		url: `https://steamcommunity.com/gid/${gid.getSteamID64()}/announcements/delete/${aid}?sessionID=${this.getSessionID()}`
 	};
 
 	this.httpRequestGet(submitData, (err, response, body) => {
@@ -284,7 +284,7 @@ SteamCommunity.prototype.scheduleGroupEvent = function(gid, name, type, descript
 	}
 
 	this.httpRequestPost({
-		uri: `https://steamcommunity.com/gid/${gid.toString()}/eventEdit`,
+		url: `https://steamcommunity.com/gid/${gid.toString()}/eventEdit`,
 		form
 	}, (err, response, body) => {
 		if (!callback) {
@@ -348,7 +348,7 @@ SteamCommunity.prototype.editGroupEvent = function(gid, id, name, type, descript
 	}
 
 	this.httpRequestPost({
-		uri: `https://steamcommunity.com/gid/${gid.toString()}/eventEdit`,
+		url: `https://steamcommunity.com/gid/${gid.toString()}/eventEdit`,
 		form
 	}, (err, response, body) => {
 		if (!callback) {
@@ -371,7 +371,7 @@ SteamCommunity.prototype.deleteGroupEvent = function(gid, id, callback) {
 	};
 
 	this.httpRequestPost({
-		uri: `https://steamcommunity.com/gid/${gid.toString()}/eventEdit`,
+		url: `https://steamcommunity.com/gid/${gid.toString()}/eventEdit`,
 		form
 	}, (err, response, body) => {
 		if (!callback) {
@@ -392,7 +392,7 @@ SteamCommunity.prototype.setGroupPlayerOfTheWeek = function(gid, steamID, callba
 	}
 
 	this.httpRequestPost({
-		uri: `https://steamcommunity.com/gid/${gid.getSteamID64()}/potwEdit`,
+		url: `https://steamcommunity.com/gid/${gid.getSteamID64()}/potwEdit`,
 		form: {
 			xml: 1,
 			action: 'potw',
@@ -434,7 +434,7 @@ SteamCommunity.prototype.kickGroupMember = function(gid, steamID, callback) {
 	}
 
 	this.httpRequestPost({
-		uri: `https://steamcommunity.com/gid/${gid.getSteamID64()}/membersManage`,
+		url: `https://steamcommunity.com/gid/${gid.getSteamID64()}/membersManage`,
 		form: {
 			sessionID: this.getSessionID(),
 			action: 'kick',
@@ -535,7 +535,7 @@ SteamCommunity.prototype.getAllGroupComments = function(gid, from, count, callba
 	}
 
 	let options = {
-		uri: `https://steamcommunity.com/comment/Clan/render/${gid.getSteamID64()}/-1/`,
+		url: `https://steamcommunity.com/comment/Clan/render/${gid.getSteamID64()}/-1/`,
 		form: {
 			start: from,
 			count
@@ -582,7 +582,7 @@ SteamCommunity.prototype.deleteGroupComment = function(gid, cid, callback) {
 	}
 
 	let options = {
-		uri: `https://steamcommunity.com/comment/Clan/delete/${gid.getSteamID64()}/-1/`,
+		url: `https://steamcommunity.com/comment/Clan/delete/${gid.getSteamID64()}/-1/`,
 		form: {
 			sessionid: this.getSessionID(),
 			gidcomment: cid
@@ -604,7 +604,7 @@ SteamCommunity.prototype.postGroupComment = function(gid, message, callback) {
 	}
 
 	let options = {
-		uri: `https://steamcommunity.com/comment/Clan/post/${gid.getSteamID64()}/-1/`,
+		url: `https://steamcommunity.com/comment/Clan/post/${gid.getSteamID64()}/-1/`,
 		form: {
 			comment: message,
 			count: 6,
@@ -668,7 +668,7 @@ SteamCommunity.prototype.respondToGroupJoinRequests = function(gid, steamIDs, ap
 	let rgAccounts = (!Array.isArray(steamIDs) ? [steamIDs] : steamIDs).map(sid => sid.toString());
 
 	this.httpRequestPost({
-		uri: `https://steamcommunity.com/gid/${gid.getSteamID64()}/joinRequestsManage`,
+		url: `https://steamcommunity.com/gid/${gid.getSteamID64()}/joinRequestsManage`,
 		form: {
 			rgAccounts: rgAccounts,
 			bapprove: approve ? '1' : '0',
@@ -703,7 +703,7 @@ SteamCommunity.prototype.respondToAllGroupJoinRequests = function(gid, approve, 
 	}
 
 	this.httpRequestPost({
-		uri: `https://steamcommunity.com/gid/${gid.getSteamID64()}/joinRequestsManage`,
+		url: `https://steamcommunity.com/gid/${gid.getSteamID64()}/joinRequestsManage`,
 		form: {
 			bapprove: approve ? '1' : '0',
 			json: '1',

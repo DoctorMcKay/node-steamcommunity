@@ -32,7 +32,7 @@ SteamCommunity.prototype.marketSearch = function(options, callback) {
 	let results = [];
 	const performSearch = () => {
 		this.httpRequest({
-			uri: 'https://steamcommunity.com/market/search/render/',
+			url: 'https://steamcommunity.com/market/search/render/',
 			qs: qs,
 			headers: {
 				referer: 'https://steamcommunity.com/market/search'

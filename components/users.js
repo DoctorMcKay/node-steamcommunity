@@ -14,7 +14,7 @@ SteamCommunity.prototype.addFriend = function(userID, callback) {
 	}
 
 	this.httpRequestPost({
-		uri: 'https://steamcommunity.com/actions/AddFriendAjax',
+		url: 'https://steamcommunity.com/actions/AddFriendAjax',
 		form: {
 			accept_invite: 0,
 			sessionID: this.getSessionID(),
@@ -44,7 +44,7 @@ SteamCommunity.prototype.acceptFriendRequest = function(userID, callback) {
 	}
 
 	this.httpRequestPost({
-		uri: 'https://steamcommunity.com/actions/AddFriendAjax',
+		url: 'https://steamcommunity.com/actions/AddFriendAjax',
 		form: {
 			accept_invite: 1,
 			sessionID: this.getSessionID(),
@@ -65,7 +65,7 @@ SteamCommunity.prototype.removeFriend = function(userID, callback) {
 	}
 
 	this.httpRequestPost({
-		uri: 'https://steamcommunity.com/actions/RemoveFriendAjax',
+		url: 'https://steamcommunity.com/actions/RemoveFriendAjax',
 		form: {
 			sessionID: this.getSessionID(),
 			steamid: userID.toString()
@@ -85,7 +85,7 @@ SteamCommunity.prototype.blockCommunication = function(userID, callback) {
 	}
 
 	this.httpRequestPost({
-		uri: 'https://steamcommunity.com/actions/BlockUserAjax',
+		url: 'https://steamcommunity.com/actions/BlockUserAjax',
 		form: {
 			sessionID: this.getSessionID(),
 			steamid: userID.toString()
@@ -127,7 +127,7 @@ SteamCommunity.prototype.postUserComment = function(userID, message, callback) {
 	}
 
 	this.httpRequestPost({
-		uri: `https://steamcommunity.com/comment/Profile/post/${userID.toString()}/-1`,
+		url: `https://steamcommunity.com/comment/Profile/post/${userID.toString()}/-1`,
 		form: {
 			comment: message,
 			count: 1,
@@ -163,7 +163,7 @@ SteamCommunity.prototype.deleteUserComment = function(userID, commentID, callbac
 	}
 
 	this.httpRequestPost({
-		uri: `https://steamcommunity.com/comment/Profile/delete/${userID.toString()}/-1`,
+		url: `https://steamcommunity.com/comment/Profile/delete/${userID.toString()}/-1`,
 		form: {
 			gidcomment: commentID,
 			start: 0,
@@ -212,7 +212,7 @@ SteamCommunity.prototype.getUserComments = function(userID, options, callback) {
 	}, options);
 
 	this.httpRequestPost({
-		uri: `https://steamcommunity.com/comment/Profile/render/${userID.toString()}/-1`,
+		url: `https://steamcommunity.com/comment/Profile/render/${userID.toString()}/-1`,
 		form,
 		json: true
 	}, (err, response, body) => {
@@ -259,7 +259,7 @@ SteamCommunity.prototype.inviteUserToGroup = function(userID, groupID, callback)
 	}
 
 	this.httpRequestPost({
-		uri: 'https://steamcommunity.com/actions/GroupInvite',
+		url: 'https://steamcommunity.com/actions/GroupInvite',
 		form: {
 			group: groupID.toString(),
 			invitee: userID.toString(),
@@ -294,7 +294,7 @@ SteamCommunity.prototype.getUserAliases = function(userID, callback) {
 	}
 
 	this.httpRequestGet({
-		uri: `https://steamcommunity.com/profiles/${userID.getSteamID64()}/ajaxaliases`,
+		url: `https://steamcommunity.com/profiles/${userID.getSteamID64()}/ajaxaliases`,
 		json: true
 	}, (err, response, body) => {
 		if (err) {
@@ -423,7 +423,7 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 
 	const get = (inventory, currency, start) => {
 		this.httpRequest({
-			uri: `https://steamcommunity.com${endpoint}/inventory/json/${appID}/${contextID}`,
+			url: `https://steamcommunity.com${endpoint}/inventory/json/${appID}/${contextID}`,
 			headers: {
 				Referer: `https://steamcommunity.com${endpoint}/inventory`
 			},
@@ -516,7 +516,7 @@ SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, cont
 
 	const get = (inventory, currency, start) => {
 		this.httpRequest({
-			uri: `https://steamcommunity.com/inventory/${userID.getSteamID64()}/${appID}/${contextID}`,
+			url: `https://steamcommunity.com/inventory/${userID.getSteamID64()}/${appID}/${contextID}`,
 			headers: {
 				Referer: `https://steamcommunity.com/profiles/${userID.getSteamID64()}/inventory`
 			},
@@ -637,7 +637,7 @@ SteamCommunity.prototype.sendImageToUser = function(userID, imageContentsBuffer,
 	let filename = Date.now() + '_image.' + imageDetails.type;
 
 	this.httpRequestPost({
-		uri: 'https://steamcommunity.com/chat/beginfileupload/?l=english',
+		url: 'https://steamcommunity.com/chat/beginfileupload/?l=english',
 		headers: {
 			referer: 'https://steamcommunity.com/chat/'
 		},
@@ -688,7 +688,7 @@ SteamCommunity.prototype.sendImageToUser = function(userID, imageContentsBuffer,
 		});
 
 		this.httpRequest({
-			uri: uploadUrl,
+			url: uploadUrl,
 			method: 'PUT',
 			headers,
 			body: imageContentsBuffer
@@ -700,7 +700,7 @@ SteamCommunity.prototype.sendImageToUser = function(userID, imageContentsBuffer,
 
 			// Now we need to commit the upload
 			this.httpRequestPost({
-				uri: 'https://steamcommunity.com/chat/commitfileupload/',
+				url: 'https://steamcommunity.com/chat/commitfileupload/',
 				headers: {
 					referer: 'https://steamcommunity.com/chat/'
 				},
