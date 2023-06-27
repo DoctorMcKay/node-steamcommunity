@@ -1,6 +1,4 @@
 const {EventEmitter} = require('events');
-const {hex2b64} = require('node-bignumber');
-const {Key: RSA} = require('node-bignumber');
 const StdLib = require('@doctormckay/stdlib');
 const SteamID = require('steamid');
 const Util = require('util');
@@ -70,34 +68,31 @@ SteamCommunity.prototype.login = function(details) {
 
 /**
  * Get a token that can be used to log onto Steam using steam-user.
- * @param {function} callback
+ * @param {function} [callback]
+ * @return Promise<{steamID: SteamID, accountName: string, webLogonToken: string}>
  */
 SteamCommunity.prototype.getClientLogonToken = function(callback) {
-	this.httpRequestGet({
-		uri: 'https://steamcommunity.com/chat/clientjstoken',
-		json: true
-	}, (err, res, body) => {
-		if (err || res.statusCode != 200) {
-			callback(err ? err : new Error('HTTP error ' + res.statusCode));
-			return;
-		}
+	return StdLib.Promises.callbackPromise(null, callback, false, async (resolve, reject) => {
+		let {jsonBody} = await this.httpRequest({
+			method: 'GET',
+			uri: 'https://steamcommunity.com/chat/clientjstoken',
+			source: 'steamcommunity'
+		});
 
-		if (!body.logged_in) {
+		if (!jsonBody.logged_in) {
 			let e = new Error('Not Logged In');
-			callback(e);
 			this._notifySessionExpired(e);
-			return;
+			return reject(e);
 		}
 
-		if (!body.steamid || !body.account_name || !body.token) {
-			callback(new Error('Malformed response'));
-			return;
+		if (!jsonBody.steamid || !jsonBody.account_name || !jsonBody.token) {
+			return reject(new Error('Malformed response'));
 		}
 
-		callback(null, {
-			steamID: new SteamID(body.steamid),
-			accountName: body.account_name,
-			webLogonToken: body.token
+		resolve({
+			steamID: new SteamID(jsonBody.steamid),
+			accountName: jsonBody.account_name,
+			webLogonToken: jsonBody.token
 		});
 	});
 };
@@ -105,15 +100,12 @@ SteamCommunity.prototype.getClientLogonToken = function(callback) {
 /**
  * Sets a single cookie in our cookie jar.
  * @param {string} cookie
- * @param {boolean} [secure=false]
  * @private
  */
-SteamCommunity.prototype._setCookie = function(cookie, secure) {
-	let protocol = secure ? 'https' : 'http';
-
-	this._jar.setCookieSync(cookie, `${protocol}://steamcommunity.com`);
-	this._jar.setCookieSync(cookie, `${protocol}://store.steampowered.com`);
-	this._jar.setCookieSync(cookie, `${protocol}://help.steampowered.com`);
+SteamCommunity.prototype._setCookie = function(cookie) {
+	this._jar.add(cookie, 'steamcommunity.com');
+	this._jar.add(cookie, 'store.steampowered.com');
+	this._jar.add(cookie, 'help.steampowered.com');
 };
 
 /**
@@ -131,7 +123,7 @@ SteamCommunity.prototype.setCookies = function(cookies) {
 			this.steamID = new SteamID(cookie.match(/=(\d+)/)[1]);
 		}
 
-		this._setCookie(cookie, !!(cookieName.match(/^steamMachineAuth/) || cookieName.match(/Secure$/)));
+		this._setCookie(cookie);
 	});
 
 	// The account we're logged in as might have changed, so verify that our mobile access token (if any) is still valid
@@ -140,254 +132,231 @@ SteamCommunity.prototype.setCookies = function(cookies) {
 };
 
 SteamCommunity.prototype.getSessionID = function() {
-	let sessionIdCookie = this._jar.getCookiesSync('http://steamcommunity.com').find(cookie => cookie.key == 'sessionid');
+	let sessionIdCookie = this._jar.cookies
+		.filter(c => c.domain == 'steamcommunity.com')
+		.find(c => c.name == 'sessionid');
 	if (sessionIdCookie) {
-		return sessionIdCookie.value;
+		return sessionIdCookie.content;
 	}
 
-	// Generate a new session id
+	// No cookie found? Generate a new session id
 	let sessionID = require('crypto').randomBytes(12).toString('hex');
 	this._setCookie(`sessionid=${sessionID}`);
 	return sessionID;
 };
 
+/**
+ * @param {string} pin
+ * @param {function} [callback]
+ * @return Promise<void>
+ */
 SteamCommunity.prototype.parentalUnlock = function(pin, callback) {
 	let sessionID = this.getSessionID();
 
-	this.httpRequestPost('https://steamcommunity.com/parental/ajaxunlock', {
-		json: true,
-		form: {
-			pin: pin,
-			sessionid: sessionID
-		}
-	}, (err, response, body) => {
-		if (!callback) {
-			return;
+	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
+		let {jsonBody} = await this.httpRequest({
+			method: 'POST',
+			url: 'https://steamcommunity.com/parental/ajaxunlock',
+			form: {
+				pin: pin,
+				sessionid: sessionID
+			},
+			source: 'steamcommunity'
+		});
+
+		if (!jsonBody || typeof jsonBody.success !== 'boolean') {
+			return reject('Invalid response');
 		}
 
-		if (err) {
-			callback(err);
-			return;
-		}
-
-		if (!body || typeof body.success !== 'boolean') {
-			callback('Invalid response');
-			return;
-		}
-
-		if (!body.success) {
-			switch (body.eresult) {
+		if (!jsonBody.success) {
+			switch (jsonBody.eresult) {
 				case SteamCommunity.EResult.AccessDenied:
-					callback('Incorrect PIN');
-					break;
+					return reject('Incorrect PIN');
 
 				case SteamCommunity.EResult.LimitExceeded:
-					callback('Too many invalid PIN attempts');
-					break;
+					return reject('Too many invalid PIN attempts');
 
 				default:
-					callback('Error ' + body.eresult);
+					return reject('Error ' + jsonBody.eresult);
 			}
-
-			return;
 		}
 
-		callback();
-	}, 'steamcommunity');
+		resolve();
+	});
 };
 
+/**
+ * @param {function} [callback]
+ * @return Promise<object>
+ */
 SteamCommunity.prototype.getNotifications = function(callback) {
-	this.httpRequestGet({
-		uri: 'https://steamcommunity.com/actions/GetNotificationCounts',
-		json: true
-	}, (err, response, body) => {
-		if (err) {
-			callback(err);
-			return;
-		}
+	return StdLib.Promises.callbackPromise(null, callback, false, async (resolve, reject) => {
+		let {jsonBody} = await this.httpRequest({
+			method: 'GET',
+			url: 'https://steamcommunity.com/actions/GetNotificationCounts',
+			source: 'steamcommunity'
+		});
 
-		if (!body || !body.notifications) {
-			callback(new Error('Malformed response'));
-			return;
+		if (!jsonBody || !jsonBody.notifications) {
+			return reject(new Error('Malformed response'));
 		}
 
 		let notifications = {
-			trades: body.notifications[1] || 0,
-			gameTurns: body.notifications[2] || 0,
-			moderatorMessages: body.notifications[3] || 0,
-			comments: body.notifications[4] || 0,
-			items: body.notifications[5] || 0,
-			invites: body.notifications[6] || 0,
+			trades: jsonBody.notifications[1] || 0,
+			gameTurns: jsonBody.notifications[2] || 0,
+			moderatorMessages: jsonBody.notifications[3] || 0,
+			comments: jsonBody.notifications[4] || 0,
+			items: jsonBody.notifications[5] || 0,
+			invites: jsonBody.notifications[6] || 0,
 			// dunno about 7
-			gifts: body.notifications[8] || 0,
-			chat: body.notifications[9] || 0,
-			helpRequestReplies: body.notifications[10] || 0,
-			accountAlerts: body.notifications[11] || 0
+			gifts: jsonBody.notifications[8] || 0,
+			chat: jsonBody.notifications[9] || 0,
+			helpRequestReplies: jsonBody.notifications[10] || 0,
+			accountAlerts: jsonBody.notifications[11] || 0
 		};
 
-		callback(null, notifications);
-	}, 'steamcommunity');
+		resolve(notifications);
+	});
 };
 
+/**
+ * @param {function} [callback]
+ * @return Promise<void>
+ */
 SteamCommunity.prototype.resetItemNotifications = function(callback) {
-	this.httpRequestGet('https://steamcommunity.com/my/inventory', (err, response, body) => {
-		if (!callback) {
-			return;
-		}
+	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
+		await this.httpRequest({
+			method: 'GET',
+			url: 'https://steamcommunity.com/my/inventory',
+			source: 'steamcommunity'
+		});
 
-		callback(err || null);
-	}, 'steamcommunity');
+		resolve();
+	});
 };
 
+/**
+ * @param {function} [callback]
+ * @return Promise<{loggedIn: boolean, familyView: boolean}>
+ */
 SteamCommunity.prototype.loggedIn = function(callback) {
-	this.httpRequestGet({
-		uri: 'https://steamcommunity.com/my',
-		followRedirect: false,
-		checkHttpError: false
-	}, (err, response, body) => {
-		if (err || (response.statusCode != 302 && response.statusCode != 403)) {
-			callback(err || new Error('HTTP error ' + response.statusCode));
-			return;
+	return StdLib.Promises.callbackPromise(['loggedIn', 'familyView'], callback, false, async (resolve, reject) => {
+		let result = await this.httpRequest({
+			method: 'GET',
+			url: 'https://steamcommunity.com/my',
+			followRedirect: false,
+			checkHttpError: false,
+			source: 'steamcommunity'
+		});
+
+		if (result.statusCode != 302 && result.statusCode != 403) {
+			return reject(new Error(`HTTP error ${result.statusCode}`));
 		}
 
-		if (response.statusCode == 403) {
-			callback(null, true, true);
-			return;
+		if (result.statusCode == 403) {
+			// TODO check response body to see if this is an akamai block
+			return resolve({
+				loggedIn: true,
+				familyView: true
+			});
 		}
 
-		callback(null, !!response.headers.location.match(/steamcommunity\.com(\/(id|profiles)\/[^/]+)\/?/), false);
-	}, 'steamcommunity');
+		return resolve({
+			loggedIn: !!result.headers.location.match(/steamcommunity\.com(\/(id|profiles)\/[^/]+)\/?/),
+			familyView: false
+		});
+	});
 };
 
+/**
+ * @param {function} [callback]
+ * @return Promise<{url: string, token: string}>
+ */
 SteamCommunity.prototype.getTradeURL = function(callback) {
-	this._myProfile('tradeoffers/privacy', null, (err, response, body) => {
-		if (err) {
-			callback(err);
-			return;
+	return StdLib.Promises.callbackPromise(['url', 'token'], callback, false, async (resolve, reject) => {
+		let {textBody} = await this._myProfile('tradeoffers/privacy');
+
+		let match = textBody.match(/https?:\/\/(www.)?steamcommunity.com\/tradeoffer\/new\/?\?partner=\d+(&|&amp;)token=([a-zA-Z0-9-_]+)/);
+		if (!match) {
+			return reject(new Error('Malformed response'));
 		}
 
-		let match = body.match(/https?:\/\/(www.)?steamcommunity.com\/tradeoffer\/new\/?\?partner=\d+(&|&amp;)token=([a-zA-Z0-9-_]+)/);
-		if (match) {
-			let token = match[3];
-			callback(null, match[0], token);
-		} else {
-			callback(new Error('Malformed response'));
-		}
-	}, 'steamcommunity');
+		let token = match[3];
+		resolve({
+			url: match[0],
+			token
+		});
+	});
 };
 
+/**
+ * @param [callback]
+ * @return Promise<{url: string, token: string}>
+ */
 SteamCommunity.prototype.changeTradeURL = function(callback) {
-	this._myProfile('tradeoffers/newtradeurl', {sessionid: this.getSessionID()}, (err, response, body) => {
-		if (!callback) {
-			return;
+	return StdLib.Promises.callbackPromise(['url', 'token'], callback, true, async (resolve, reject) => {
+		let {textBody} = await this._myProfile('tradeoffers/newtradeurl', {sessionid: this.getSessionID()});
+
+		if (!textBody || typeof textBody !== 'string' || textBody.length < 3 || textBody.indexOf('"') !== 0) {
+			return reject(new Error('Malformed response'));
 		}
 
-		if (!body || typeof body !== 'string' || body.length < 3 || body.indexOf('"') !== 0) {
-			callback(new Error('Malformed response'));
-			return;
-		}
-
-		let newToken = body.replace(/"/g, ''); //"t1o2k3e4n" => t1o2k3e4n
-		callback(null, 'https://steamcommunity.com/tradeoffer/new/?partner=' + this.steamID.accountid + '&token=' + newToken, newToken);
-	}, 'steamcommunity');
+		let newToken = textBody.replace(/"/g, ''); //"t1o2k3e4n" => t1o2k3e4n
+		resolve({
+			url: `https://steamcommunity.com/tradeoffer/new/?partner=${this.steamID.accountid}&token=${newToken}`,
+			token: newToken
+		});
+	});
 };
 
 /**
  * Clear your profile name (alias) history.
- * @param {function} callback
+ * @param {function} [callback]
+ * @return Promise<void>
  */
 SteamCommunity.prototype.clearPersonaNameHistory = function(callback) {
-	this._myProfile('ajaxclearaliashistory/', {sessionid: this.getSessionID()}, (err, res, body) => {
-		if (!callback) {
-			return;
-		}
+	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
+		let {statusCode, textBody} = await this._myProfile('ajaxclearaliashistory/', {sessionid: this.getSessionID()});
 
-		if (err) {
-			return callback(err);
-		}
-
-		if (res.statusCode != 200) {
-			return callback(new Error('HTTP error ' + res.statusCode));
+		if (statusCode != 200) {
+			return reject(new Error(`HTTP error ${statusCode}`));
 		}
 
 		try {
-			body = JSON.parse(body);
-			callback(Helpers.eresultError(body.success));
+			let body = JSON.parse(textBody);
+			let err = Helpers.eresultError(body.success);
+			return err ? reject(err) : resolve();
 		} catch (ex) {
-			return callback(new Error('Malformed response'));
+			return reject(new Error('Malformed response'));
 		}
 	});
-};
-
-SteamCommunity.prototype._myProfile = function(endpoint, form, callback) {
-	const completeRequest = (url) => {
-		let options = endpoint.endpoint ? endpoint : {};
-		options.uri = 'https://steamcommunity.com' + url + '/' + (endpoint.endpoint || endpoint);
-
-		if (form) {
-			options.method = 'POST';
-			options.form = form;
-			options.followAllRedirects = true;
-		} else if (!options.method) {
-			options.method = 'GET';
-		}
-
-		this.httpRequest(options, callback, 'steamcommunity');
-	};
-
-	if (this._profileURL) {
-		completeRequest(this._profileURL);
-	} else {
-		this.httpRequest('https://steamcommunity.com/my', {followRedirect: false}, (err, response, body) => {
-			if (err || response.statusCode != 302) {
-				callback(err || 'HTTP error ' + response.statusCode);
-				return;
-			}
-
-			let match = response.headers.location.match(/steamcommunity\.com(\/(id|profiles)\/[^/]+)\/?/);
-			if (!match) {
-				callback(new Error('Can\'t get profile URL'));
-				return;
-			}
-
-			this._profileURL = match[1];
-			setTimeout(() => {
-				delete this._profileURL; // delete the cache
-			}, 60000).unref();
-
-			completeRequest(match[1]);
-		}, 'steamcommunity');
-	}
 };
 
 /**
  * Returns an object whose keys are 64-bit SteamIDs, and whose values are values from the EFriendRelationship enum.
  * Therefore, you can deduce your friends or blocked list from this object.
- * @param {function} callback
+ * @param {function} [callback]
+ * @return Promise<object[]>
  */
 SteamCommunity.prototype.getFriendsList = function(callback) {
-	this.httpRequestGet({
-		uri: 'https://steamcommunity.com/textfilter/ajaxgetfriendslist',
-		json: true
-	}, (err, res, body) => {
-		if (err) {
-			callback(err ? err : new Error('HTTP error ' + res.statusCode));
-			return;
+	return StdLib.Promises.callbackPromise(['friends'], callback, false, async (resolve, reject) => {
+		let {jsonBody} = await this.httpRequest({
+			method: 'GET',
+			url: 'https://steamcommunity.com/textfilter/ajaxgetfriendslist',
+			source: 'steamcommunity'
+		});
+
+		if (jsonBody.success != SteamCommunity.EResult.OK) {
+			return reject(Helpers.eresultError(jsonBody.success));
 		}
 
-		if (body.success != 1) {
-			callback(Helpers.eresultError(body.success));
-			return;
-		}
-
-		if (!body.friendslist || !body.friendslist.friends) {
-			callback(new Error('Malformed response'));
-			return;
+		if (!jsonBody.friendslist || !jsonBody.friendslist.friends) {
+			return reject(new Error('Malformed response'));
 		}
 
 		const friends = {};
-		body.friendslist.friends.forEach(friend => (friends[friend.ulfriendid] = friend.efriendrelationship));
-		callback(null, friends);
+		jsonBody.friendslist.friends.forEach(friend => (friends[friend.ulfriendid] = friend.efriendrelationship));
+		resolve({friends});
 	});
 };
 
@@ -397,7 +366,6 @@ require('./components/market.js');
 require('./components/groups.js');
 require('./components/users.js');
 require('./components/sharedfiles.js');
-require('./components/inventoryhistory.js');
 require('./components/webapi.js');
 require('./components/twofactor.js');
 require('./components/confirmations.js');

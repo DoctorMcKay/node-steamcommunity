@@ -11,7 +11,7 @@ const SteamCommunity = require('../index.js');
  * @param {*} [options.body]
  * @param {object} [options.form]
  * @param {object} [options.multipartForm]
- * @param {boolean} [options.json=false]
+ * @param {boolean} [options.json=false] - Controls whether the *REQUEST* should be sent as json.
  * @param {boolean} [options.followRedirect=true]
  * @param {boolean} [options.checkHttpError=true]
  * @param {boolean} [options.checkCommunityError=true]
@@ -82,6 +82,51 @@ SteamCommunity.prototype.httpRequest = function(options) {
 			continueRequest(null);
 		}
 	});
+};
+
+/**
+ * @param {string|object} endpoint
+ * @param {object} [form]
+ * @private
+ */
+SteamCommunity.prototype._myProfile = async function(endpoint, form) {
+	if (!this._profileURL) {
+		let result = await this.httpRequest({
+			method: 'GET',
+			url: 'https://steamcommunity.com/my',
+			followRedirect: false,
+			source: 'steamcommunity'
+		});
+
+		if (result.statusCode != 302) {
+			throw new Error(`HTTP error ${result.statusCode}`);
+		}
+
+		let match = result.headers.location.match(/steamcommunity\.com(\/(id|profiles)\/[^/]+)\/?/);
+		if (!match) {
+			throw new Error('Can\'t get profile URL');
+		}
+
+		this._profileURL = match[1];
+		setTimeout(() => {
+			delete this._profileURL; // delete the cache
+		}, 60000).unref();
+	}
+
+	let options = endpoint.endpoint ? endpoint : {};
+	options.url = `https://steamcommunity.com${this._profileURL}/${endpoint.endpoint || endpoint}`;
+	options.followRedirect = true;
+
+	if (form) {
+		options.method = 'POST';
+		options.form = form;
+	} else if (!options.method) {
+		options.method = 'GET';
+	}
+
+	options.source = 'steamcommunity';
+
+	return await this.httpRequest(options);
 };
 
 SteamCommunity.prototype._notifySessionExpired = function(err) {

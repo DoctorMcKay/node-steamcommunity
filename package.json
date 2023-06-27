@@ -25,7 +25,6 @@
 		"@doctormckay/stdlib": "^2.5.0",
 		"cheerio": "0.22.0",
 		"image-size": "^0.8.2",
-		"node-bignumber": "^1.2.1",
 		"request": "^2.88.0",
 		"steam-session": "^1.2.4",
 		"steam-totp": "^2.1.0",
