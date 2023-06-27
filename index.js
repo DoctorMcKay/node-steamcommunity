@@ -81,7 +81,9 @@ SteamCommunity.prototype.login = function(details) {
 	// eslint-disable-next-line no-async-promise-executor
 	return new Promise(async (resolve, reject) => {
 		let platformType = details.authTokenPlatformType || EAuthTokenPlatformType.MobileApp;
-		let session = new LoginSession(platformType);
+		let session = new LoginSession(platformType, {
+			httpProxy: this._options.httpProxy
+		});
 
 		session.on('authenticated', async () => {
 			try {
