@@ -132,9 +132,9 @@ SteamCommunity.prototype.setCookies = function(cookies) {
 	this._verifyMobileAccessToken();
 };
 
-SteamCommunity.prototype.getSessionID = function() {
+SteamCommunity.prototype.getSessionID = function(domain = 'steamcommunity.com') {
 	let sessionIdCookie = this._jar.cookies
-		.filter(c => c.domain == 'steamcommunity.com')
+		.filter(c => c.domain == domain)
 		.find(c => c.name == 'sessionid');
 	if (sessionIdCookie) {
 		return sessionIdCookie.content;
