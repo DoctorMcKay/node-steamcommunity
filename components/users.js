@@ -472,7 +472,7 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 					continue;
 				}
 
-				currency.push(new CEconItem(body.rgInventory[i], body.rgDescriptions, contextID));
+				currency.push(new CEconItem(body.rgCurrency[i], body.rgDescriptions, contextID));
 			}
 
 			if (body.more) {
