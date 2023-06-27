@@ -1,3 +1,5 @@
+const StdLib = require('@doctormckay/stdlib');
+
 const SteamCommunity = require('../index.js');
 
 module.exports = CConfirmation;
@@ -18,20 +20,33 @@ function CConfirmation(community, data) {
 	this.offerID = this.type == SteamCommunity.ConfirmationType.Trade ? this.creator : null;
 }
 
+/**
+ * @param {number} time
+ * @param {string} key
+ * @param {function} [callback]
+ * @return Promise<{offerID: number}>
+ */
 CConfirmation.prototype.getOfferID = function(time, key, callback) {
-	if (this.type && this.creator) {
-		if (this.type != SteamCommunity.ConfirmationType.Trade) {
-			callback(new Error('Not a trade confirmation'));
-			return;
+	return StdLib.Promises.callbackPromise(['offerID'], null, false, async (resolve, reject) => {
+		if (this.type && this.creator) {
+			if (this.type != SteamCommunity.ConfirmationType.Trade) {
+				return reject(new Error('Not a trade confirmation'));
+			}
+
+			return resolve({offerID: this.creator});
 		}
 
-		callback(null, this.creator);
-		return;
-	}
-
-	this._community.getConfirmationOfferID(this.id, time, key, callback);
+		return await this._community.getConfirmationOfferID(this.id, time, key, callback);
+	});
 };
 
+/**
+ * @param {number} time
+ * @param {string} key
+ * @param {boolean} accept
+ * @param {function} [callback]
+ * @return Promise<void>
+ */
 CConfirmation.prototype.respond = function(time, key, accept, callback) {
-	this._community.respondToConfirmation(this.id, this.key, time, key, accept, callback);
+	return this._community.respondToConfirmation(this.id, this.key, time, key, accept, callback);
 };

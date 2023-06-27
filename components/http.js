@@ -1,4 +1,5 @@
 const {HttpResponse} = require('@doctormckay/stdlib/http'); // eslint-disable-line
+const {betterPromise} = require('@doctormckay/stdlib/promises');
 
 const SteamCommunity = require('../index.js');
 
@@ -20,67 +21,50 @@ const SteamCommunity = require('../index.js');
  * @return {Promise<HttpResponse>}
  */
 SteamCommunity.prototype.httpRequest = function(options) {
-	return new Promise((resolve, reject) => {
+	return betterPromise(async (resolve, reject) => {
 		let requestID = ++this._httpRequestID;
 		let source = options.source || '';
 
-		let continued = false;
-
-		let continueRequest = async (err) => {
-			if (continued) {
-				return;
+		await betterPromise((resolve, reject) => {
+			if (!this.onPreHttpRequest || !this.onPreHttpRequest(requestID, source, options, (err) => {
+				err ? reject(err) : resolve();
+			})) {
+				// No pre-hook, or the pre-hook doesn't want to delay the request.
+				resolve();
 			}
+		});
 
-			continued = true;
+		let result = await this._httpClient.request({
+			method: options.method,
+			url: options.url,
+			queryString: options.qs,
+			headers: options.headers,
+			body: options.body,
+			urlEncodedForm: options.form,
+			multipartForm: options.multipartForm,
+			json: options.json,
+			followRedirects: options.followRedirect
+		});
 
-			if (err) {
-				return reject(err);
-			}
+		let httpError = options.checkHttpError !== false && this._checkHttpError(result);
+		let communityError = !options.json && options.checkCommunityError !== false && this._checkCommunityError(result);
+		let tradeError = !options.json && options.checkTradeError !== false && this._checkTradeError(result);
+		let jsonError = options.json && options.checkJsonError !== false && !result.jsonBody ? new Error('Malformed JSON response') : null;
 
-			/** @var {HttpResponse} result */
-			let result;
+		this.emit('postHttpRequest', {
+			requestID,
+			source,
+			options,
+			response: result,
+			body: result.textBody,
+			error: httpError || communityError || tradeError || jsonError || null,
+			httpError,
+			communityError,
+			tradeError,
+			jsonError
+		});
 
-			try {
-				result = await this._httpClient.request({
-					method: options.method,
-					url: options.url,
-					queryString: options.qs,
-					headers: options.headers,
-					body: options.body,
-					urlEncodedForm: options.form,
-					multipartForm: options.multipartForm,
-					json: options.json,
-					followRedirects: options.followRedirect
-				});
-			} catch (ex) {
-				return reject(ex);
-			}
-
-			let httpError = options.checkHttpError !== false && this._checkHttpError(result);
-			let communityError = !options.json && options.checkCommunityError !== false && this._checkCommunityError(result);
-			let tradeError = !options.json && options.checkTradeError !== false && this._checkTradeError(result);
-			let jsonError = options.json && options.checkJsonError !== false && !result.jsonBody ? new Error('Malformed JSON response') : null;
-
-			this.emit('postHttpRequest', {
-				requestID,
-				source,
-				options,
-				response: result,
-				body: result.textBody,
-				error: httpError || communityError || tradeError || jsonError || null,
-				httpError,
-				communityError,
-				tradeError,
-				jsonError
-			});
-
-			resolve(result);
-		};
-
-		if (!this.onPreHttpRequest || !this.onPreHttpRequest(requestID, source, options, continueRequest)) {
-			// No pre-hook, or the pre-hook doesn't want to delay the request.
-			continueRequest(null);
-		}
+		resolve(result);
 	});
 };
 
