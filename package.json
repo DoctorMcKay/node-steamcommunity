@@ -32,7 +32,7 @@
 		"steam-totp": "^2.1.0",
 		"steamid": "^2.0.0",
 		"tough-cookie": "^4.0.0",
-		"xml2js": "^0.4.22"
+		"xml2js": "^0.6.0"
 	},
 	"engines": {
 		"node": ">=14.0.0"
