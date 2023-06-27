@@ -1,6 +1,7 @@
 const {EventEmitter} = require('events');
 const StdLib = require('@doctormckay/stdlib');
 const SteamID = require('steamid');
+const {LoginSession, EAuthTokenPlatformType, EAuthSessionGuardType} = require('steam-session');
 const Util = require('util');
 const xml2js = require('xml2js');
 
@@ -63,8 +64,85 @@ function SteamCommunity(options) {
 	this._setCookie('timezoneOffset=0,0');
 }
 
+/**
+ * @param {object} details
+ * @param {string} details.accountName
+ * @param {string} details.password
+ * @param {string} [details.authCode]
+ * @param {string} [details.twoFactorCode]
+ * @param {string} [details.authTokenPlatformType] - A value from steam-session's EAuthTokenPlatformType enum. Defaults to MobileApp.
+ * @return Promise<{cookies: string[], sessionID: string, refreshToken: string}>
+ */
 SteamCommunity.prototype.login = function(details) {
-	// TODO
+	if (typeof details.accountName != 'string' || typeof details.password != 'string') {
+		throw new Error('You must provide your accountName and password to login to steamcommunity.com');
+	}
+
+	// eslint-disable-next-line no-async-promise-executor
+	return new Promise(async (resolve, reject) => {
+		let platformType = details.authTokenPlatformType || EAuthTokenPlatformType.MobileApp;
+		let session = new LoginSession(platformType);
+
+		session.on('authenticated', async () => {
+			try {
+				let cookies = await session.getWebCookies();
+				this.setCookies(cookies);
+
+				if (platformType == EAuthTokenPlatformType.MobileApp) {
+					this.setMobileAppAccessToken(session.accessToken);
+				}
+
+				// TODO set refresh token for session keep-alive
+
+				let sessionID = this.getSessionID();
+				if (!cookies.some(c => c.startsWith('sessionid='))) {
+					// make sure that the sessionid we return is in the cookies list we return
+					cookies.push(`sessionid=${sessionID}`);
+				}
+
+				resolve({
+					cookies,
+					sessionID,
+					refreshToken: session.refreshToken
+				});
+			} catch (ex) {
+				reject(ex);
+			}
+		});
+
+		session.on('timeout', () => {
+			// This really shouldn't happen
+			reject(new Error('Login attempt timed out'));
+		});
+		session.on('error', reject);
+
+		try {
+			let startResult = await session.startWithCredentials({
+				accountName: details.accountName,
+				password: details.password,
+				steamGuardCode: details.twoFactorCode || details.authCode
+			});
+
+			if (!startResult.actionRequired) {
+				return; // 'authenticated' should get emitted soon
+			}
+
+			session.cancelLoginAttempt();
+
+			if (startResult.validActions.some(a => a.type == EAuthSessionGuardType.EmailCode)) {
+				return reject(new Error('SteamGuard'));
+			}
+
+			if (startResult.validActions.some(a => a.type == EAuthSessionGuardType.DeviceCode)) {
+				return reject(new Error('SteamGuardMobile'));
+			}
+
+			let validActions = startResult.validActions.map(a => a.type).join(', ');
+			return reject(new Error(`Unexpected guard action(s) ${validActions}`));
+		} catch (ex) {
+			reject(ex);
+		}
+	});
 };
 
 /**
