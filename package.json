@@ -28,13 +28,11 @@
 		"image-size": "^0.8.2",
 		"node-bignumber": "^1.2.1",
 		"request": "^2.88.0",
+		"steam-session": "^1.2.4",
 		"steam-totp": "^2.1.0",
 		"steamid": "^2.0.0",
 		"tough-cookie": "^4.0.0",
 		"xml2js": "^0.4.22"
-	},
-	"devDependencies": {
-		"steam-session": "^1.2.3"
 	},
 	"engines": {
 		"node": ">=14.0.0"
