@@ -212,43 +212,6 @@ SteamCommunity.prototype.login = function(details, callback) {
 };
 
 /**
- * @deprecated
- * @param {string} steamguard
- * @param {string} token
- * @param {function} callback
- */
-SteamCommunity.prototype.oAuthLogin = function(steamguard, token, callback) {
-	steamguard = steamguard.split('||');
-	let steamID = new SteamID(steamguard[0]);
-
-	this.httpRequestPost({
-		uri: 'https://api.steampowered.com/IMobileAuthService/GetWGToken/v1/',
-		form: {access_token: token},
-		json: true
-	}, (err, response, body) => {
-		if (err) {
-			callback(err);
-			return;
-		}
-
-		if (!body.response || !body.response.token || !body.response.token_secure) {
-			callback(new Error('Malformed response'));
-			return;
-		}
-
-		let cookies = [
-			'steamLogin=' + encodeURIComponent(steamID.getSteamID64() + '||' + body.response.token),
-			'steamLoginSecure=' + encodeURIComponent(steamID.getSteamID64() + '||' + body.response.token_secure),
-			'steamMachineAuth' + steamID.getSteamID64() + '=' + steamguard[1],
-			'sessionid=' + this.getSessionID()
-		];
-
-		this.setCookies(cookies);
-		callback(null, this.getSessionID(), cookies);
-	}, 'steamcommunity');
-};
-
-/**
  * Get a token that can be used to log onto Steam using steam-user.
  * @param {function} callback
  */
