@@ -19,6 +19,7 @@ module.exports = SteamCommunity;
 SteamCommunity.SteamID = SteamID;
 SteamCommunity.EConfirmationType = require('./resources/EConfirmationType.js');
 SteamCommunity.EResult = require('./resources/EResult.js');
+SteamCommunity.ESharedFileType = require('./resources/ESharedFileType.js');
 SteamCommunity.EFriendRelationship = require('./resources/EFriendRelationship.js');
 
 
@@ -66,7 +67,7 @@ SteamCommunity.prototype.login = function(details, callback) {
 			this._setCookie(`steamMachineAuth${parts[0]}=${encodeURIComponent(parts[1])}`, true);
 		}
 
-		let disableMobile = details.disableMobile;
+		let disableMobile = typeof details.disableMobile == 'undefined' ? true : details.disableMobile;
 
 		// Delete the cache
 		delete this._profileURL;
@@ -159,18 +160,17 @@ SteamCommunity.prototype.login = function(details, callback) {
 
 					this._captchaGid = body.captcha_gid;
 
-					return reject(error);
-				} else if (!body.success) {
-					return reject(new Error(body.message || 'Unknown error'));
-				} else if (!disableMobile && !body.oauth) {
-					return reject(new Error('Malformed response'));
-				} else {
-					let sessionID = this.getSessionID();
-					let oAuth;
+				callback(error);
+			} else if (!body.success) {
+				callback(new Error(body.message || 'Unknown error'));
+			} else {
+				var sessionID = generateSessionID();
+				var oAuth = {};
+				self._setCookie(Request.cookie('sessionid=' + sessionID));
 
 					let cookies = this._jar.getCookieStringSync('https://steamcommunity.com').split(';').map(cookie => cookie.trim());
 
-					if (!disableMobile) {
+					if (!disableMobile && body.oauth) {
 						oAuth = JSON.parse(body.oauth);
 						this.steamID = new SteamID(oAuth.steamid);
 						this.oAuthToken = oAuth.oauth_token;
@@ -211,6 +211,12 @@ SteamCommunity.prototype.login = function(details, callback) {
 	});
 };
 
+/**
+ * @deprecated
+ * @param {string} steamguard
+ * @param {string} token
+ * @param {function} callback
+ */
 SteamCommunity.prototype.oAuthLogin = function(steamguard, token, callback) {
 	steamguard = steamguard.split('||');
 	let steamID = new SteamID(steamguard[0]);
@@ -307,6 +313,10 @@ SteamCommunity.prototype.setCookies = function(cookies) {
 
 		this._setCookie(cookie, !!(cookieName.match(/^steamMachineAuth/) || cookieName.match(/Secure$/)));
 	});
+
+	// The account we're logged in as might have changed, so verify that our mobile access token (if any) is still valid
+	// for this account.
+	this._verifyMobileAccessToken();
 };
 
 SteamCommunity.prototype.getSessionID = function() {
@@ -566,6 +576,8 @@ require('./components/profile.js');
 require('./components/market.js');
 require('./components/groups.js');
 require('./components/users.js');
+require('./components/sharedfiles.js');
+require('./components/inventoryhistory.js');
 require('./components/webapi.js');
 require('./components/twofactor.js');
 require('./components/confirmations.js');
@@ -573,6 +585,7 @@ require('./components/help.js');
 require('./classes/CMarketItem.js');
 require('./classes/CMarketSearchResult.js');
 require('./classes/CSteamGroup.js');
+require('./classes/CSteamSharedFile.js');
 require('./classes/CSteamUser.js');
 
 /**

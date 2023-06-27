@@ -376,18 +376,7 @@ SteamCommunity.prototype.getUserInventoryContexts = function(userID, callback) {
 
 		let match = body.match(/var g_rgAppContextData = ([^\n]+);\r?\n/);
 		if (!match) {
-			let errorMessage = 'Malformed response';
-
-			if (body.includes('0 items in their inventory.')) {
-				callback(null, {});
-				return;
-			} else if (body.includes('inventory is currently private.')) {
-				errorMessage = 'Private inventory';
-			} else if (body.includes('profile_private_info')) {
-				errorMessage = 'Private profile';
-			}
-
-			callback(new Error(errorMessage));
+			callback(new Error('Malformed response'));
 			return;
 		}
 
@@ -397,6 +386,21 @@ SteamCommunity.prototype.getUserInventoryContexts = function(userID, callback) {
 		} catch (e) {
 			callback(new Error('Malformed response'));
 			return;
+		}
+
+		if (Object.keys(data).length == 0) {
+			if (body.match(/inventory is currently private\./)) {
+				callback(new Error('Private inventory'));
+				return;
+			}
+
+			if (body.match(/profile_private_info/)) {
+				callback(new Error('Private profile'));
+				return;
+			}
+
+			// If they truly have no items in their inventory, Steam will send g_rgAppContextData as [] instead of {}.
+			data = {};
 		}
 
 		callback(null, data);
@@ -449,7 +453,7 @@ SteamCommunity.prototype.getUserInventory = function(userID, appID, contextID, t
 			}
 
 			for (let i in body.rgCurrency) {
-				currency.push(new CEconItem(body.rgInventory[i], body.rgDescriptions, contextID));
+				currency.push(new CEconItem(body.rgCurrency[i], body.rgDescriptions, contextID));
 			}
 
 			if (body.more) {

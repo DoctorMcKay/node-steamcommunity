@@ -11,7 +11,9 @@ function CConfirmation(community, data) {
 	this.key = data.key;
 	this.title = data.title;
 	this.receiving = data.receiving;
+	this.sending = data.sending;
 	this.time = data.time;
+	this.timestamp = data.timestamp;
 	this.icon = data.icon;
 	this.offerID = this.type == SteamCommunity.ConfirmationType.Trade ? this.creator : null;
 }

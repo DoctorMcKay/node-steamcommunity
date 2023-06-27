@@ -33,6 +33,9 @@
 		"tough-cookie": "^4.0.0",
 		"xml2js": "^0.4.22"
 	},
+	"devDependencies": {
+		"steam-session": "^1.2.3"
+	},
 	"engines": {
 		"node": ">=14.0.0"
 	},

@@ -4,61 +4,55 @@ const SteamTotp = require('steam-totp');
 const SteamCommunity = require('../index.js');
 
 const CConfirmation = require('../classes/CConfirmation.js');
+var EConfirmationType = require('../resources/EConfirmationType.js');
 
 /**
  * Get a list of your account's currently outstanding confirmations.
  * @param {int} time - The unix timestamp with which the following key was generated
- * @param {string} key - The confirmation key that was generated using the preceeding time and the tag "conf" (this key can be reused)
+ * @param {string} key - The confirmation key that was generated using the preceeding time and the tag 'conf' (this key can be reused)
  * @param {SteamCommunity~getConfirmations} callback - Called when the list of confirmations is received
  */
 SteamCommunity.prototype.getConfirmations = function(time, key, callback) {
-	request(this, 'conf', key, time, 'conf', null, false, (err, body) => {
-		if (err) {
-			if (err.message == 'Invalid protocol: steammobile:') {
-				err.message = 'Not Logged In';
-				this._notifySessionExpired(err);
-			}
+	var self = this;
 
+	// Ugly hack to maintain backward compatibility
+	var tag = 'conf';
+	if (typeof key == 'object') {
+		tag = key.tag;
+		key = key.key;
+	}
+
+	// The official Steam app uses the tag 'list', but 'conf' still works so let's use that for backward compatibility.
+	request(this, 'getlist', key, time, tag, null, true, function(err, body) {
+		if (err) {
 			callback(err);
 			return;
 		}
 
-		let $ = Cheerio.load(body);
-		let empty = $('#mobileconf_empty');
-		if (empty.length > 0) {
-			if (!$(empty).hasClass('mobileconf_done')) {
-				// An error occurred
-				callback(new Error(empty.find('div:nth-of-type(2)').text()));
-			} else {
-				callback(null, []);
+		if (!body.success) {
+			if (body.needauth) {
+				var err = new Error('Not Logged In');
+				self._notifySessionExpired(err);
+				callback(err);
+				return;
 			}
 
+			callback(new Error(body.message || body.detail || 'Failed to get confirmation list'));
 			return;
 		}
 
-		// We have something to confirm
-		let confirmations = $('#mobileconf_list');
-		if (!confirmations) {
-			callback(new Error('Malformed response'));
-			return;
-		}
-
-		let confs = [];
-		Array.prototype.forEach.call(confirmations.find('.mobileconf_list_entry'), (conf) => {
-			conf = $(conf);
-
-			let img = conf.find('.mobileconf_list_entry_icon img');
-			confs.push(new CConfirmation(this, {
-				id: conf.data('confid'),
-				type: conf.data('type'),
-				creator: conf.data('creator'),
-				key: conf.data('key'),
-				title: conf.find('.mobileconf_list_entry_description>div:nth-of-type(1)').text().trim(),
-				receiving: conf.find('.mobileconf_list_entry_description>div:nth-of-type(2)').text().trim(),
-				time: conf.find('.mobileconf_list_entry_description>div:nth-of-type(3)').text().trim(),
-				icon: img.length < 1 ? '' : $(img).attr('src')
-			}));
-		});
+		var confs = (body.conf || []).map(conf => new CConfirmation(self, {
+			id: conf.id,
+			type: conf.type,
+			creator: conf.creator_id,
+			key: conf.nonce,
+			title: `${conf.type_name || 'Confirm'} - ${conf.headline || ''}`,
+			receiving: conf.type == EConfirmationType.Trade ? ((conf.summary || [])[1] || '') : '',
+			sending: (conf.summary || [])[0] || '',
+			time: (new Date(conf.creation_time * 1000)).toISOString(), // for backward compatibility
+			timestamp: new Date(conf.creation_time * 1000),
+			icon: conf.icon || ''
+		}));
 
 		callback(null, confs);
 	});
@@ -74,22 +68,23 @@ SteamCommunity.prototype.getConfirmations = function(time, key, callback) {
  * Get the trade offer ID associated with a particular confirmation
  * @param {int} confID - The ID of the confirmation in question
  * @param {int} time - The unix timestamp with which the following key was generated
- * @param {string} key - The confirmation key that was generated using the preceeding time and the tag "details" (this key can be reused)
+ * @param {string} key - The confirmation key that was generated using the preceeding time and the tag "detail" (this key can be reused)
  * @param {SteamCommunity~getConfirmationOfferID} callback
  */
 SteamCommunity.prototype.getConfirmationOfferID = function(confID, time, key, callback) {
-	request(this, 'details/' + confID, key, time, 'details', null, true, (err, body) => {
+	// The official Steam app uses the tag 'detail', but 'details' still works so let's use that for backward compatibility
+	request(this, 'detailspage/' + confID, key, time, 'details', null, false, function(err, body) {
 		if (err) {
 			callback(err);
 			return;
 		}
 
-		if (!body.success) {
+		if (typeof body != 'string') {
 			callback(new Error('Cannot load confirmation details'));
 			return;
 		}
 
-		let $ = Cheerio.load(body.html);
+		let $ = Cheerio.load(body);
 		let offer = $('.tradeoffer');
 		if (offer.length < 1) {
 			callback(null, null);
@@ -116,11 +111,19 @@ SteamCommunity.prototype.getConfirmationOfferID = function(confID, time, key, ca
  * @param {SteamCommunity~genericErrorCallback} callback - Called when the request is complete
  */
 SteamCommunity.prototype.respondToConfirmation = function(confID, confKey, time, key, accept, callback) {
-	request(this, (confID instanceof Array) ? 'multiajaxop' : 'ajaxop', key, time, accept ? 'allow' : 'cancel', {
+	// Ugly hack to maintain backward compatibility
+	var tag = accept ? 'allow' : 'cancel';
+	if (typeof key == 'object') {
+		tag = key.tag;
+		key = key.key;
+	}
+
+	// The official app uses tags reject/accept, but cancel/allow still works so use these for backward compatibility
+	request(this, (confID instanceof Array) ? 'multiajaxop' : 'ajaxop', key, time, tag, {
 		op: accept ? 'allow' : 'cancel',
 		cid: confID,
 		ck: confKey
-	}, true, (err, body) => {
+	}, true, function(err, body) {
 		if (!callback) {
 			return;
 		}
@@ -203,7 +206,39 @@ SteamCommunity.prototype.acceptConfirmationForObject = function(identitySecret, 
 		});
 	}
 
+	function doConfirmation() {
+		var offset = self._timeOffset;
+		var time = SteamTotp.time(offset);
+		var confKey = SteamTotp.getConfirmationKey(identitySecret, time, 'list');
+		self.getConfirmations(time, {tag: 'list', key: confKey}, function(err, confs) {
+			if (err) {
+				callback(err);
+				return;
+			}
 
+			var conf = confs.filter(function(conf) { return conf.creator == objectID; });
+			if (conf.length == 0) {
+				callback(new Error('Could not find confirmation for object ' + objectID));
+				return;
+			}
+
+			conf = conf[0];
+
+			// make sure we don't reuse the same time
+			var localOffset = 0;
+			do {
+				time = SteamTotp.time(offset) + localOffset++;
+			} while (self._usedConfTimes.indexOf(time) != -1);
+
+			self._usedConfTimes.push(time);
+			if (self._usedConfTimes.length > 60) {
+				self._usedConfTimes.splice(0, self._usedConfTimes.length - 60); // we don't need to save more than 60 entries
+			}
+
+			confKey = SteamTotp.getConfirmationKey(identitySecret, time, 'accept');
+			conf.respond(time, {tag: 'accept', key: confKey}, true, callback);
+		});
+	}
 };
 
 /**
@@ -247,7 +282,7 @@ function request(community, url, key, time, tag, params, json, callback) {
 	params.a = community.steamID.getSteamID64();
 	params.k = key;
 	params.t = time;
-	params.m = 'android';
+	params.m = 'react';
 	params.tag = tag;
 
 	let req = {

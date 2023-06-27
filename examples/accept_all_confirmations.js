@@ -2,10 +2,10 @@
 // const SteamCommunity = require('steamcommunity');
 const SteamCommunity = require('../index.js');
 const SteamSession = require('steam-session');
+const SteamTotp = require('steam-totp');
 const ReadLine = require('readline');
-const FS = require('fs');
 
-const EResult = SteamCommunity.EResult;
+const EConfirmationType = SteamCommunity.ConfirmationType;
 
 let g_AbortPromptFunc = null;
 
@@ -23,17 +23,10 @@ async function main() {
 	session.on('authenticated', async () => {
 		abortPrompt();
 
-		let accessToken = session.accessToken;
 		let cookies = await session.getWebCookies();
-
 		community.setCookies(cookies);
-		community.setMobileAppAccessToken(accessToken);
 
-		// Enabling or disabling 2FA is presently the only action in node-steamcommunity which requires an access token.
-		// In all other cases, using `community.setCookies(cookies)` is all you need to do in order to be logged in,
-		// although there's never any harm in setting a mobile app access token.
-
-		doSetup();
+		doConfirmations();
 	});
 
 	session.on('timeout', () => {
@@ -63,14 +56,18 @@ async function main() {
 		let codeAction = startResult.validActions.find(action => codeActionTypes.includes(action.type));
 		if (codeAction) {
 			if (codeAction.type == SteamSession.EAuthSessionGuardType.EmailCode) {
+				// We wouldn't expect this to happen since mobile confirmations are only possible with 2FA enabled, but just in case...
 				console.log(`A code has been sent to your email address at ${codeAction.detail}.`);
 			} else {
-				// We wouldn't expect this to happen since we're trying to enable 2FA, but just in case...
 				console.log('You need to provide a Steam Guard Mobile Authenticator code.');
 			}
 
-			let code = await promptAsync('Code: ');
+			let code = await promptAsync('Code or Shared Secret: ');
 			if (code) {
+				// The code might've been a shared secret
+				if (code.length > 10) {
+					code = SteamTotp.getAuthCode(code);
+				}
 				await session.submitSteamGuardCode(code);
 			}
 
@@ -81,62 +78,56 @@ async function main() {
 	}
 }
 
-function doSetup() {
-	community.enableTwoFactor((err, response) => {
-		if (err) {
-			if (err.eresult == EResult.Fail) {
-				console.log('Error: Failed to enable two-factor authentication. Do you have a phone number attached to your account?');
-				process.exit();
-				return;
+async function doConfirmations() {
+	let identitySecret = await promptAsync('Identity Secret: ');
+
+	let confs = await new Promise((resolve, reject) => {
+		let time = SteamTotp.time();
+		let key = SteamTotp.getConfirmationKey(identitySecret, time, 'conf');
+		community.getConfirmations(time, key, (err, confs) => {
+			if (err) {
+				return reject(err);
 			}
 
-			if (err.eresult == EResult.RateLimitExceeded) {
-				console.log('Error: RateLimitExceeded. Try again later.');
-				process.exit();
-				return;
-			}
-
-			console.log(err);
-			process.exit();
-			return;
-		}
-
-		if (response.status != EResult.OK) {
-			console.log(`Error: Status ${response.status}`);
-			process.exit();
-			return;
-		}
-
-		let filename = `twofactor_${community.steamID.getSteamID64()}.json`;
-		console.log(`Writing secrets to ${filename}`);
-		console.log(`Revocation code: ${response.revocation_code}`);
-		FS.writeFileSync(filename, JSON.stringify(response, null, '\t'));
-
-		promptActivationCode(response);
+			resolve(confs);
+		});
 	});
-}
 
-async function promptActivationCode(response) {
-	if (response.phone_number_hint) {
-		console.log(`A code has been sent to your phone ending in ${response.phone_number_hint}.`);
+	console.log(`Found ${confs.length} outstanding confirmations.`);
+
+	// We need to track the previous timestamp we used, as we cannot reuse timestamps.
+	let previousTime = 0;
+
+	for (let i = 0; i < confs.length; i++) {
+		let conf = confs[i];
+
+		process.stdout.write(`Accepting confirmation for ${EConfirmationType[conf.type]} - ${conf.title}... `);
+
+		try {
+			await new Promise((resolve, reject) => {
+				let time = SteamTotp.time();
+				if (time == previousTime) {
+					time++;
+				}
+
+				previousTime = time;
+				let key = SteamTotp.getConfirmationKey(identitySecret, time, 'allow');
+				conf.respond(time, key, true, (err) => {
+					err ? reject(err) : resolve();
+				});
+			});
+
+			console.log('success');
+		} catch (ex) {
+			console.log(`error: ${ex.message}`);
+		}
+
+		// sleep 500ms so we don't run too far away from the current timestamp
+		await new Promise(resolve => setTimeout(resolve, 500));
 	}
 
-	let smsCode = await promptAsync('SMS Code: ');
-	community.finalizeTwoFactor(response.shared_secret, smsCode, (err) => {
-		if (err) {
-			if (err.message == 'Invalid activation code') {
-				console.log(err);
-				promptActivationCode(response);
-				return;
-			}
-
-			console.log(err);
-		} else {
-			console.log('Two-factor authentication enabled!');
-		}
-
-		process.exit();
-	});
+	console.log('Finished processing confirmations');
+	process.exit(0);
 }
 
 // Nothing interesting below here, just code for prompting for input from the console.
