@@ -247,6 +247,7 @@ SteamCommunity.prototype.createBoosterPack = function(appid, useUntradableGems, 
 
 		// We can now check HTTP status codes
 		if (this._checkHttpError(err, res, callback, body)) {
+			// TODO v4
 			return;
 		}
 

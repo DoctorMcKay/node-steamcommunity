@@ -1,15 +1,13 @@
 const {EventEmitter} = require('events');
 const {hex2b64} = require('node-bignumber');
-const Request = require('request');
 const {Key: RSA} = require('node-bignumber');
 const StdLib = require('@doctormckay/stdlib');
 const SteamID = require('steamid');
-const {CookieJar} = require('tough-cookie');
 const Util = require('util');
 
 const Helpers = require('./components/helpers.js');
 
-const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36';
+const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36';
 
 Util.inherits(SteamCommunity, EventEmitter);
 
@@ -21,31 +19,43 @@ SteamCommunity.EResult = require('./resources/EResult.js');
 SteamCommunity.ESharedFileType = require('./resources/ESharedFileType.js');
 SteamCommunity.EFriendRelationship = require('./resources/EFriendRelationship.js');
 
-
+/**
+ *
+ * @param {object} [options]
+ * @param {number} [options.timeout=50000] -  The time in milliseconds that SteamCommunity will wait for HTTP requests to complete.
+ * @param {string} [options.localAddress] - The local IP address that SteamCommunity will use for its HTTP requests.
+ * @param {string} [options.httpProxy] - A string containing the URI of an HTTP proxy to use for all requests, e.g. `http://user:pass@1.2.3.4:8888`
+ * @param {object} [options.defaultHttpHeaders] - An object containing some headers to send for every HTTP request
+ * @constructor
+ */
 function SteamCommunity(options) {
 	options = options || {};
 
-	this._jar = new CookieJar();
+	this._jar = new StdLib.HTTP.CookieJar();
 	this._captchaGid = -1;
 	this._httpRequestID = 0;
 
-	let defaults = {
-		jar: this._jar,
-		timeout: options.timeout || 50000,
-		gzip: true,
-		headers: {
-			'User-Agent': options.userAgent || USER_AGENT
-		}
+	let defaultHeaders = {
+		'user-agent': USER_AGENT
 	};
 
-	this._options = options;
-
-	if (options.localAddress) {
-		defaults.localAddress = options.localAddress;
+	// Apply the user's custom default headers
+	for (let i in (options.defaultHttpHeaders || {})) {
+		// Make sure all header names are lower case to avoid conflicts
+		defaultHeaders[i.toLowerCase()] = options.defaultHttpHeaders[i];
 	}
 
-	this.request = options.request || Request.defaults({forever: true}); // "forever" indicates that we want a keep-alive agent
-	this.request = this.request.defaults(defaults);
+	this._httpClient = new StdLib.HTTP.HttpClient({
+		httpAgent: options.httpProxy ? StdLib.HTTP.getProxyAgent(false, options.httpProxy) : null,
+		httpsAgent: options.httpProxy ? StdLib.HTTP.getProxyAgent(true, options.httpProxy) : null,
+		localAddress: options.localAddress,
+		defaultHeaders,
+		defaultTimeout: options.timeout || 50000,
+		cookieJar: this._jar,
+		gzip: true
+	});
+
+	this._options = options;
 
 	// English
 	this._setCookie('Steam_Language=english');
@@ -54,160 +64,8 @@ function SteamCommunity(options) {
 	this._setCookie('timezoneOffset=0,0');
 }
 
-SteamCommunity.prototype.login = function(details, callback) {
-	if (!details.accountName || !details.password) {
-		throw new Error('Missing either accountName or password to login; both are needed');
-	}
-
-	let callbackArgs = ['sessionID', 'cookies', 'steamguard', 'oauthToken'];
-	return StdLib.Promises.callbackPromise(callbackArgs, callback, false, (resolve, reject) => {
-		if (details.steamguard) {
-			let parts = details.steamguard.split('||');
-			this._setCookie(`steamMachineAuth${parts[0]}=${encodeURIComponent(parts[1])}`, true);
-		}
-
-		let disableMobile = typeof details.disableMobile == 'undefined' ? true : details.disableMobile;
-
-		// Delete the cache
-		delete this._profileURL;
-
-		// headers required to convince steam that we're logging in from a mobile device so that we can get the oAuth data
-		let mobileHeaders = {};
-		if (!disableMobile) {
-			mobileHeaders = {
-				'X-Requested-With': 'com.valvesoftware.android.steam.community',
-				Referer: 'https://steamcommunity.com/mobilelogin?oauth_client_id=DE45CD61&oauth_scope=read_profile%20write_profile%20read_client%20write_client',
-				'User-Agent': this._options.mobileUserAgent || details.mobileUserAgent || 'Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; Google Nexus 4 - 4.1.1 - API 16 - 768x1280 Build/JRO03S) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30',
-				Accept: 'text/javascript, text/html, application/xml, text/xml, */*'
-			};
-
-			this._setCookie('mobileClientVersion=0 (2.1.3)');
-			this._setCookie('mobileClient=android');
-		} else {
-			mobileHeaders = {Referer: 'https://steamcommunity.com/login'};
-		}
-
-		const deleteMobileCookies = () => {
-			this._setCookie('mobileClientVersion=; max-age=0');
-			this._setCookie('mobileClient=; max-age=0');
-		};
-
-		this.httpRequestPost('https://steamcommunity.com/login/getrsakey/', {
-			form: {username: details.accountName},
-			headers: mobileHeaders,
-			json: true
-		}, (err, response, body) => {
-			// Remove the mobile cookies
-			if (err) {
-				deleteMobileCookies();
-				return reject(err);
-			}
-
-			if (!body.publickey_mod || !body.publickey_exp) {
-				deleteMobileCookies();
-				return reject(new Error('Invalid RSA key received'));
-			}
-
-			let key = new RSA();
-			key.setPublic(body.publickey_mod, body.publickey_exp);
-
-			let formObj = {
-				captcha_text: details.captcha || '',
-				captchagid: this._captchaGid,
-				emailauth: details.authCode || '',
-				emailsteamid: '',
-				password: hex2b64(key.encrypt(details.password)),
-				remember_login: 'true',
-				rsatimestamp: body.timestamp,
-				twofactorcode: details.twoFactorCode || '',
-				username: details.accountName,
-				loginfriendlyname: '',
-				donotcache: Date.now()
-			};
-
-			if (!disableMobile) {
-				formObj.oauth_client_id = 'DE45CD61';
-				formObj.oauth_scope = 'read_profile write_profile read_client write_client';
-				formObj.loginfriendlyname = '#login_emailauth_friendlyname_mobile';
-			}
-
-			this.httpRequestPost({
-				uri: 'https://steamcommunity.com/login/dologin/',
-				json: true,
-				form: formObj,
-				headers: mobileHeaders
-			}, (err, response, body) => {
-				deleteMobileCookies();
-
-				if (err) {
-					return reject(err);
-				}
-
-				let error;
-				if (!body.success && body.emailauth_needed) {
-					// Steam Guard (email)
-					error = new Error('SteamGuard');
-					error.emaildomain = body.emaildomain;
-
-					return reject(error);
-				} else if (!body.success && body.requires_twofactor) {
-					// Steam Guard (app)
-					return reject(new Error('SteamGuardMobile'));
-				} else if (!body.success && body.captcha_needed && body.message.match(/Please verify your humanity/)) {
-					error = new Error('CAPTCHA');
-					error.captchaurl = 'https://steamcommunity.com/login/rendercaptcha/?gid=' + body.captcha_gid;
-
-					this._captchaGid = body.captcha_gid;
-
-				callback(error);
-			} else if (!body.success) {
-				callback(new Error(body.message || 'Unknown error'));
-			} else {
-				var sessionID = generateSessionID();
-				var oAuth = {};
-				self._setCookie(Request.cookie('sessionid=' + sessionID));
-
-					let cookies = this._jar.getCookieStringSync('https://steamcommunity.com').split(';').map(cookie => cookie.trim());
-
-					if (!disableMobile && body.oauth) {
-						oAuth = JSON.parse(body.oauth);
-						this.steamID = new SteamID(oAuth.steamid);
-						this.oAuthToken = oAuth.oauth_token;
-					} else {
-						for (let i = 0; i < cookies.length; i++) {
-							let parts = cookies[i].split('=');
-							if (parts[0] == 'steamLogin') {
-								this.steamID = new SteamID(decodeURIComponent(parts[1]).split('||')[0]);
-								break;
-							}
-						}
-
-						this.oAuthToken = null;
-					}
-
-					// Find the Steam Guard cookie
-					let steamguard = null;
-					for (let i = 0; i < cookies.length; i++) {
-						let parts = cookies[i].split('=');
-						if (parts[0] == 'steamMachineAuth' + this.steamID) {
-							steamguard = this.steamID.toString() + '||' + decodeURIComponent(parts[1]);
-							break;
-						}
-					}
-
-					// Call setCookies to propagate our cookies to the other domains
-					this.setCookies(cookies);
-
-					return resolve({
-						sessionID,
-						cookies,
-						steamguard,
-						oauthToken: disableMobile ? null : oAuth.oauth_token
-					});
-				}
-			}, 'steamcommunity');
-		}, 'steamcommunity');
-	});
+SteamCommunity.prototype.login = function(details) {
+	// TODO
 };
 
 /**
