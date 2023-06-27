@@ -1,5 +1,4 @@
 const {EventEmitter} = require('events');
-const Got = require('got');
 const {hex2b64} = require('node-bignumber');
 const Request = require('request');
 const {Key: RSA} = require('node-bignumber');

@@ -22,9 +22,8 @@
 		"url": "https://github.com/DoctorMcKay/node-steamcommunity.git"
 	},
 	"dependencies": {
-		"@doctormckay/stdlib": "^2.1.2",
+		"@doctormckay/stdlib": "^2.4.2",
 		"cheerio": "0.22.0",
-		"got": "^11.8.2",
 		"image-size": "^0.8.2",
 		"node-bignumber": "^1.2.1",
 		"request": "^2.88.0",
