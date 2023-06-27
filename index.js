@@ -2,6 +2,7 @@ const {EventEmitter} = require('events');
 const StdLib = require('@doctormckay/stdlib');
 const SteamID = require('steamid');
 const Util = require('util');
+const xml2js = require('xml2js');
 
 const Helpers = require('./components/helpers.js');
 
@@ -357,6 +358,46 @@ SteamCommunity.prototype.getFriendsList = function(callback) {
 		const friends = {};
 		jsonBody.friendslist.friends.forEach(friend => (friends[friend.ulfriendid] = friend.efriendrelationship));
 		resolve({friends});
+	});
+};
+
+/**
+ * @param {string} url
+ * @return Promise<{vanityURL: string, steamID: SteamID}>
+ * @private
+ */
+SteamCommunity.prototype._resolveVanityURL = async function(url) {
+	// Precede url param if only the vanity was provided
+	if (!url.includes('steamcommunity.com')) {
+		url = `https://steamcommunity.com/id/${url}`;
+	}
+
+	// Make request to get XML data
+	let {textBody} = await this._httpRequest({
+		method: 'GET',
+		url,
+		source: 'steamcommunity'
+	});
+
+	return await new Promise((resolve, reject) => {
+		// Parse XML data returned from Steam into an object
+		new xml2js.Parser().parseString(textBody, (err, parsed) => {
+			if (err) {
+				return reject(new Error('Couldn\'t parse XML response'));
+			}
+
+			if (parsed.response && parsed.response.error) {
+				return reject(new Error('Couldn\'t find Steam ID'));
+			}
+
+			let steamID64 = parsed.profile.steamID64[0];
+			let vanityURL = parsed.profile.customURL[0];
+
+			resolve({
+				vanityURL,
+				steamID: new SteamID(steamID64)
+			});
+		});
 	});
 };
 

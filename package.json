@@ -25,7 +25,6 @@
 		"@doctormckay/stdlib": "^2.6.0",
 		"cheerio": "0.22.0",
 		"image-size": "^0.8.2",
-		"request": "^2.88.0",
 		"steam-session": "^1.2.4",
 		"steam-totp": "^2.1.0",
 		"steamid": "^2.0.0",
