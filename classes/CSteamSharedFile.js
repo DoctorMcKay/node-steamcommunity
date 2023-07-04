@@ -31,7 +31,7 @@ SteamCommunity.prototype.getSteamSharedFile = function(sharedFileId, callback) {
 	};
 
 	// Get DOM of sharedfile
-	this.httpRequestGet(`https://steamcommunity.com/sharedfiles/filedetails/?id=${sharedFileId}`, (err, res, body) => {
+	this.httpRequestGet(`https://steamcommunity.com/sharedfiles/filedetails/?id=${sharedFileId}&l=english`, (err, res, body) => { // Request page in english so that the Posted scraping below works
 		try {
 
 			/* --------------------- Preprocess output --------------------- */
@@ -77,9 +77,11 @@ SteamCommunity.prototype.getSteamSharedFile = function(sharedFileId, callback) {
 
 
 			// Find postDate and convert to timestamp
-			let posted = detailsStatsObj["Posted"].trim();
+			let posted = detailsStatsObj["Posted"] || null; // Set to null if "posted" could not be found as Steam translates dates and parsing it below will return a wrong result
 
-			sharedfile.postDate = Helpers.decodeSteamTime(posted);
+			if (posted) {
+				sharedfile.postDate = Helpers.decodeSteamTime(posted.trim()); // Only parse if posted is defined to avoid errors
+			}
 
 
 			// Find resolution if artwork or screenshot
