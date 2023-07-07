@@ -1,0 +1,31 @@
+name: ESLint
+
+on: [push, pull_request]
+
+jobs:
+    lint:
+        runs-on: ubuntu-latest
+
+        # Run for external PRs, but not on our own internal PRs as they'll be run by the push to the branch.
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'DoctorMcKay/node-steamcommunity'
+
+        strategy:
+            matrix:
+                node-version: [10.x]
+
+        steps:
+            - uses: actions/checkout@v1
+              with:
+                  fetch-depth: 1
+
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v1
+              with:
+                  node-version: ${{ matrix.node-version }}
+
+            - name: npm install
+              working-directory: .
+              run: npm install --ignore-scripts
+
+            - name: Run ESLint
+              run: npm run lint

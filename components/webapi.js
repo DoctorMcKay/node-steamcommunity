@@ -1,61 +1,52 @@
-var SteamCommunity = require('../index.js');
+const StdLib = require('@doctormckay/stdlib');
+
+const SteamCommunity = require('../index.js');
 
 const Helpers = require('./helpers.js');
 
-SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
-	var self = this;
-	this.httpRequest({
-		"uri": "https://steamcommunity.com/dev/apikey?l=english",
-		"followRedirect": false
-	}, function(err, response, body) {
-		if (err) {
-			callback(err);
-			return;
-		}
-
-		if(body.match(/<h2>Access Denied<\/h2>/)) {
-			return callback(new Error("Access Denied"));
-		}
-
-		if(body.match(/You must have a validated email address to create a Steam Web API key./)) {
-			return callback(new Error("You must have a validated email address to create a Steam Web API key."));
-		}
-
-		var match = body.match(/<p>Key: ([0-9A-F]+)<\/p>/);
-		if(match) {
-			// We already have an API key registered
-			callback(null, match[1]);
-		} else {
-			// We need to register a new API key
-			self.httpRequestPost('https://steamcommunity.com/dev/registerkey?l=english', {
-				"form": {
-					"domain": domain,
-					"agreeToTerms": "agreed",
-					"sessionid": self.getSessionID(),
-					"Submit": "Register"
-				}
-			}, function(err, response, body) {
-				if (err) {
-					callback(err);
-					return;
-				}
-
-				self.getWebApiKey(domain, callback);
-			}, "steamcommunity");
-		}
-	}, "steamcommunity");
-};
-
 /**
- * @deprecated No longer works. Will be removed in a future release.
- * @param {function} callback
+ * @param {string} domain
+ * @param {function} [callback]
+ * @return Promise<{key: string}>
  */
-SteamCommunity.prototype.getWebApiOauthToken = function(callback) {
-	if (this.oAuthToken) {
-		return callback(null, this.oAuthToken);
-	}
+SteamCommunity.prototype.getWebApiKey = function(domain, callback) {
+	return StdLib.Promises.callbackPromise(['key'], callback, false, async (resolve, reject) => {
+		let {textBody} = await this.httpRequest({
+			method: 'GET',
+			url: 'https://steamcommunity.com/dev/apikey?l=english',
+			followRedirect: false,
+			source: 'steamcommunity'
+		});
 
-	callback(new Error('This operation requires an OAuth token, which is no longer issued by Steam.'));
+		if (textBody.includes('<h2>Access Denied</h2>')) {
+			return reject(new Error('Access Denied'));
+		}
+
+		if (textBody.includes('You must have a validated email address to create a Steam Web API key.')) {
+			return reject(new Error('You must have a validated email address to create a Steam Web API key.'));
+		}
+
+		let match = textBody.match(/<p>Key: ([0-9A-F]+)<\/p>/);
+		if (match) {
+			// We already have an API key registered
+			return resolve({key: match[1]});
+		}
+
+		// We need to register a new API key
+		await this.httpRequest({
+			method: 'POST',
+			url: 'https://steamcommunity.com/dev/registerkey?l=english',
+			form: {
+				domain,
+				agreeToTerms: 'agreed',
+				sessionid: this.getSessionID(),
+				Submit: 'Register'
+			},
+			source: 'steamcommunity'
+		});
+
+		resolve({key: await this.getWebApiKey(domain)});
+	});
 };
 
 /**

@@ -1,47 +1,34 @@
-var SteamCommunity = require('../index.js');
-var Cheerio = require('cheerio');
-var SteamTotp = require('steam-totp');
-var Async = require('async');
+const Cheerio = require('cheerio');
+const StdLib = require('@doctormckay/stdlib');
+const SteamTotp = require('steam-totp');
 
-var CConfirmation = require('../classes/CConfirmation.js');
-var EConfirmationType = require('../resources/EConfirmationType.js');
+const SteamCommunity = require('../index.js');
+
+const CConfirmation = require('../classes/CConfirmation.js');
+const EConfirmationType = SteamCommunity.EConfirmationType;
 
 /**
  * Get a list of your account's currently outstanding confirmations.
  * @param {int} time - The unix timestamp with which the following key was generated
  * @param {string} key - The confirmation key that was generated using the preceeding time and the tag 'conf' (this key can be reused)
- * @param {SteamCommunity~getConfirmations} callback - Called when the list of confirmations is received
+ * @param {SteamCommunity~getConfirmations} [callback] - Called when the list of confirmations is received
+ * @return Promise<{confirmations: CConfirmation[]}>
  */
 SteamCommunity.prototype.getConfirmations = function(time, key, callback) {
-	var self = this;
-
-	// Ugly hack to maintain backward compatibility
-	var tag = 'conf';
-	if (typeof key == 'object') {
-		tag = key.tag;
-		key = key.key;
-	}
-
-	// The official Steam app uses the tag 'list', but 'conf' still works so let's use that for backward compatibility.
-	request(this, 'getlist', key, time, tag, null, true, function(err, body) {
-		if (err) {
-			callback(err);
-			return;
-		}
+	return StdLib.Promises.callbackPromise(['confirmations'], callback, false, async (resolve, reject) => {
+		let body = await request(this, 'getlist', key, time, 'list', null);
 
 		if (!body.success) {
 			if (body.needauth) {
-				var err = new Error('Not Logged In');
-				self._notifySessionExpired(err);
-				callback(err);
-				return;
+				let err = new Error('Not Logged In');
+				this._notifySessionExpired(err);
+				return reject(err);
 			}
 
-			callback(new Error(body.message || body.detail || 'Failed to get confirmation list'));
-			return;
+			return reject(new Error(body.message || body.detail || 'Failed to get confirmation list'));
 		}
 
-		var confs = (body.conf || []).map(conf => new CConfirmation(self, {
+		let confs = (body.conf || []).map(conf => new CConfirmation(this, {
 			id: conf.id,
 			type: conf.type,
 			creator: conf.creator_id,
@@ -54,14 +41,14 @@ SteamCommunity.prototype.getConfirmations = function(time, key, callback) {
 			icon: conf.icon || ''
 		}));
 
-		callback(null, confs);
+		resolve({confirmations: confs});
 	});
 };
 
 /**
  * @callback SteamCommunity~getConfirmations
  * @param {Error|null} err - An Error object on failure, or null on success
- * @param {CConfirmation[]} confirmations - An array of CConfirmation objects
+ * @param {CConfirmation[]} [confirmations] - An array of CConfirmation objects
  */
 
 /**
@@ -69,29 +56,24 @@ SteamCommunity.prototype.getConfirmations = function(time, key, callback) {
  * @param {int} confID - The ID of the confirmation in question
  * @param {int} time - The unix timestamp with which the following key was generated
  * @param {string} key - The confirmation key that was generated using the preceeding time and the tag "detail" (this key can be reused)
- * @param {SteamCommunity~getConfirmationOfferID} callback
+ * @param {SteamCommunity~getConfirmationOfferID} [callback]
+ * @return Promise<{offerID: string|null}>
  */
 SteamCommunity.prototype.getConfirmationOfferID = function(confID, time, key, callback) {
-	// The official Steam app uses the tag 'detail', but 'details' still works so let's use that for backward compatibility
-	request(this, 'detailspage/' + confID, key, time, 'details', null, false, function(err, body) {
-		if (err) {
-			callback(err);
-			return;
-		}
+	return StdLib.Promises.callbackPromise(['offerID'], callback, false, async (resolve, reject) => {
+		let body = await request(this, 'detailspage/' + confID, key, time, 'detail', null);
 
 		if (typeof body != 'string') {
-			callback(new Error("Cannot load confirmation details"));
-			return;
+			return reject(new Error('Cannot load confirmation details'));
 		}
 
-		var $ = Cheerio.load(body);
-		var offer = $('.tradeoffer');
-		if(offer.length < 1) {
-			callback(null, null);
-			return;
+		let $ = Cheerio.load(body);
+		let offer = $('.tradeoffer');
+		if (offer.length < 1) {
+			return resolve({offerID: null});
 		}
 
-		callback(null, offer.attr('id').split('_')[1]);
+		resolve({offerID: offer.attr('id').split('_')[1]});
 	});
 };
 
@@ -103,47 +85,30 @@ SteamCommunity.prototype.getConfirmationOfferID = function(confID, time, key, ca
 
 /**
  * Confirm or cancel a given confirmation.
- * @param {int|int[]} confID - The ID of the confirmation in question, or an array of confirmation IDs
+ * @param {int|int[]|string|string[]} confID - The ID of the confirmation in question, or an array of confirmation IDs
  * @param {string|string[]} confKey - The confirmation key associated with the confirmation in question (or an array of them) (not a TOTP key, the `key` property of CConfirmation)
  * @param {int} time - The unix timestamp with which the following key was generated
  * @param {string} key - The confirmation key that was generated using the preceding time and the tag "allow" (if accepting) or "cancel" (if not accepting)
  * @param {boolean} accept - true if you want to accept the confirmation, false if you want to cancel it
- * @param {SteamCommunity~genericErrorCallback} callback - Called when the request is complete
+ * @param {SteamCommunity~genericErrorCallback} [callback] - Called when the request is complete
+ * @return Promise<void>
  */
 SteamCommunity.prototype.respondToConfirmation = function(confID, confKey, time, key, accept, callback) {
-	// Ugly hack to maintain backward compatibility
-	var tag = accept ? 'allow' : 'cancel';
-	if (typeof key == 'object') {
-		tag = key.tag;
-		key = key.key;
-	}
+	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
+		let tag = accept ? 'accept' : 'reject';
 
-	// The official app uses tags reject/accept, but cancel/allow still works so use these for backward compatibility
-	request(this, (confID instanceof Array) ? 'multiajaxop' : 'ajaxop', key, time, tag, {
-		op: accept ? 'allow' : 'cancel',
-		cid: confID,
-		ck: confKey
-	}, true, function(err, body) {
-		if (!callback) {
-			return;
-		}
-
-		if (err) {
-			callback(err);
-			return;
-		}
+		// The official app uses tags reject/accept, but cancel/allow still works so use these for backward compatibility
+		let body = await request(this, (confID instanceof Array) ? 'multiajaxop' : 'ajaxop', key, time, tag, {
+			op: accept ? 'allow' : 'cancel',
+			cid: confID,
+			ck: confKey
+		});
 
 		if (body.success) {
-			callback(null);
-			return;
+			return resolve();
 		}
 
-		if (body.message) {
-			callback(new Error(body.message));
-			return;
-		}
-
-		callback(new Error('Could not act on confirmation'));
+		reject(new Error(body.message || body.detail || 'Could not act on confirmation'));
 	});
 };
 
@@ -151,101 +116,79 @@ SteamCommunity.prototype.respondToConfirmation = function(confID, confKey, time,
  * Accept a confirmation for a given object (trade offer or market listing) automatically.
  * @param {string} identitySecret
  * @param {number|string} objectID
- * @param {SteamCommunity~genericErrorCallback} callback
+ * @param {SteamCommunity~genericErrorCallback} [callback]
+ * @return Promise<void>
  */
 SteamCommunity.prototype.acceptConfirmationForObject = function(identitySecret, objectID, callback) {
-	var self = this;
 	this._usedConfTimes = this._usedConfTimes || [];
 
-	if (typeof this._timeOffset !== 'undefined') {
-		// time offset is already known and saved
-		doConfirmation();
-	} else {
-		SteamTotp.getTimeOffset(function(err, offset) {
-			if (err) {
-				callback(err);
-				return;
-			}
+	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
+		// Figure out our time offset
+		if (typeof this._timeOffset == 'undefined') {
+			await new Promise((resolve) => {
+				SteamTotp.getTimeOffset((err, offset) => {
+					if (err) {
+						// not critical that this succeeds
+						return resolve();
+					}
 
-			self._timeOffset = offset;
-			doConfirmation();
+					this._timeOffset = offset;
+					resolve();
+				});
+			});
+		}
 
-			setTimeout(function() {
-				// Delete the saved time offset after 12 hours because why not
-				delete self._timeOffset;
-			}, 1000 * 60 * 60 * 12).unref();
-		});
-	}
+		let offset = this._timeOffset;
+		let time = SteamTotp.time(offset);
+		let key = SteamTotp.getConfirmationKey(identitySecret, time, 'list');
+		let {confirmations} = await this.getConfirmations(time, key);
 
-	function doConfirmation() {
-		var offset = self._timeOffset;
-		var time = SteamTotp.time(offset);
-		var confKey = SteamTotp.getConfirmationKey(identitySecret, time, 'list');
-		self.getConfirmations(time, {tag: 'list', key: confKey}, function(err, confs) {
-			if (err) {
-				callback(err);
-				return;
-			}
+		let conf = confirmations.find(conf => conf.creator == objectID);
+		if (!conf) {
+			return reject(new Error(`Could not find confirmation for object ${objectID}`));
+		}
 
-			var conf = confs.filter(function(conf) { return conf.creator == objectID; });
-			if (conf.length == 0) {
-				callback(new Error('Could not find confirmation for object ' + objectID));
-				return;
-			}
+		// make sure we don't reuse the same time
+		let localOffset = 0;
+		do {
+			time = SteamTotp.time(offset) + localOffset++;
+		} while (this._usedConfTimes.includes(time));
 
-			conf = conf[0];
+		this._usedConfTimes.push(time);
+		if (this._usedConfTimes.length > 60) {
+			this._usedConfTimes.splice(0, this._usedConfTimes.length - 60); // we don't need to save more than 60 entries
+		}
 
-			// make sure we don't reuse the same time
-			var localOffset = 0;
-			do {
-				time = SteamTotp.time(offset) + localOffset++;
-			} while (self._usedConfTimes.indexOf(time) != -1);
-
-			self._usedConfTimes.push(time);
-			if (self._usedConfTimes.length > 60) {
-				self._usedConfTimes.splice(0, self._usedConfTimes.length - 60); // we don't need to save more than 60 entries
-			}
-
-			confKey = SteamTotp.getConfirmationKey(identitySecret, time, 'accept');
-			conf.respond(time, {tag: 'accept', key: confKey}, true, callback);
-		});
-	}
+		await conf.respond(time, SteamTotp.getConfirmationKey(identitySecret, time, 'accept'), true);
+	});
 };
 
 /**
  * Send a single request to Steam to accept all outstanding confirmations (after loading the list). If one fails, the
  * entire request will fail and there will be no way to know which failed without loading the list again.
  * @param {number} time
- * @param {string} confKey
- * @param {string} allowKey
- * @param {function} callback
+ * @param {string} listKey
+ * @param {string} acceptKey
+ * @param {function} [callback]
+ * @return Promise<{confirmations: CConfirmation[]}>
  */
-SteamCommunity.prototype.acceptAllConfirmations = function(time, confKey, allowKey, callback) {
-	var self = this;
+SteamCommunity.prototype.acceptAllConfirmations = function(time, listKey, acceptKey, callback) {
+	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
+		let {confirmations} = await this.getConfirmations(time, listKey);
 
-	this.getConfirmations(time, confKey, function(err, confs) {
-		if (err) {
-			callback(err);
-			return;
+		if (confirmations.length == 0) {
+			return resolve({confirmations: []});
 		}
 
-		if (confs.length == 0) {
-			callback(null, []);
-			return;
-		}
+		let confIds = confirmations.map(conf => conf.id);
+		let confKeys = confirmations.map(conf => conf.key);
+		await this.respondToConfirmation(confIds, confKeys, time, acceptKey, true);
 
-		self.respondToConfirmation(confs.map(function(conf) { return conf.id; }), confs.map(function(conf) { return conf.key; }), time, allowKey, true, function(err) {
-			if (err) {
-				callback(err);
-				return;
-			}
-
-			callback(err, confs);
-		});
+		resolve({confirmations});
 	});
 };
 
-function request(community, url, key, time, tag, params, json, callback) {
+async function request(community, url, key, time, tag, params) {
 	if (!community.steamID) {
 		throw new Error('Must be logged in before trying to do anything with confirmations');
 	}
@@ -258,10 +201,10 @@ function request(community, url, key, time, tag, params, json, callback) {
 	params.m = 'react';
 	params.tag = tag;
 
-	var req = {
+	let req = {
 		method: url == 'multiajaxop' ? 'POST' : 'GET',
-		uri: 'https://steamcommunity.com/mobileconf/' + url,
-		json: !!json
+		url: `https://steamcommunity.com/mobileconf/${url}`,
+		source: 'steamcommunity'
 	};
 
 	if (req.method == 'GET') {
@@ -270,159 +213,6 @@ function request(community, url, key, time, tag, params, json, callback) {
 		req.form = params;
 	}
 
-	community.httpRequest(req, function(err, response, body) {
-		if (err) {
-			callback(err);
-			return;
-		}
-
-		callback(null, body);
-	}, 'steamcommunity');
+	let result = await community.httpRequest(req);
+	return result.jsonBody || result.textBody;
 }
-
-// Confirmation checker
-
-/**
- * Start automatically polling our confirmations for new ones. The `confKeyNeeded` event will be emitted when we need a confirmation key, or `newConfirmation` when we get a new confirmation
- * @param {int} pollInterval - The interval, in milliseconds, at which we will poll for confirmations. This should probably be at least 10,000 to avoid rate-limits.
- * @param {Buffer|string|null} [identitySecret=null] - Your identity_secret. If passed, all confirmations will be automatically accepted and nothing will be emitted.
- */
-SteamCommunity.prototype.startConfirmationChecker = function(pollInterval, identitySecret) {
-	this._confirmationPollInterval = pollInterval;
-	this._knownConfirmations = this._knownConfirmations || {};
-	this._confirmationKeys = this._confirmationKeys || {};
-	this._identitySecret = identitySecret;
-
-	if(this._confirmationTimer) {
-		clearTimeout(this._confirmationTimer);
-	}
-
-	setTimeout(this.checkConfirmations.bind(this), 500);
-};
-
-/**
- * Stop automatically polling our confirmations.
- */
-SteamCommunity.prototype.stopConfirmationChecker = function() {
-	if(this._confirmationPollInterval) {
-		delete this._confirmationPollInterval;
-	}
-
-	if(this._identitySecret) {
-		delete this._identitySecret;
-	}
-
-	if(this._confirmationTimer) {
-		clearTimeout(this._confirmationTimer);
-		delete this._confirmationTimer;
-	}
-};
-
-/**
- * Run the confirmation checker right now instead of waiting for the next poll.
- * Useful to call right after you send/accept an offer that needs confirmation.
- */
-SteamCommunity.prototype.checkConfirmations = function() {
-	if(this._confirmationTimer) {
-		clearTimeout(this._confirmationTimer);
-		delete this._confirmationTimer;
-	}
-
-	var self = this;
-	if(!this._confirmationQueue) {
-		this._confirmationQueue = Async.queue(function(conf, callback) {
-			// Worker to process new confirmations
-			if(self._identitySecret) {
-				// We should accept this
-				self.emit('debug', "Accepting confirmation #" + conf.id);
-				var time = Math.floor(Date.now() / 1000);
-				conf.respond(time, SteamTotp.getConfirmationKey(self._identitySecret, time, "allow"), true, function(err) {
-					// If there was an error and it wasn't actually accepted, we'll pick it up again
-					if (!err) self.emit('confirmationAccepted', conf);
-					delete self._knownConfirmations[conf.id];
-					setTimeout(callback, 1000); // Call the callback in 1 second, to make sure the time changes
-				});
-			} else {
-				self.emit('newConfirmation', conf);
-				setTimeout(callback, 1000); // Call the callback in 1 second, to make sure the time changes
-			}
-		}, 1);
-	}
-
-	this.emit('debug', 'Checking confirmations');
-
-	this._confirmationCheckerGetKey('conf', function(err, key) {
-		if(err) {
-			resetTimer();
-			return;
-		}
-
-		self.getConfirmations(key.time, key.key, function(err, confirmations) {
-			if(err) {
-				self.emit('debug', "Can't check confirmations: " + err.message);
-				resetTimer();
-				return;
-			}
-
-			var known = self._knownConfirmations;
-
-			var newOnes = confirmations.filter(function(conf) {
-				return !known[conf.id];
-			});
-
-			if(newOnes.length < 1) {
-				resetTimer();
-				return; // No new ones
-			}
-
-			// We have new confirmations!
-			newOnes.forEach(function(conf) {
-				self._knownConfirmations[conf.id] = conf; // Add it to our list of known confirmations
-				self._confirmationQueue.push(conf);
-			});
-
-			resetTimer();
-		});
-	});
-
-	function resetTimer() {
-		if(self._confirmationPollInterval) {
-			self._confirmationTimer = setTimeout(self.checkConfirmations.bind(self), self._confirmationPollInterval);
-		}
-	}
-};
-
-SteamCommunity.prototype._confirmationCheckerGetKey = function(tag, callback) {
-	if(this._identitySecret) {
-		if(tag == 'details') {
-			// We don't care about details
-			callback(new Error("Disabled"));
-			return;
-		}
-
-		var time = Math.floor(Date.now() / 1000);
-		callback(null, {"time": time, "key": SteamTotp.getConfirmationKey(this._identitySecret, time, tag)});
-		return;
-	}
-
-	var existing = this._confirmationKeys[tag];
-	var reusable = ['conf', 'details'];
-
-	// See if we already have a key that we can reuse.
-	if(reusable.indexOf(tag) != -1 && existing && (Date.now() - (existing.time * 1000) < (1000 * 60 * 5))) {
-		callback(null, existing);
-		return;
-	}
-
-	// We need a fresh one
-	var self = this;
-	this.emit('confKeyNeeded', tag, function(err, time, key) {
-		if(err) {
-			callback(err);
-			return;
-		}
-
-		self._confirmationKeys[tag] = {"time": time, "key": key};
-		callback(null, {"time": time, "key": key});
-	});
-};

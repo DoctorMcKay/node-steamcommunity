@@ -1,6 +1,6 @@
-const SteamCommunity = require('../index.js');
 const Cheerio = require('cheerio');
 
+const SteamCommunity = require('../index.js');
 const Helpers = require('./helpers.js');
 
 /**
@@ -8,28 +8,27 @@ const Helpers = require('./helpers.js');
  * @param {function} callback - First argument is null|Error, second is an object of appid => name
  */
 SteamCommunity.prototype.getMarketApps = function(callback) {
-	var self = this;
-	this.httpRequest('https://steamcommunity.com/market/', function (err, response, body) {
+	this.httpRequest('https://steamcommunity.com/market/', (err, response, body) => {
 		if (err) {
 			callback(err);
 			return;
 		}
 
-		var $ = Cheerio.load(body);
+		let $ = Cheerio.load(body);
 		if ($('.market_search_game_button_group')) {
 			let apps = {};
-			$('.market_search_game_button_group a.game_button').each(function (i, element) {
-				var e = Cheerio.load(element);
-				var name = e('.game_button_game_name').text().trim();
-				var url = element.attribs.href;
-				var appid = url.substr(url.indexOf('=') + 1);
+			$('.market_search_game_button_group a.game_button').each((i, element) => {
+				let e = Cheerio.load(element);
+				let name = e('.game_button_game_name').text().trim();
+				let url = element.attribs.href;
+				let appid = url.substr(url.indexOf('=') + 1);
 				apps[appid] = name;
 			});
 			callback(null, apps);
 		} else {
-			callback(new Error("Malformed response"));
+			callback(new Error('Malformed response'));
 		}
-	}, "steamcommunity");
+	}, 'steamcommunity');
 };
 
 /**
@@ -40,34 +39,32 @@ SteamCommunity.prototype.getMarketApps = function(callback) {
  */
 SteamCommunity.prototype.getGemValue = function(appid, assetid, callback) {
 	this._myProfile({
-		"endpoint": "ajaxgetgoovalue/",
-		"qs": {
-			"sessionid": this.getSessionID(),
-			"appid": appid,
-			"contextid": 6,
-			"assetid": assetid
+		endpoint: 'ajaxgetgoovalue/',
+		qs: {
+			sessionid: this.getSessionID(),
+			appid: appid,
+			contextid: 6,
+			assetid: assetid
 		},
-		"checkHttpError": false,
-		"json": true
+		checkHttpError: false,
+		json: true
 	}, null, (err, res, body) => {
 		if (err) {
 			callback(err);
 			return;
 		}
 
-		if (body.success && body.success != SteamCommunity.EResult.OK) {
-			let err = new Error(body.message || SteamCommunity.EResult[body.success]);
-			err.eresult = err.code = body.success;
-			callback(err);
-			return;
+		let err2 = Helpers.eresultError(body.success, body.message);
+		if (err2) {
+			return callback(err2);
 		}
 
 		if (!body.goo_value || !body.strTitle) {
-			callback(new Error("Malformed response"));
+			callback(new Error('Malformed response'));
 			return;
 		}
 
-		callback(null, {"promptTitle": body.strTitle, "gemValue": parseInt(body.goo_value, 10)});
+		callback(null, {promptTitle: body.strTitle, gemValue: parseInt(body.goo_value, 10)});
 	});
 };
 
@@ -80,35 +77,33 @@ SteamCommunity.prototype.getGemValue = function(appid, assetid, callback) {
  */
 SteamCommunity.prototype.turnItemIntoGems = function(appid, assetid, expectedGemsValue, callback) {
 	this._myProfile({
-		"endpoint": "ajaxgrindintogoo/",
-		"json": true,
-		"checkHttpError": false
+		endpoint: 'ajaxgrindintogoo/',
+		json: true,
+		checkHttpError: false
 	}, {
-		"appid": appid,
-		"contextid": 6,
-		"assetid": assetid,
-		"goo_value_expected": expectedGemsValue,
-		"sessionid": this.getSessionID()
+		appid: appid,
+		contextid: 6,
+		assetid: assetid,
+		goo_value_expected: expectedGemsValue,
+		sessionid: this.getSessionID()
 	}, (err, res, body) => {
 		if (err) {
 			callback(err);
 			return;
 		}
 
-		if (body.success && body.success != SteamCommunity.EResult.OK) {
-			let err = new Error(body.message || SteamCommunity.EResult[body.success]);
-			err.eresult = err.code = body.success;
-			callback(err);
+		let err2 = Helpers.eresultError(body.success, body.message);
+		if (err2) {
+			return callback(err2);
+		}
+
+		if (!body['goo_value_received '] || !body.goo_value_total) { // lol valve, that trailing space is real
+			callback(new Error('Malformed response'));
 			return;
 		}
 
-		if (!body['goo_value_received '] || !body.goo_value_total) { // lol valve
-			callback(new Error("Malformed response"));
-			return;
-		}
-
-		callback(null, {"gemsReceived": parseInt(body['goo_value_received '], 10), "totalGems": parseInt(body.goo_value_total, 10)});
-	})
+		callback(null, {gemsReceived: parseInt(body['goo_value_received '], 10), totalGems: parseInt(body.goo_value_total, 10)});
+	});
 };
 
 /**
@@ -119,33 +114,31 @@ SteamCommunity.prototype.turnItemIntoGems = function(appid, assetid, expectedGem
  */
 SteamCommunity.prototype.openBoosterPack = function(appid, assetid, callback) {
 	this._myProfile({
-		"endpoint": "ajaxunpackbooster/",
-		"json": true,
-		"checkHttpError": false
+		endpoint: 'ajaxunpackbooster/',
+		json: true,
+		checkHttpError: false
 	}, {
-		"appid": appid,
-		"communityitemid": assetid,
-		"sessionid": this.getSessionID()
+		appid: appid,
+		communityitemid: assetid,
+		sessionid: this.getSessionID()
 	}, (err, res, body) => {
 		if (err) {
 			callback(err);
 			return;
 		}
 
-		if (body.success && body.success != SteamCommunity.EResult.OK) {
-			let err = new Error(body.message || SteamCommunity.EResult[body.success]);
-			err.eresult = err.code = body.success;
-			callback(err);
-			return;
+		let err2 = Helpers.eresultError(body.success, body.message);
+		if (err2) {
+			return callback(err2);
 		}
 
 		if (!body.rgItems) {
-			callback(new Error("Malformed response"));
+			callback(new Error('Malformed response'));
 			return;
 		}
 
 		callback(null, body.rgItems);
-	})
+	});
 };
 
 /**
@@ -228,7 +221,7 @@ SteamCommunity.prototype.createBoosterPack = function(appid, useUntradableGems, 
 	}
 
 	this.httpRequestPost({
-		uri: 'https://steamcommunity.com/tradingcards/ajaxcreatebooster/',
+		url: 'https://steamcommunity.com/tradingcards/ajaxcreatebooster/',
 		form: {
 			sessionid: this.getSessionID(),
 			appid,
@@ -254,6 +247,7 @@ SteamCommunity.prototype.createBoosterPack = function(appid, useUntradableGems, 
 
 		// We can now check HTTP status codes
 		if (this._checkHttpError(err, res, callback, body)) {
+			// TODO v4
 			return;
 		}
 
@@ -273,33 +267,31 @@ SteamCommunity.prototype.createBoosterPack = function(appid, useUntradableGems, 
  */
 SteamCommunity.prototype.getGiftDetails = function(giftID, callback) {
 	this.httpRequestPost({
-		"uri": "https://steamcommunity.com/gifts/" + giftID + "/validateunpack",
-		"form": {
-			"sessionid": this.getSessionID()
+		url: `https://steamcommunity.com/gifts/${giftID}/validateunpack`,
+		form: {
+			sessionid: this.getSessionID()
 		},
-		"json": true
+		json: true
 	}, (err, res, body) => {
 		if (err) {
 			callback(err);
 			return;
 		}
 
-		if (body.success && body.success != SteamCommunity.EResult.OK) {
-			let err = new Error(body.message || SteamCommunity.EResult[body.success]);
-			err.eresult = err.code = body.success;
-			callback(err);
-			return;
+		let err2 = Helpers.eresultError(body.success, body.message);
+		if (err2) {
+			return callback(err2);
 		}
 
 		if (!body.packageid || !body.gift_name) {
-			callback(new Error("Malformed response"));
+			callback(new Error('Malformed response'));
 			return;
 		}
 
 		callback(null, {
-			"giftName": body.gift_name,
-			"packageID": parseInt(body.packageid, 10),
-			"owned": body.owned
+			giftName: body.gift_name,
+			packageID: parseInt(body.packageid, 10),
+			owned: body.owned
 		});
 	});
 };
@@ -311,23 +303,20 @@ SteamCommunity.prototype.getGiftDetails = function(giftID, callback) {
  */
 SteamCommunity.prototype.redeemGift = function(giftID, callback) {
 	this.httpRequestPost({
-		"uri": "https://steamcommunity.com/gifts/" + giftID + "/unpack",
-		"form": {
-			"sessionid": this.getSessionID()
+		url: `https://steamcommunity.com/gifts/${giftID}/unpack`,
+		form: {
+			sessionid: this.getSessionID()
 		},
-		"json": true
+		json: true
 	}, (err, res, body) => {
 		if (err) {
 			callback(err);
 			return;
 		}
 
-		if (body.success && body.success != SteamCommunity.EResult.OK) {
-
-			let err = new Error(body.message || SteamCommunity.EResult[body.success]);
-			err.eresult = err.code = body.success;
-			callback(err);
-			return;
+		let err2 = Helpers.eresultError(body.success, body.message);
+		if (err2) {
+			return callback(err2);
 		}
 
 		callback(null);

@@ -31,7 +31,7 @@ SteamCommunity.prototype.getSteamSharedFile = function(sharedFileId, callback) {
 	};
 
 	// Get DOM of sharedfile
-	this.httpRequestGet(`https://steamcommunity.com/sharedfiles/filedetails/?id=${sharedFileId}`, (err, res, body) => {
+	this.httpRequestGet(`https://steamcommunity.com/sharedfiles/filedetails/?id=${sharedFileId}`, async (err, res, body) => {
 		try {
 
 			/* --------------------- Preprocess output --------------------- */
@@ -136,18 +136,10 @@ SteamCommunity.prototype.getSteamSharedFile = function(sharedFileId, callback) {
 			// Find owner profile link, convert to steamID64 using SteamIdResolver lib and create a SteamID object
 			let ownerHref = $(".friendBlockLinkOverlay").attr()["href"];
 
-			Helpers.resolveVanityURL(ownerHref, (err, data) => { // This request takes <1 sec
-				if (err) {
-					callback(err);
-					return;
-				}
+			let {steamID} = await this._resolveVanityURL(ownerHref);
+			sharedfile.owner = steamID;
 
-				sharedfile.owner = new SteamID(data.steamID);
-
-				// Make callback when ID was resolved as otherwise owner will always be null
-				callback(null, new CSteamSharedFile(this, sharedfile));
-			});
-
+			callback(null, new CSteamSharedFile(this, sharedfile));
 		} catch (err) {
 			callback(err, null);
 		}

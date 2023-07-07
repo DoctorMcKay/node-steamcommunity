@@ -1,7 +1,9 @@
+/* eslint-disable */
+
 /**
  * @enum EFriendRelationship
  */
- module.exports = {
+module.exports = {
 	"None": 0,
 	"Blocked": 1,
 	"RequestRecipient": 2,
