@@ -6,6 +6,7 @@ const Util = require('util');
 const xml2js = require('xml2js');
 
 const Helpers = require('./components/helpers.js');
+const Package = require('./package.json');
 
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36';
 
@@ -30,6 +31,9 @@ SteamCommunity.EFriendRelationship = require('./resources/EFriendRelationship.js
  */
 function SteamCommunity(options) {
 	options = options || {};
+
+	this.packageName = Package.name;
+	this.packageVersion = Package.version;
 
 	this._jar = new StdLib.HTTP.CookieJar();
 	this._captchaGid = -1;
