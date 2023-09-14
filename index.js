@@ -590,6 +590,7 @@ require('./components/confirmations.js');
 require('./components/help.js');
 require('./classes/CMarketItem.js');
 require('./classes/CMarketSearchResult.js');
+require('./classes/CSteamDiscussion.js');
 require('./classes/CSteamGroup.js');
 require('./classes/CSteamSharedFile.js');
 require('./classes/CSteamUser.js');
