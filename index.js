@@ -587,6 +587,7 @@ require('./components/inventoryhistory.js');
 require('./components/webapi.js');
 require('./components/twofactor.js');
 require('./components/confirmations.js');
+require('./components/discussions.js');
 require('./components/help.js');
 require('./classes/CMarketItem.js');
 require('./classes/CMarketSearchResult.js');
