@@ -20,7 +20,8 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 		postedDate: null,
 		title: null,
 		content: null,
-		commentsAmount: null // I originally wanted to fetch all comments by default but that would have been a lot of potentially unused data
+		commentsAmount: null, // I originally wanted to fetch all comments by default but that would have been a lot of potentially unused data
+		answerCommentIndex: null
 	};
 
 	// Get DOM of discussion
@@ -67,6 +68,17 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 			// Get discussion title & content
 			discussion.title = $(".forum_op > .topic").text().trim();
 			discussion.content = $(".forum_op > .content").text().trim();
+
+
+			// Find comment marked as answer
+			let hasAnswer = $(".commentthread_answer_bar")
+
+			if (hasAnswer.length != 0) {
+				let answerPermLink = hasAnswer.next().children(".forum_comment_permlink").text().trim();
+
+				// Convert comment id to number, remove hashtag and subtract by 1 to make it an index
+				discussion.answerCommentIndex = Number(answerPermLink.replace("#", "")) - 1;
+			}
 
 
 			// Find author and convert to SteamID object
