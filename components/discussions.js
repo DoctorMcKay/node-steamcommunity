@@ -117,3 +117,53 @@ SteamCommunity.prototype.getDiscussionComments = function(url, startIndex, endIn
 
     }, "steamcommunity");
 };
+
+/**
+ * Subscribes to a discussion's comment section
+ * @param {String} topicOwner - ID of the topic owner
+ * @param {String} gidforum - GID of the discussion's forum
+ * @param {String} discussionId - ID of the discussion
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+SteamCommunity.prototype.subscribeDiscussionComments = function(topicOwner, gidforum, discussionId, callback) {
+	this.httpRequestPost({
+		"uri": `https://steamcommunity.com/comment/ForumTopic/subscribe/${topicOwner}/${gidforum}/`,
+		"form": {
+			"count": 15,
+			"sessionid": this.getSessionID(),
+			"extended_data": '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1,"is_banned":0,"can_delete":0,"can_edit":0}}',
+			"feature2": discussionId
+		}
+	}, function(err, response, body) { // eslint-disable-line
+		if (!callback) {
+			return;
+		}
+
+		callback(err);
+	}, "steamcommunity");
+};
+
+/**
+ * Unsubscribes from a discussion's comment section
+ * @param {String} topicOwner - ID of the topic owner
+ * @param {String} gidforum - GID of the discussion's forum
+ * @param {String} discussionId - ID of the discussion
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+SteamCommunity.prototype.unsubscribeDiscussionComments = function(topicOwner, gidforum, discussionId, callback) {
+	this.httpRequestPost({
+		"uri": `https://steamcommunity.com/comment/ForumTopic/unsubscribe/${topicOwner}/${gidforum}/`,
+		"form": {
+			"count": 15,
+			"sessionid": this.getSessionID(),
+			"extended_data": '{}', // Unsubscribing does not require any data here
+			"feature2": discussionId
+		}
+	}, function(err, response, body) { // eslint-disable-line
+		if (!callback) {
+			return;
+		}
+
+		callback(err);
+	}, "steamcommunity");
+};
