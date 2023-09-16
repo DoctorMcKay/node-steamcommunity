@@ -1,7 +1,7 @@
 const Cheerio = require('cheerio');
 const SteamID = require('steamid');
 
-const SteamCommunity  = require('../index.js');
+const SteamCommunity = require('../index.js');
 const Helpers = require('../components/helpers.js');
 
 
@@ -16,6 +16,8 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 		id: null,
 		appID: null,
 		forumID: null,
+		gidforum: null, // This is some id used as parameter 2 in post requests
+		topicOwner: null, // This is some id used as parameter 1 in post requests
 		author: null,
 		postedDate: null,
 		title: null,
@@ -53,6 +55,13 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 			let forumIdHref = breadcrumbs[2].attribs["href"].split("/");
 
 			discussion.forumID = forumIdHref[forumIdHref.length - 2];
+
+
+			// Get gidforum and topicOwner. I'm not 100% sure what they are, they are however used for all post requests
+			let gids = $(".forum_paging > .forum_paging_controls").attr("id").split("_");
+
+			discussion.gidforum = gids[3];
+			discussion.topicOwner = gids[2];
 
 
 			// Find postedDate and convert to timestamp
