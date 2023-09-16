@@ -77,13 +77,14 @@ SteamCommunity.prototype.getDiscussionComments = function(url, startIndex, endIn
 			let $ = pages[Math.trunc(i / commentsPerPage)];
 
 			let thisComment = $(`.forum_comment_permlink:contains("#${i + 1}")`).parent();
+			let thisCommentID = thisComment.attr("id").replace("comment_", "");
 
 			// Note: '>' inside the cheerio selectors didn't work here
-			let authorContainer = thisComment.children(".commentthread_comment_content").children(".commentthread_comment_author").children(".commentthread_author_link");
-			let commentContainer = thisComment.children(".commentthread_comment_content").children(".commentthread_comment_text");
+			let authorContainer  = thisComment.children(".commentthread_comment_content").children(".commentthread_comment_author").children(".commentthread_author_link");
+			let commentContainer = thisComment.children(".commentthread_comment_content").children(`#comment_content_${thisCommentID}`);
 
 
-			// Prepare comment text
+			// Prepare comment text by formatting the blockquote if one exists first, then adding the actual content
 			let commentText = "";
 
 			if (commentContainer.children(".bb_blockquote").length != 0) { // Check if comment contains quote
@@ -103,8 +104,8 @@ SteamCommunity.prototype.getDiscussionComments = function(url, startIndex, endIn
 
 			comments.push({
 				index: i,
-				commentId: thisComment.attr("id").replace("comment_", ""),
-				commentLink: `${url}#${thisComment.attr("id").replace("comment_", "c")}`,
+				commentId: thisCommentID,
+				commentLink: `${url}#c${thisCommentID}`,
 				authorLink: authorContainer.attr("href"),                                 // I did not call 'resolveVanityURL()' here and convert to SteamID to reduce the amount of potentially unused Steam pings
 				postedDate: Helpers.decodeSteamTime(authorContainer.children(".commentthread_comment_timestamp").text().trim()),
 				content: commentText.trim()
