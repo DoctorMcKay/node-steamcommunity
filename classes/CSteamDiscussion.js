@@ -127,6 +127,17 @@ function CSteamDiscussion(community, data) {
 
 
 /**
+ * Scrapes a range of comments from this discussion
+ * @param {number} startIndex - Index (0 based) of the first comment to fetch
+ * @param {number} endIndex - Index (0 based) of the last comment to fetch
+ * @param {function} callback - First argument is null/Error, second is array containing the requested comments
+ */
+CSteamDiscussion.prototype.getComments = function(startIndex, endIndex, callback) {
+	this._community.getDiscussionComments(`https://steamcommunity.com/app/${this.appID}/discussions/${this.forumID}/${this.id}`, startIndex, endIndex, callback);
+};
+
+
+/**
  * Posts a comment to this discussion's comment section
  * @param {String} message - Content of the comment to post
  * @param {function} callback - Takes only an Error object/null as the first argument

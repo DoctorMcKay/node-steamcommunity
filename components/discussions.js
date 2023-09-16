@@ -9,7 +9,7 @@ const Helpers = require('../components/helpers.js');
  * @param {url} url - SteamCommunity url pointing to the discussion to fetch
  * @param {number} startIndex - Index (0 based) of the first comment to fetch
  * @param {number} endIndex - Index (0 based) of the last comment to fetch
- * @param {function} callback - Takes only an Error object/null as the first argument
+ * @param {function} callback - First argument is null/Error, second is array containing the requested comments
  */
 SteamCommunity.prototype.getDiscussionComments = function(url, startIndex, endIndex, callback) {
 	this.httpRequestGet(url + "?l=en", async (err, res, body) => {
