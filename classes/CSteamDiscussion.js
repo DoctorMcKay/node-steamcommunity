@@ -127,3 +127,41 @@ function CSteamDiscussion(community, data) {
 	// Clone all the data we received
 	Object.assign(this, data);
 }
+
+
+/**
+ * Posts a comment to this discussion's comment section
+ * @param {String} message - Content of the comment to post
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+CSteamDiscussion.prototype.postComment = function(message, callback) {
+	this._community.postDiscussionComment(this.topicOwner, this.gidforum, this.id, message, callback);
+};
+
+
+/**
+ * Delete a comment from this discussion's comment section
+ * @param {String} gidcomment - ID of the comment to delete
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+CSteamDiscussion.prototype.deleteComment = function(gidcomment, callback) {
+	this._community.deleteDiscussionComment(this.topicOwner, this.gidforum, this.id, gidcomment, callback);
+};
+
+
+/**
+ * Subscribes to this discussion's comment section
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+CSteamDiscussion.prototype.subscribe = function(callback) {
+	this._community.subscribeDiscussionComments(this.topicOwner, this.gidforum, this.id, callback);
+};
+
+
+/**
+ * Unsubscribes from this discussion's comment section
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+CSteamDiscussion.prototype.unsubscribe = function(callback) {
+	this._community.unsubscribeDiscussionComments(this.topicOwner, this.gidforum, this.id, callback);
+};
