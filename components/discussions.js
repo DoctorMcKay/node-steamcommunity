@@ -119,6 +119,60 @@ SteamCommunity.prototype.getDiscussionComments = function(url, startIndex, endIn
 };
 
 /**
+ * Posts a comment to a discussion
+ * @param {String} topicOwner - ID of the topic owner
+ * @param {String} gidforum - GID of the discussion's forum
+ * @param {String} discussionId - ID of the discussion
+ * @param {String} message - Content of the comment to post
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+SteamCommunity.prototype.postDiscussionComment = function(topicOwner, gidforum, discussionId, message, callback) {
+	this.httpRequestPost({
+		"uri": `https://steamcommunity.com/comment/ForumTopic/post/${topicOwner}/${gidforum}/`,
+		"form": {
+			"comment": message,
+			"count": 15,
+			"sessionid": this.getSessionID(),
+			"extended_data": '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1,"is_banned":0,"can_delete":0,"can_edit":0}}', // This parameter is required, not sure about the specific settings
+			"feature2": discussionId
+		}
+	}, function(err, response, body) {
+		if (!callback) {
+			return;
+		}
+
+		callback(err);
+	}, "steamcommunity");
+};
+
+/**
+ * Deletes a comment from a discussion
+ * @param {String} topicOwner - ID of the topic owner
+ * @param {String} gidforum - GID of the discussion's forum
+ * @param {String} discussionId - ID of the discussion
+ * @param {String} gidcomment - ID of the comment to delete
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+SteamCommunity.prototype.deleteDiscussionComment = function(topicOwner, gidforum, discussionId, gidcomment, callback) {
+	this.httpRequestPost({
+		"uri": `https://steamcommunity.com/comment/ForumTopic/delete/${topicOwner}/${gidforum}/`,
+		"form": {
+			"gidcomment": gidcomment,
+			"count": 15,
+			"sessionid": this.getSessionID(),
+			"extended_data": '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1,"is_banned":0,"can_delete":0,"can_edit":0}}', // This parameter is required, not sure about the specific settings
+			"feature2": discussionId
+		}
+	}, function(err, response, body) {
+		if (!callback) {
+			return;
+		}
+
+		callback(err);
+	}, "steamcommunity");
+};
+
+/**
  * Subscribes to a discussion's comment section
  * @param {String} topicOwner - ID of the topic owner
  * @param {String} gidforum - GID of the discussion's forum
@@ -131,7 +185,7 @@ SteamCommunity.prototype.subscribeDiscussionComments = function(topicOwner, gidf
 		"form": {
 			"count": 15,
 			"sessionid": this.getSessionID(),
-			"extended_data": '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1,"is_banned":0,"can_delete":0,"can_edit":0}}',
+			"extended_data": '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1,"is_banned":0,"can_delete":0,"can_edit":0}}', // This parameter is required, not sure about the specific settings
 			"feature2": discussionId
 		}
 	}, function(err, response, body) { // eslint-disable-line
