@@ -41,10 +41,6 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 
 			/* --------------------- Find and map values --------------------- */
 
-			// Get discussionID from url
-			discussion.id = url.split("/")[url.split("/").length - 1];
-
-
 			// Get appID from breadcrumbs
 			let appIdHref = breadcrumbs[0].attribs["href"].split("/");
 
@@ -57,9 +53,10 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 			discussion.forumID = forumIdHref[forumIdHref.length - 2];
 
 
-			// Get gidforum and topicOwner. I'm not 100% sure what they are, they are however used for all post requests
+			// Get id, gidforum and topicOwner. The first is used in the URL itself, the other two only in post requests
 			let gids = $(".forum_paging > .forum_paging_controls").attr("id").split("_");
 
+			discussion.id = gids[4];
 			discussion.gidforum = gids[3];
 			discussion.topicOwner = gids[2];
 

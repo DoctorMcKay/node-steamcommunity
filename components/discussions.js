@@ -133,7 +133,7 @@ SteamCommunity.prototype.postDiscussionComment = function(topicOwner, gidforum, 
 			"comment": message,
 			"count": 15,
 			"sessionid": this.getSessionID(),
-			"extended_data": '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1,"is_banned":0,"can_delete":0,"can_edit":0}}', // This parameter is required, not sure about the specific settings
+			"extended_data": '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1}}',
 			"feature2": discussionId
 		}
 	}, function(err, response, body) {
@@ -160,7 +160,7 @@ SteamCommunity.prototype.deleteDiscussionComment = function(topicOwner, gidforum
 			"gidcomment": gidcomment,
 			"count": 15,
 			"sessionid": this.getSessionID(),
-			"extended_data": '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1,"is_banned":0,"can_delete":0,"can_edit":0}}', // This parameter is required, not sure about the specific settings
+			"extended_data": '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1}}',
 			"feature2": discussionId
 		}
 	}, function(err, response, body) {
@@ -185,7 +185,7 @@ SteamCommunity.prototype.subscribeDiscussionComments = function(topicOwner, gidf
 		"form": {
 			"count": 15,
 			"sessionid": this.getSessionID(),
-			"extended_data": '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1,"is_banned":0,"can_delete":0,"can_edit":0}}', // This parameter is required, not sure about the specific settings
+			"extended_data": '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1}}',
 			"feature2": discussionId
 		}
 	}, function(err, response, body) { // eslint-disable-line
