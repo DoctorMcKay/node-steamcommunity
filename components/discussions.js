@@ -222,3 +222,27 @@ SteamCommunity.prototype.unsubscribeDiscussionComments = function(topicOwner, gi
 		callback(err);
 	}, "steamcommunity");
 };
+
+/**
+ * Sets an amount of comments per page
+ * @param {String} value - 15, 30 or 50
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+SteamCommunity.prototype.setDiscussionCommentsPerPage = function(value, callback) {
+	if (!["15", "30", "50"].includes(value)) value = "50"; // Check for invalid setting
+
+	this.httpRequestPost({
+		"uri": `https://steamcommunity.com/forum/0/0/setpreference`,
+		"form": {
+			"preference": "topicrepliesperpage",
+			"value": value,
+			"sessionid": this.getSessionID(),
+		}
+	}, function(err, response, body) { // eslint-disable-line
+		if (!callback) {
+			return;
+		}
+
+		callback(err);
+	}, "steamcommunity");
+};
