@@ -4,6 +4,8 @@ const SteamID = require('steamid');
 const SteamCommunity = require('../index.js');
 const Helpers = require('../components/helpers.js');
 
+const EDiscussionType = require("../resources/EDiscussionType.js");
+
 
 /**
  * Scrape a discussion's DOM to get all available information
@@ -14,6 +16,7 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 	// Construct object holding all the data we can scrape
 	let discussion = {
 		id: null,
+		type: null,
 		appID: null,
 		forumID: null,
 		gidforum: null, // This is some id used as parameter 2 in post requests
@@ -38,17 +41,33 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 			// Get breadcrumbs once
 			let breadcrumbs = $(".forum_breadcrumbs").children();
 
+			if (breadcrumbs.length == 0) breadcrumbs = $(".group_breadcrumbs").children();
+
 
 			/* --------------------- Find and map values --------------------- */
 
-			// Get appID from breadcrumbs
-			let appIdHref = breadcrumbs[0].attribs["href"].split("/");
+			// Determine type from URL as some checks will deviate, depending on the type
+			if (url.includes("steamcommunity.com/discussions/forum"))     discussion.type = EDiscussionType.Forum;
+			if (/steamcommunity.com\/app\/.+\/discussions/g.test(url))    discussion.type = EDiscussionType.App;
+			if (/steamcommunity.com\/groups\/.+\/discussions/g.test(url)) discussion.type = EDiscussionType.Group;
 
-			discussion.appID = appIdHref[appIdHref.length - 1];
+
+			// Get appID from breadcrumbs if this discussion is associated to one
+			if (discussion.type == EDiscussionType.App) {
+				let appIdHref = breadcrumbs[0].attribs["href"].split("/");
+
+				discussion.appID = appIdHref[appIdHref.length - 1];
+			}
 
 
 			// Get forumID from breadcrumbs
-			let forumIdHref = breadcrumbs[2].attribs["href"].split("/");
+			let forumIdHref;
+
+			if (discussion.type == EDiscussionType.Group) { // Groups have an extra breadcrumb so we need to shift by 2
+				forumIdHref = breadcrumbs[4].attribs["href"].split("/");
+			} else {
+				forumIdHref = breadcrumbs[2].attribs["href"].split("/");
+			}
 
 			discussion.forumID = forumIdHref[forumIdHref.length - 2];
 
@@ -62,7 +81,7 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 
 
 			// Find postedDate and convert to timestamp
-			let posted = $(".topicstats > .topicstats_label:contains(\"Date Posted:\")").next().text()
+			let posted = $(".topicstats > .topicstats_label:contains(\"Date Posted:\")").next().text();
 
 			discussion.postedDate = Helpers.decodeSteamTime(posted.trim());
 
