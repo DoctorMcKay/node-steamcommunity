@@ -38,7 +38,7 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 			// Load output into cheerio to make parsing easier
 			let $ = Cheerio.load(body);
 
-			// Get breadcrumbs once
+			// Get breadcrumbs once. Depending on the type of discussion, it either uses "forum" or "group" breadcrumbs
 			let breadcrumbs = $(".forum_breadcrumbs").children();
 
 			if (breadcrumbs.length == 0) breadcrumbs = $(".group_breadcrumbs").children();

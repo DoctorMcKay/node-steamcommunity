@@ -84,17 +84,33 @@ SteamCommunity.prototype.getDiscussionComments = function(url, startIndex, endIn
 			let commentContainer = thisComment.children(".commentthread_comment_content").children(`#comment_content_${thisCommentID}`);
 
 
-			// Prepare comment text by formatting the blockquote if one exists first, then adding the actual content
+			// Prepare comment text by finding all existing blockquotes, formatting them and adding them infront each other. Afterwards handle the text itself
 			let commentText = "";
+			let blockQuoteSelector = ".bb_blockquote";
+			let children = commentContainer.children(blockQuoteSelector);
 
-			if (commentContainer.children(".bb_blockquote").length != 0) { // Check if comment contains quote
-				commentText += commentContainer.children(".bb_blockquote").children(".bb_quoteauthor").text() + "\n"; // Get quote header and add a proper newline
+			for (let i = 0; i < 10; i++) { // I'm not sure how I could dynamically check the amount of nested blockquotes. 10 is prob already too much to stay readable
+				if (children.length > 0) {
+					let thisQuoteText = "";
 
-				let quoteWithNewlines = commentContainer.children(".bb_blockquote").first().find("br").replaceWith("\n"); // Replace <br>'s with newlines to get a proper output
+					thisQuoteText += children.children(".bb_quoteauthor").text() + "\n"; // Get quote header and add a proper newline
 
-				commentText += quoteWithNewlines.end().contents().filter(function() { return this.type === 'text' }).text().trim(); // Get blockquote content without child content - https://stackoverflow.com/a/23956052
+					// Replace <br>'s with newlines to get a proper output
+					let quoteWithNewlines = children.first().find("br").replaceWith("\n");
 
-				commentText += "\n\n-------\n\n"; // Add spacer
+					thisQuoteText += quoteWithNewlines.end().contents().filter(function() { return this.type === 'text' }).text().trim(); // Get blockquote content without child content - https://stackoverflow.com/a/23956052
+					if (i > 0) thisQuoteText += "\n-------\n"; // Add spacer
+
+					commentText = thisQuoteText + commentText; // Concat quoteText to the start of commentText as the most nested quote is the first one inside the comment chain itself
+
+					// Go one level deeper
+					children = children.children(blockQuoteSelector);
+
+				} else {
+
+					commentText += "\n\n-------\n\n"; // Add spacer
+					break;
+				}
 			}
 
 			let quoteWithNewlines = commentContainer.first().find("br").replaceWith("\n"); // Replace <br>'s with newlines to get a proper output
