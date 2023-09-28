@@ -151,14 +151,25 @@ SteamCommunity.prototype.postDiscussionComment = function(topicOwner, gidforum, 
 			"count": 15,
 			"sessionid": this.getSessionID(),
 			"extended_data": '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1}}',
-			"feature2": discussionId
-		}
+			"feature2": discussionId,
+			"json": 1
+		},
+		"json": true
 	}, function(err, response, body) {
 		if (!callback) {
 			return;
 		}
 
-		callback(err);
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (body.success) {
+			callback(null);
+		} else {
+			callback(new Error(body.error));
+		}
 	}, "steamcommunity");
 };
 
@@ -178,14 +189,25 @@ SteamCommunity.prototype.deleteDiscussionComment = function(topicOwner, gidforum
 			"count": 15,
 			"sessionid": this.getSessionID(),
 			"extended_data": '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1}}',
-			"feature2": discussionId
-		}
-	}, function(err, response, body) {
+			"feature2": discussionId,
+			"json": 1
+		},
+		"json": true
+	}, function(err, response, body) { // Steam does not seem to return any errors here even when trying to delete a non-existing comment but let's check the response anyway
 		if (!callback) {
 			return;
 		}
 
-		callback(err);
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (body.success) {
+			callback(null);
+		} else {
+			callback(new Error(body.error));
+		}
 	}, "steamcommunity");
 };
 
@@ -203,14 +225,28 @@ SteamCommunity.prototype.subscribeDiscussionComments = function(topicOwner, gidf
 			"count": 15,
 			"sessionid": this.getSessionID(),
 			"extended_data": '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1}}',
-			"feature2": discussionId
-		}
-	}, function(err, response, body) { // eslint-disable-line
+			"feature2": discussionId,
+			"json": 1
+		},
+		"json": true
+	}, function(err, response, body) {
 		if (!callback) {
 			return;
 		}
 
-		callback(err);
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (body.success && body.success != SteamCommunity.EResult.OK) {
+			let err = new Error(body.message || SteamCommunity.EResult[body.success]);
+			err.eresult = err.code = body.success;
+			callback(err);
+			return;
+		}
+
+		callback(null);
 	}, "steamcommunity");
 };
 
@@ -228,14 +264,28 @@ SteamCommunity.prototype.unsubscribeDiscussionComments = function(topicOwner, gi
 			"count": 15,
 			"sessionid": this.getSessionID(),
 			"extended_data": '{}', // Unsubscribing does not require any data here
-			"feature2": discussionId
-		}
-	}, function(err, response, body) { // eslint-disable-line
+			"feature2": discussionId,
+			"json": 1
+		},
+		"json": true
+	}, function(err, response, body) {
 		if (!callback) {
 			return;
 		}
 
-		callback(err);
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (body.success && body.success != SteamCommunity.EResult.OK) {
+			let err = new Error(body.message || SteamCommunity.EResult[body.success]);
+			err.eresult = err.code = body.success;
+			callback(err);
+			return;
+		}
+
+		callback(null);
 	}, "steamcommunity");
 };
 
@@ -253,12 +303,25 @@ SteamCommunity.prototype.setDiscussionCommentsPerPage = function(value, callback
 			"preference": "topicrepliesperpage",
 			"value": value,
 			"sessionid": this.getSessionID(),
-		}
-	}, function(err, response, body) { // eslint-disable-line
+		},
+		"json": true
+	}, function(err, response, body) { // Steam does not seem to return any errors for this request
 		if (!callback) {
 			return;
 		}
 
-		callback(err);
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (body.success && body.success != SteamCommunity.EResult.OK) {
+			let err = new Error(body.message || SteamCommunity.EResult[body.success]);
+			err.eresult = err.code = body.success;
+			callback(err);
+			return;
+		}
+
+		callback(null);
 	}, "steamcommunity");
 };
