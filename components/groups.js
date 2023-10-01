@@ -755,11 +755,14 @@ SteamCommunity.prototype.followCurator = function(clanid, callback) {
 			return;
 		}
 
-		if (body.success) {
-			callback(null);
-		} else {
-			callback(new Error(EResult[body] || ("Error " + body)));
+		if (body.success && body.success.success != SteamCommunity.EResult.OK) {
+			let err = new Error(body.message || SteamCommunity.EResult[body.success.success]);
+			err.eresult = err.code = body.success.success;
+			callback(err);
+			return;
 		}
+
+		callback(null);
 	}, "steamcommunity");
 };
 
@@ -787,10 +790,13 @@ SteamCommunity.prototype.unfollowCurator = function(clanid, callback) {
 			return;
 		}
 
-		if (body.success) {
-			callback(null);
-		} else {
-			callback(new Error(EResult[body] || ("Error " + body)));
+		if (body.success && body.success.success != SteamCommunity.EResult.OK) {
+			let err = new Error(body.message || SteamCommunity.EResult[body.success.success]);
+			err.eresult = err.code = body.success.success;
+			callback(err);
+			return;
 		}
+
+		callback(null);
 	}, "steamcommunity");
 };

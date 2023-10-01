@@ -317,11 +317,14 @@ SteamCommunity.prototype.followUser = function(userID, callback) {
 			return;
 		}
 
-		if (body.success) {
-			callback(null);
-		} else {
-			callback(new Error("Unknown error"));
+		if (body.success && body.success != SteamCommunity.EResult.OK) {
+			let err = new Error(body.message || SteamCommunity.EResult[body.success]);
+			err.eresult = err.code = body.success;
+			callback(err);
+			return;
 		}
+
+		callback(null);
 	}, "steamcommunity");
 };
 
@@ -346,11 +349,14 @@ SteamCommunity.prototype.unfollowUser = function(userID, callback) {
 			return;
 		}
 
-		if (body.success) {
-			callback(null);
-		} else {
-			callback(new Error("Unknown error"));
+		if (body.success && body.success != SteamCommunity.EResult.OK) {
+			let err = new Error(body.message || SteamCommunity.EResult[body.success]);
+			err.eresult = err.code = body.success;
+			callback(err);
+			return;
 		}
+
+		callback(null);
 	}, "steamcommunity");
 };
 
