@@ -2,6 +2,8 @@ var SteamID = require('steamid');
 
 var SteamCommunity = require('../index.js');
 
+const Helpers = require('./helpers.js');
+
 
 /**
  * Deletes a comment from a sharedfile's comment section
@@ -134,9 +136,7 @@ SteamCommunity.prototype.subscribeSharedFileComments = function(userID, sharedFi
 		}
 
 		if (body.success && body.success != SteamCommunity.EResult.OK) {
-			let err = new Error(body.message || SteamCommunity.EResult[body.success]);
-			err.eresult = err.code = body.success;
-			callback(err);
+			callback(Helpers.eresultError(body.success));
 			return;
 		}
 
@@ -197,9 +197,7 @@ SteamCommunity.prototype.unsubscribeSharedFileComments = function(userID, shared
 		}
 
 		if (body.success && body.success != SteamCommunity.EResult.OK) {
-			let err = new Error(body.message || SteamCommunity.EResult[body.success]);
-			err.eresult = err.code = body.success;
-			callback(err);
+			callback(Helpers.eresultError(body.success));
 			return;
 		}
 
