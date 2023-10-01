@@ -318,9 +318,7 @@ SteamCommunity.prototype.followUser = function(userID, callback) {
 		}
 
 		if (body.success && body.success != SteamCommunity.EResult.OK) {
-			let err = new Error(body.message || SteamCommunity.EResult[body.success]);
-			err.eresult = err.code = body.success;
-			callback(err);
+			callback(Helpers.eresultError(body.success));
 			return;
 		}
 
@@ -350,9 +348,7 @@ SteamCommunity.prototype.unfollowUser = function(userID, callback) {
 		}
 
 		if (body.success && body.success != SteamCommunity.EResult.OK) {
-			let err = new Error(body.message || SteamCommunity.EResult[body.success]);
-			err.eresult = err.code = body.success;
-			callback(err);
+			callback(Helpers.eresultError(body.success));
 			return;
 		}
 

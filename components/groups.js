@@ -756,9 +756,7 @@ SteamCommunity.prototype.followCurator = function(clanid, callback) {
 		}
 
 		if (body.success && body.success.success != SteamCommunity.EResult.OK) {
-			let err = new Error(body.message || SteamCommunity.EResult[body.success.success]);
-			err.eresult = err.code = body.success.success;
-			callback(err);
+			callback(Helpers.eresultError(body.success.success));
 			return;
 		}
 
@@ -791,9 +789,7 @@ SteamCommunity.prototype.unfollowCurator = function(clanid, callback) {
 		}
 
 		if (body.success && body.success.success != SteamCommunity.EResult.OK) {
-			let err = new Error(body.message || SteamCommunity.EResult[body.success.success]);
-			err.eresult = err.code = body.success.success;
-			callback(err);
+			callback(Helpers.eresultError(body.success.success));
 			return;
 		}
 
