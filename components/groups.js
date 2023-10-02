@@ -175,11 +175,11 @@ SteamCommunity.prototype.postGroupAnnouncement = function(gid, headline, content
 		"languages[0][headline]": headline,
 		"languages[0][body]": content
 	};
-	
+
 	if(hidden) {
 		form.is_hidden = "is_hidden"
 	}
-	
+
 	this.httpRequestPost({
 		"uri": "https://steamcommunity.com/gid/" + gid.getSteamID64() + "/announcements",
 		form
@@ -669,7 +669,7 @@ SteamCommunity.prototype.respondToGroupJoinRequests = function(gid, steamIDs, ap
 	if (typeof gid === 'string') {
 		gid = new SteamID(gid);
 	}
-	
+
 	var rgAccounts = (!Array.isArray(steamIDs) ? [steamIDs] : steamIDs).map(sid => sid.toString());
 
 	this.httpRequestPost({
@@ -733,14 +733,14 @@ SteamCommunity.prototype.respondToAllGroupJoinRequests = function(gid, approve, 
 
 /**
  * Follows a curator page
- * @param {string} clanid - ID of the curator
+ * @param {string|number} curatorId - ID of the curator (not a SteamID)
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
-SteamCommunity.prototype.followCurator = function(clanid, callback) {
+SteamCommunity.prototype.followCurator = function(curatorId, callback) {
 	this.httpRequestPost({
 		"uri": "https://store.steampowered.com/curators/ajaxfollow",
 		"form": {
-			"clanid": clanid,
+			"clanid": curatorId,
 			"sessionid": this.getSessionID(),
 			"follow": 1
 		},
@@ -766,14 +766,14 @@ SteamCommunity.prototype.followCurator = function(clanid, callback) {
 
 /**
  * Unfollows a curator page
- * @param {string} clanid - ID of the curator
+ * @param {string|number} curatorId - ID of the curator (not a SteamID)
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
-SteamCommunity.prototype.unfollowCurator = function(clanid, callback) {
+SteamCommunity.prototype.unfollowCurator = function(curatorId, callback) {
 	this.httpRequestPost({
 		"uri": "https://store.steampowered.com/curators/ajaxfollow",
 		"form": {
-			"clanid": clanid,
+			"clanid": curatorId,
 			"sessionid": this.getSessionID(),
 			"follow": 0
 		},
