@@ -1,5 +1,6 @@
 const Cheerio = require('cheerio');
 const SteamID = require('steamid');
+const StdLib = require('@doctormckay/stdlib');
 
 const SteamCommunity = require('../index.js');
 const Helpers = require('../components/helpers.js');
@@ -30,18 +31,20 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 	};
 
 	// Get DOM of discussion
-	this.httpRequestGet(url, (err, res, body) => {
-		if (err) {
-			callback(err);
-			return;
-		}
+	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
+		let result = await this.httpRequest({
+			method: 'GET',
+			url: url,
+			source: 'steamcommunity'
+		});
+
 
 		try {
 
 			/* --------------------- Preprocess output --------------------- */
 
 			// Load output into cheerio to make parsing easier
-			let $ = Cheerio.load(body);
+			let $ = Cheerio.load(result.textBody);
 
 			// Get breadcrumbs once. Depending on the type of discussion, it either uses "forum" or "group" breadcrumbs
 			let breadcrumbs = $('.forum_breadcrumbs').children();
@@ -50,7 +53,7 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 
 			// Steam redirects us to the forum page if the discussion does not exist which we can detect by missing breadcrumbs
 			if (!breadcrumbs[0]) {
-				callback(new Error('Discussion not found'));
+				reject(new Error('Discussion not found'));
 				return;
 			}
 
@@ -121,20 +124,20 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 
 			Helpers.resolveVanityURL(authorLink, (err, data) => { // This request takes <1 sec
 				if (err) {
-					callback(err);
+					reject(err);
 					return;
 				}
 
 				discussion.author = new SteamID(data.steamID);
 
-				// Make callback when ID was resolved as otherwise owner will always be null
-				callback(null, new CSteamDiscussion(this, discussion));
+				// Resolve when ID was resolved as otherwise owner will always be null
+				resolve(new CSteamDiscussion(this, discussion));
 			});
 
 		} catch (err) {
-			callback(err, null);
+			reject(err);
 		}
-	}, 'steamcommunity');
+	});
 };
 
 

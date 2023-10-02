@@ -1,4 +1,5 @@
 const Cheerio = require('cheerio');
+const StdLib = require('@doctormckay/stdlib');
 
 const SteamCommunity = require('../index.js');
 const Helpers = require('./helpers.js');
@@ -12,16 +13,16 @@ const Helpers = require('./helpers.js');
  * @param {function} callback - First argument is null/Error, second is array containing the requested comments
  */
 SteamCommunity.prototype.getDiscussionComments = function(url, startIndex, endIndex, callback) {
-	this.httpRequestGet(url + '?l=en', async (err, res, body) => {
-
-		if (err) {
-			callback('Failed to load discussion: ' + err, null);
-			return;
-		}
+	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
+		let result = await this.httpRequest({
+			method: 'GET',
+			url: url + '?l=en',
+			source: 'steamcommunity'
+		});
 
 
 		// Load output into cheerio to make parsing easier
-		let $ = Cheerio.load(body);
+		let $ = Cheerio.load(result.textBody);
 
 		let paging = $('.forum_paging > .forum_paging_summary').children();
 
@@ -52,16 +53,20 @@ SteamCommunity.prototype.getDiscussionComments = function(url, startIndex, endIn
 			if (i == 0) continue; // First page is already in pages object
 
 			promises.push(new Promise((resolve) => {
-				setTimeout(() => { // Delay fetching a bit to reduce the risk of Steam blocking us
+				setTimeout(async () => { // Delay fetching a bit to reduce the risk of Steam blocking us
 
-					this.httpRequestGet(url + '?l=en&ctp=' + (i + 1), (err, res, body) => {
-						try {
-							pages[i] = Cheerio.load(body);
-							resolve();
-						} catch (err) {
-							return callback('Failed to load comments page: ' + err, null);
-						}
-					}, 'steamcommunity');
+					let commentsPage = await this.httpRequest({
+						method: 'GET',
+						url: url + '?l=en&ctp=' + (i + 1),
+						source: 'steamcommunity'
+					});
+
+					try {
+						pages[i] = Cheerio.load(commentsPage.textBody);
+						resolve();
+					} catch (err) {
+						return reject('Failed to load comments page: ' + err);
+					}
 
 				}, 250 * i);
 			}));
@@ -129,10 +134,10 @@ SteamCommunity.prototype.getDiscussionComments = function(url, startIndex, endIn
 		}
 
 
-		// Callback our result
-		callback(null, comments);
+		// Resolve with our result
+		resolve(comments);
 
-	}, 'steamcommunity');
+	});
 };
 
 /**
@@ -144,33 +149,27 @@ SteamCommunity.prototype.getDiscussionComments = function(url, startIndex, endIn
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
 SteamCommunity.prototype.postDiscussionComment = function(topicOwner, gidforum, discussionId, message, callback) {
-	this.httpRequestPost({
-		uri: `https://steamcommunity.com/comment/ForumTopic/post/${topicOwner}/${gidforum}/`,
-		form: {
-			comment: message,
-			count: 15,
-			sessionid: this.getSessionID(),
-			extended_data: '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1}}',
-			feature2: discussionId,
-			json: 1
-		},
-		json: true
-	}, function(err, response, body) {
-		if (!callback) {
-			return;
-		}
+	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
+		let result = await this.httpRequest({
+			method: 'POST',
+			url: `https://steamcommunity.com/comment/ForumTopic/post/${topicOwner}/${gidforum}/`,
+			form: {
+				comment: message,
+				count: 15,
+				sessionid: this.getSessionID(),
+				extended_data: '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1}}',
+				feature2: discussionId,
+				json: 1
+			},
+			source: 'steamcommunity'
+		});
 
-		if (err) {
-			callback(err);
-			return;
-		}
-
-		if (body.success) {
-			callback(null);
+		if (result.jsonBody.success) {
+			resolve(null);
 		} else {
-			callback(new Error(body.error));
+			reject(new Error(result.jsonBody.error));
 		}
-	}, 'steamcommunity');
+	});
 };
 
 /**
@@ -182,33 +181,27 @@ SteamCommunity.prototype.postDiscussionComment = function(topicOwner, gidforum, 
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
 SteamCommunity.prototype.deleteDiscussionComment = function(topicOwner, gidforum, discussionId, gidcomment, callback) {
-	this.httpRequestPost({
-		uri: `https://steamcommunity.com/comment/ForumTopic/delete/${topicOwner}/${gidforum}/`,
-		form: {
-			gidcomment: gidcomment,
-			count: 15,
-			sessionid: this.getSessionID(),
-			extended_data: '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1}}',
-			feature2: discussionId,
-			json: 1
-		},
-		json: true
-	}, function(err, response, body) { // Steam does not seem to return any errors here even when trying to delete a non-existing comment but let's check the response anyway
-		if (!callback) {
-			return;
-		}
+	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
+		let result = await this.httpRequest({
+			method: 'POST',
+			url: `https://steamcommunity.com/comment/ForumTopic/delete/${topicOwner}/${gidforum}/`,
+			form: {
+				gidcomment: gidcomment,
+				count: 15,
+				sessionid: this.getSessionID(),
+				extended_data: '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1}}',
+				feature2: discussionId,
+				json: 1
+			},
+			source: 'steamcommunity'
+		});
 
-		if (err) {
-			callback(err);
-			return;
-		}
-
-		if (body.success) {
-			callback(null);
+		if (result.jsonBody.success) {
+			resolve(null);
 		} else {
-			callback(new Error(body.error));
+			reject(new Error(result.jsonBody.error));
 		}
-	}, 'steamcommunity');
+	});
 };
 
 /**
@@ -219,33 +212,27 @@ SteamCommunity.prototype.deleteDiscussionComment = function(topicOwner, gidforum
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
 SteamCommunity.prototype.subscribeDiscussionComments = function(topicOwner, gidforum, discussionId, callback) {
-	this.httpRequestPost({
-		uri: `https://steamcommunity.com/comment/ForumTopic/subscribe/${topicOwner}/${gidforum}/`,
-		form: {
-			count: 15,
-			sessionid: this.getSessionID(),
-			extended_data: '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1}}',
-			feature2: discussionId,
-			json: 1
-		},
-		json: true
-	}, function(err, response, body) {
-		if (!callback) {
+	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
+		let result = await this.httpRequest({
+			method: 'POST',
+			url: `https://steamcommunity.com/comment/ForumTopic/subscribe/${topicOwner}/${gidforum}/`,
+			form: {
+				count: 15,
+				sessionid: this.getSessionID(),
+				extended_data: '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1}}',
+				feature2: discussionId,
+				json: 1
+			},
+			source: 'steamcommunity'
+		});
+
+		if (result.jsonBody.success && result.jsonBody.success != SteamCommunity.EResult.OK) {
+			reject(Helpers.eresultError(result.jsonBody.success));
 			return;
 		}
 
-		if (err) {
-			callback(err);
-			return;
-		}
-
-		if (body.success && body.success != SteamCommunity.EResult.OK) {
-			callback(Helpers.eresultError(body.success));
-			return;
-		}
-
-		callback(null);
-	}, 'steamcommunity');
+		resolve(null);
+	});
 };
 
 /**
@@ -256,33 +243,27 @@ SteamCommunity.prototype.subscribeDiscussionComments = function(topicOwner, gidf
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
 SteamCommunity.prototype.unsubscribeDiscussionComments = function(topicOwner, gidforum, discussionId, callback) {
-	this.httpRequestPost({
-		uri: `https://steamcommunity.com/comment/ForumTopic/unsubscribe/${topicOwner}/${gidforum}/`,
-		form: {
-			count: 15,
-			sessionid: this.getSessionID(),
-			extended_data: '{}', // Unsubscribing does not require any data here
-			feature2: discussionId,
-			json: 1
-		},
-		json: true
-	}, function(err, response, body) {
-		if (!callback) {
+	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
+		let result = await this.httpRequest({
+			method: 'POST',
+			url: `https://steamcommunity.com/comment/ForumTopic/unsubscribe/${topicOwner}/${gidforum}/`,
+			form: {
+				count: 15,
+				sessionid: this.getSessionID(),
+				extended_data: '{}', // Unsubscribing does not require any data here
+				feature2: discussionId,
+				json: 1
+			},
+			source: 'steamcommunity'
+		});
+
+		if (result.jsonBody.success && result.jsonBody.success != SteamCommunity.EResult.OK) {
+			reject(Helpers.eresultError(result.jsonBody.success));
 			return;
 		}
 
-		if (err) {
-			callback(err);
-			return;
-		}
-
-		if (body.success && body.success != SteamCommunity.EResult.OK) {
-			callback(Helpers.eresultError(body.success));
-			return;
-		}
-
-		callback(null);
-	}, 'steamcommunity');
+		resolve(null);
+	});
 };
 
 /**
@@ -293,29 +274,23 @@ SteamCommunity.prototype.unsubscribeDiscussionComments = function(topicOwner, gi
 SteamCommunity.prototype.setDiscussionCommentsPerPage = function(value, callback) {
 	if (!['15', '30', '50'].includes(value)) value = '50'; // Check for invalid setting
 
-	this.httpRequestPost({
-		uri: 'https://steamcommunity.com/forum/0/0/setpreference',
-		form: {
-			preference: 'topicrepliesperpage',
-			value: value,
-			sessionid: this.getSessionID(),
-		},
-		json: true
-	}, function(err, response, body) { // Steam does not seem to return any errors for this request
-		if (!callback) {
+	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
+		let result = await this.httpRequest({
+			method: 'POST',
+			url: 'https://steamcommunity.com/forum/0/0/setpreference',
+			form: {
+				preference: 'topicrepliesperpage',
+				value: value,
+				sessionid: this.getSessionID(),
+			},
+			source: 'steamcommunity'
+		});
+
+		if (result.jsonBody.success && result.jsonBody.success != SteamCommunity.EResult.OK) {
+			reject(Helpers.eresultError(result.jsonBody.success));
 			return;
 		}
 
-		if (err) {
-			callback(err);
-			return;
-		}
-
-		if (body.success && body.success != SteamCommunity.EResult.OK) {
-			callback(Helpers.eresultError(body.success));
-			return;
-		}
-
-		callback(null);
-	}, 'steamcommunity');
+		resolve(null);
+	});
 };
