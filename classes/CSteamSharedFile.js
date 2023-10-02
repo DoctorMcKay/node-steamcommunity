@@ -32,6 +32,11 @@ SteamCommunity.prototype.getSteamSharedFile = function(sharedFileId, callback) {
 
 	// Get DOM of sharedfile
 	this.httpRequestGet(`https://steamcommunity.com/sharedfiles/filedetails/?id=${sharedFileId}&l=english`, (err, res, body) => { // Request page in english so that the Posted scraping below works
+		if (err) {
+			callback(err);
+			return;
+		}
+
 		try {
 
 			/* --------------------- Preprocess output --------------------- */
