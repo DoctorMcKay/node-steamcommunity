@@ -171,7 +171,7 @@ CSteamDiscussion.prototype.getComments = function(startIndex, endIndex, callback
  * @param {String} message - Content of the comment to post
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
-CSteamDiscussion.prototype.postComment = function(message, callback) {
+CSteamDiscussion.prototype.comment = function(message, callback) {
 	this._community.postDiscussionComment(this.topicOwner, this.gidforum, this.id, message, callback);
 };
 
