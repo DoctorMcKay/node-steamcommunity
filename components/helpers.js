@@ -1,6 +1,8 @@
-const EResult = require('../resources/EResult.js');
 const request = require('request');
+const SteamID = require('steamid');
 const xml2js  = require('xml2js');
+
+const EResult = require('../resources/EResult.js');
 
 exports.isSteamID = function(input) {
 	var keys = Object.keys(input);
@@ -105,4 +107,22 @@ exports.resolveVanityURL = function(url, callback) {
 			callback(null, {"vanityURL": vanityURL, "steamID": steamID64});
 		});
 	});
+};
+
+/**
+ * Converts `input` into a SteamID object, if it's a parseable string.
+ * @param {SteamID|string} input
+ * @return {SteamID}
+ */
+exports.steamID = function(input) {
+	if (exports.isSteamID(input)) {
+		return input;
+	}
+
+	if (typeof input != 'string') {
+		throw new Error(`Input SteamID value "${input}" is not a string`);
+	}
+
+	// This will throw if the input is not a well-formed SteamID
+	return new SteamID(input);
 };
