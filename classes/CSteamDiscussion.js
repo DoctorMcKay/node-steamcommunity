@@ -31,6 +31,11 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 
 	// Get DOM of discussion
 	this.httpRequestGet(url, (err, res, body) => {
+		if (err) {
+			callback(err);
+			return;
+		}
+
 		try {
 
 			/* --------------------- Preprocess output --------------------- */
@@ -43,6 +48,11 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 
 			if (breadcrumbs.length == 0) breadcrumbs = $('.group_breadcrumbs').children();
 
+			// Steam redirects us to the forum page if the discussion does not exist which we can detect by missing breadcrumbs
+			if (!breadcrumbs[0]) {
+				callback(new Error('Discussion not found'));
+				return;
+			}
 
 			/* --------------------- Find and map values --------------------- */
 
