@@ -166,6 +166,14 @@ CSteamUser.prototype.inviteToGroup = function(groupID, callback) {
 	this._community.inviteUserToGroup(this.steamID, groupID, callback);
 };
 
+CSteamUser.prototype.follow = function(callback) {
+	this._community.followUser(this.steamID, callback);
+};
+
+CSteamUser.prototype.unfollow = function(callback) {
+	this._community.unfollowUser(this.steamID, callback);
+};
+
 CSteamUser.prototype.getAliases = function(callback) {
 	this._community.getUserAliases(this.steamID, callback);
 };
