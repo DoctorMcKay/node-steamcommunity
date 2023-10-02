@@ -2,6 +2,13 @@
 	"name": "steamcommunity",
 	"version": "3.46.1",
 	"description": "Provides an interface for logging into and interacting with the Steam Community website",
+	"files": [
+		"/classes",
+		"/components",
+		"/examples",
+		"/resources",
+		"/index.js"
+	],
 	"keywords": [
 		"steam",
 		"steam community"
