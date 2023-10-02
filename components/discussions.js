@@ -12,10 +12,10 @@ const Helpers = require('./helpers.js');
  * @param {function} callback - First argument is null/Error, second is array containing the requested comments
  */
 SteamCommunity.prototype.getDiscussionComments = function(url, startIndex, endIndex, callback) {
-	this.httpRequestGet(url + "?l=en", async (err, res, body) => {
+	this.httpRequestGet(url + '?l=en', async (err, res, body) => {
 
 		if (err) {
-			callback("Failed to load discussion: " + err, null);
+			callback('Failed to load discussion: ' + err, null);
 			return;
 		}
 
@@ -23,20 +23,20 @@ SteamCommunity.prototype.getDiscussionComments = function(url, startIndex, endIn
 		// Load output into cheerio to make parsing easier
 		let $ = Cheerio.load(body);
 
-		let paging = $(".forum_paging > .forum_paging_summary").children();
+		let paging = $('.forum_paging > .forum_paging_summary').children();
 
 		/**
 		 * Stores every loaded page inside a Cheerio instance
 		 * @type {{[key: number]: cheerio.Root}}
 		 */
-		let pages = { 
+		let pages = {
 			0: $
 		};
 
 
 		// Determine amount of comments per page and total. Update endIndex if null to get all comments
 		let commentsPerPage = Number(paging[4].children[0].data);
-		let totalComments   = Number(paging[5].children[0].data)
+		let totalComments   = Number(paging[5].children[0].data);
 
 		if (endIndex == null || endIndex > totalComments - 1) { // Make sure to check against null as the index 0 would cast to false
 			endIndex = totalComments - 1;
@@ -54,14 +54,14 @@ SteamCommunity.prototype.getDiscussionComments = function(url, startIndex, endIn
 			promises.push(new Promise((resolve) => {
 				setTimeout(() => { // Delay fetching a bit to reduce the risk of Steam blocking us
 
-					this.httpRequestGet(url + "?l=en&ctp=" + (i + 1), (err, res, body) => {
+					this.httpRequestGet(url + '?l=en&ctp=' + (i + 1), (err, res, body) => {
 						try {
 							pages[i] = Cheerio.load(body);
 							resolve();
 						} catch (err) {
-							return callback("Failed to load comments page: " + err, null);
+							return callback('Failed to load comments page: ' + err, null);
 						}
-					}, "steamcommunity");
+					}, 'steamcommunity');
 
 				}, 250 * i);
 			}));
@@ -77,29 +77,29 @@ SteamCommunity.prototype.getDiscussionComments = function(url, startIndex, endIn
 			let $ = pages[Math.trunc(i / commentsPerPage)];
 
 			let thisComment = $(`.forum_comment_permlink:contains("#${i + 1}")`).parent();
-			let thisCommentID = thisComment.attr("id").replace("comment_", "");
+			let thisCommentID = thisComment.attr('id').replace('comment_', '');
 
 			// Note: '>' inside the cheerio selectors didn't work here
-			let authorContainer  = thisComment.children(".commentthread_comment_content").children(".commentthread_comment_author").children(".commentthread_author_link");
-			let commentContainer = thisComment.children(".commentthread_comment_content").children(`#comment_content_${thisCommentID}`);
+			let authorContainer  = thisComment.children('.commentthread_comment_content').children('.commentthread_comment_author').children('.commentthread_author_link');
+			let commentContainer = thisComment.children('.commentthread_comment_content').children(`#comment_content_${thisCommentID}`);
 
 
 			// Prepare comment text by finding all existing blockquotes, formatting them and adding them infront each other. Afterwards handle the text itself
-			let commentText = "";
-			let blockQuoteSelector = ".bb_blockquote";
+			let commentText = '';
+			let blockQuoteSelector = '.bb_blockquote';
 			let children = commentContainer.children(blockQuoteSelector);
 
 			for (let i = 0; i < 10; i++) { // I'm not sure how I could dynamically check the amount of nested blockquotes. 10 is prob already too much to stay readable
 				if (children.length > 0) {
-					let thisQuoteText = "";
+					let thisQuoteText = '';
 
-					thisQuoteText += children.children(".bb_quoteauthor").text() + "\n"; // Get quote header and add a proper newline
+					thisQuoteText += children.children('.bb_quoteauthor').text() + '\n'; // Get quote header and add a proper newline
 
 					// Replace <br>'s with newlines to get a proper output
-					let quoteWithNewlines = children.first().find("br").replaceWith("\n");
+					let quoteWithNewlines = children.first().find('br').replaceWith('\n');
 
-					thisQuoteText += quoteWithNewlines.end().contents().filter(function() { return this.type === 'text' }).text().trim(); // Get blockquote content without child content - https://stackoverflow.com/a/23956052
-					if (i > 0) thisQuoteText += "\n-------\n"; // Add spacer
+					thisQuoteText += quoteWithNewlines.end().contents().filter(function() { return this.type === 'text'; }).text().trim(); // Get blockquote content without child content - https://stackoverflow.com/a/23956052
+					if (i > 0) thisQuoteText += '\n-------\n'; // Add spacer
 
 					commentText = thisQuoteText + commentText; // Concat quoteText to the start of commentText as the most nested quote is the first one inside the comment chain itself
 
@@ -108,31 +108,31 @@ SteamCommunity.prototype.getDiscussionComments = function(url, startIndex, endIn
 
 				} else {
 
-					commentText += "\n\n-------\n\n"; // Add spacer
+					commentText += '\n\n-------\n\n'; // Add spacer
 					break;
 				}
 			}
 
-			let quoteWithNewlines = commentContainer.first().find("br").replaceWith("\n"); // Replace <br>'s with newlines to get a proper output
+			let quoteWithNewlines = commentContainer.first().find('br').replaceWith('\n'); // Replace <br>'s with newlines to get a proper output
 
-			commentText += quoteWithNewlines.end().contents().filter(function() { return this.type === 'text' }).text().trim(); // Add comment content without child content - https://stackoverflow.com/a/23956052
+			commentText += quoteWithNewlines.end().contents().filter(function() { return this.type === 'text'; }).text().trim(); // Add comment content without child content - https://stackoverflow.com/a/23956052
 
 
 			comments.push({
 				index: i,
 				commentId: thisCommentID,
 				commentLink: `${url}#c${thisCommentID}`,
-				authorLink: authorContainer.attr("href"),                                 // I did not call 'resolveVanityURL()' here and convert to SteamID to reduce the amount of potentially unused Steam pings
-				postedDate: Helpers.decodeSteamTime(authorContainer.children(".commentthread_comment_timestamp").text().trim()),
+				authorLink: authorContainer.attr('href'),                                 // I did not call 'resolveVanityURL()' here and convert to SteamID to reduce the amount of potentially unused Steam pings
+				postedDate: Helpers.decodeSteamTime(authorContainer.children('.commentthread_comment_timestamp').text().trim()),
 				content: commentText.trim()
 			});
 		}
 
-		
+
 		// Callback our result
 		callback(null, comments);
 
-    }, "steamcommunity");
+	}, 'steamcommunity');
 };
 
 /**
@@ -145,16 +145,16 @@ SteamCommunity.prototype.getDiscussionComments = function(url, startIndex, endIn
  */
 SteamCommunity.prototype.postDiscussionComment = function(topicOwner, gidforum, discussionId, message, callback) {
 	this.httpRequestPost({
-		"uri": `https://steamcommunity.com/comment/ForumTopic/post/${topicOwner}/${gidforum}/`,
-		"form": {
-			"comment": message,
-			"count": 15,
-			"sessionid": this.getSessionID(),
-			"extended_data": '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1}}',
-			"feature2": discussionId,
-			"json": 1
+		uri: `https://steamcommunity.com/comment/ForumTopic/post/${topicOwner}/${gidforum}/`,
+		form: {
+			comment: message,
+			count: 15,
+			sessionid: this.getSessionID(),
+			extended_data: '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1}}',
+			feature2: discussionId,
+			json: 1
 		},
-		"json": true
+		json: true
 	}, function(err, response, body) {
 		if (!callback) {
 			return;
@@ -170,7 +170,7 @@ SteamCommunity.prototype.postDiscussionComment = function(topicOwner, gidforum, 
 		} else {
 			callback(new Error(body.error));
 		}
-	}, "steamcommunity");
+	}, 'steamcommunity');
 };
 
 /**
@@ -183,16 +183,16 @@ SteamCommunity.prototype.postDiscussionComment = function(topicOwner, gidforum, 
  */
 SteamCommunity.prototype.deleteDiscussionComment = function(topicOwner, gidforum, discussionId, gidcomment, callback) {
 	this.httpRequestPost({
-		"uri": `https://steamcommunity.com/comment/ForumTopic/delete/${topicOwner}/${gidforum}/`,
-		"form": {
-			"gidcomment": gidcomment,
-			"count": 15,
-			"sessionid": this.getSessionID(),
-			"extended_data": '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1}}',
-			"feature2": discussionId,
-			"json": 1
+		uri: `https://steamcommunity.com/comment/ForumTopic/delete/${topicOwner}/${gidforum}/`,
+		form: {
+			gidcomment: gidcomment,
+			count: 15,
+			sessionid: this.getSessionID(),
+			extended_data: '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1}}',
+			feature2: discussionId,
+			json: 1
 		},
-		"json": true
+		json: true
 	}, function(err, response, body) { // Steam does not seem to return any errors here even when trying to delete a non-existing comment but let's check the response anyway
 		if (!callback) {
 			return;
@@ -208,7 +208,7 @@ SteamCommunity.prototype.deleteDiscussionComment = function(topicOwner, gidforum
 		} else {
 			callback(new Error(body.error));
 		}
-	}, "steamcommunity");
+	}, 'steamcommunity');
 };
 
 /**
@@ -220,15 +220,15 @@ SteamCommunity.prototype.deleteDiscussionComment = function(topicOwner, gidforum
  */
 SteamCommunity.prototype.subscribeDiscussionComments = function(topicOwner, gidforum, discussionId, callback) {
 	this.httpRequestPost({
-		"uri": `https://steamcommunity.com/comment/ForumTopic/subscribe/${topicOwner}/${gidforum}/`,
-		"form": {
-			"count": 15,
-			"sessionid": this.getSessionID(),
-			"extended_data": '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1}}',
-			"feature2": discussionId,
-			"json": 1
+		uri: `https://steamcommunity.com/comment/ForumTopic/subscribe/${topicOwner}/${gidforum}/`,
+		form: {
+			count: 15,
+			sessionid: this.getSessionID(),
+			extended_data: '{"topic_permissions":{"can_view":1,"can_post":1,"can_reply":1}}',
+			feature2: discussionId,
+			json: 1
 		},
-		"json": true
+		json: true
 	}, function(err, response, body) {
 		if (!callback) {
 			return;
@@ -245,7 +245,7 @@ SteamCommunity.prototype.subscribeDiscussionComments = function(topicOwner, gidf
 		}
 
 		callback(null);
-	}, "steamcommunity");
+	}, 'steamcommunity');
 };
 
 /**
@@ -257,15 +257,15 @@ SteamCommunity.prototype.subscribeDiscussionComments = function(topicOwner, gidf
  */
 SteamCommunity.prototype.unsubscribeDiscussionComments = function(topicOwner, gidforum, discussionId, callback) {
 	this.httpRequestPost({
-		"uri": `https://steamcommunity.com/comment/ForumTopic/unsubscribe/${topicOwner}/${gidforum}/`,
-		"form": {
-			"count": 15,
-			"sessionid": this.getSessionID(),
-			"extended_data": '{}', // Unsubscribing does not require any data here
-			"feature2": discussionId,
-			"json": 1
+		uri: `https://steamcommunity.com/comment/ForumTopic/unsubscribe/${topicOwner}/${gidforum}/`,
+		form: {
+			count: 15,
+			sessionid: this.getSessionID(),
+			extended_data: '{}', // Unsubscribing does not require any data here
+			feature2: discussionId,
+			json: 1
 		},
-		"json": true
+		json: true
 	}, function(err, response, body) {
 		if (!callback) {
 			return;
@@ -282,7 +282,7 @@ SteamCommunity.prototype.unsubscribeDiscussionComments = function(topicOwner, gi
 		}
 
 		callback(null);
-	}, "steamcommunity");
+	}, 'steamcommunity');
 };
 
 /**
@@ -291,16 +291,16 @@ SteamCommunity.prototype.unsubscribeDiscussionComments = function(topicOwner, gi
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
 SteamCommunity.prototype.setDiscussionCommentsPerPage = function(value, callback) {
-	if (!["15", "30", "50"].includes(value)) value = "50"; // Check for invalid setting
+	if (!['15', '30', '50'].includes(value)) value = '50'; // Check for invalid setting
 
 	this.httpRequestPost({
-		"uri": `https://steamcommunity.com/forum/0/0/setpreference`,
-		"form": {
-			"preference": "topicrepliesperpage",
-			"value": value,
-			"sessionid": this.getSessionID(),
+		uri: 'https://steamcommunity.com/forum/0/0/setpreference',
+		form: {
+			preference: 'topicrepliesperpage',
+			value: value,
+			sessionid: this.getSessionID(),
 		},
-		"json": true
+		json: true
 	}, function(err, response, body) { // Steam does not seem to return any errors for this request
 		if (!callback) {
 			return;
@@ -317,5 +317,5 @@ SteamCommunity.prototype.setDiscussionCommentsPerPage = function(value, callback
 		}
 
 		callback(null);
-	}, "steamcommunity");
+	}, 'steamcommunity');
 };

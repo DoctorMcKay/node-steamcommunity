@@ -4,7 +4,7 @@ const SteamID = require('steamid');
 const SteamCommunity = require('../index.js');
 const Helpers = require('../components/helpers.js');
 
-const EDiscussionType = require("../resources/EDiscussionType.js");
+const EDiscussionType = require('../resources/EDiscussionType.js');
 
 
 /**
@@ -39,22 +39,22 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 			let $ = Cheerio.load(body);
 
 			// Get breadcrumbs once. Depending on the type of discussion, it either uses "forum" or "group" breadcrumbs
-			let breadcrumbs = $(".forum_breadcrumbs").children();
+			let breadcrumbs = $('.forum_breadcrumbs').children();
 
-			if (breadcrumbs.length == 0) breadcrumbs = $(".group_breadcrumbs").children();
+			if (breadcrumbs.length == 0) breadcrumbs = $('.group_breadcrumbs').children();
 
 
 			/* --------------------- Find and map values --------------------- */
 
 			// Determine type from URL as some checks will deviate, depending on the type
-			if (url.includes("steamcommunity.com/discussions/forum"))     discussion.type = EDiscussionType.Forum;
+			if (url.includes('steamcommunity.com/discussions/forum'))     discussion.type = EDiscussionType.Forum;
 			if (/steamcommunity.com\/app\/.+\/discussions/g.test(url))    discussion.type = EDiscussionType.App;
 			if (/steamcommunity.com\/groups\/.+\/discussions/g.test(url)) discussion.type = EDiscussionType.Group;
 
 
 			// Get appID from breadcrumbs if this discussion is associated to one
 			if (discussion.type == EDiscussionType.App) {
-				let appIdHref = breadcrumbs[0].attribs["href"].split("/");
+				let appIdHref = breadcrumbs[0].attribs.href.split('/');
 
 				discussion.appID = appIdHref[appIdHref.length - 1];
 			}
@@ -64,16 +64,16 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 			let forumIdHref;
 
 			if (discussion.type == EDiscussionType.Group) { // Groups have an extra breadcrumb so we need to shift by 2
-				forumIdHref = breadcrumbs[4].attribs["href"].split("/");
+				forumIdHref = breadcrumbs[4].attribs.href.split('/');
 			} else {
-				forumIdHref = breadcrumbs[2].attribs["href"].split("/");
+				forumIdHref = breadcrumbs[2].attribs.href.split('/');
 			}
 
 			discussion.forumID = forumIdHref[forumIdHref.length - 2];
 
 
 			// Get id, gidforum and topicOwner. The first is used in the URL itself, the other two only in post requests
-			let gids = $(".forum_paging > .forum_paging_controls").attr("id").split("_");
+			let gids = $('.forum_paging > .forum_paging_controls').attr('id').split('_');
 
 			discussion.id = gids[4];
 			discussion.gidforum = gids[3];
@@ -81,33 +81,33 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 
 
 			// Find postedDate and convert to timestamp
-			let posted = $(".topicstats > .topicstats_label:contains(\"Date Posted:\")").next().text();
+			let posted = $('.topicstats > .topicstats_label:contains("Date Posted:")').next().text();
 
 			discussion.postedDate = Helpers.decodeSteamTime(posted.trim());
 
 
 			// Find commentsAmount
-			discussion.commentsAmount = Number($(".topicstats > .topicstats_label:contains(\"Posts:\")").next().text());
+			discussion.commentsAmount = Number($('.topicstats > .topicstats_label:contains("Posts:")').next().text());
 
 
 			// Get discussion title & content
-			discussion.title = $(".forum_op > .topic").text().trim();
-			discussion.content = $(".forum_op > .content").text().trim();
+			discussion.title = $('.forum_op > .topic').text().trim();
+			discussion.content = $('.forum_op > .content').text().trim();
 
 
 			// Find comment marked as answer
-			let hasAnswer = $(".commentthread_answer_bar")
+			let hasAnswer = $('.commentthread_answer_bar');
 
 			if (hasAnswer.length != 0) {
-				let answerPermLink = hasAnswer.next().children(".forum_comment_permlink").text().trim();
+				let answerPermLink = hasAnswer.next().children('.forum_comment_permlink').text().trim();
 
 				// Convert comment id to number, remove hashtag and subtract by 1 to make it an index
-				discussion.answerCommentIndex = Number(answerPermLink.replace("#", "")) - 1;
+				discussion.answerCommentIndex = Number(answerPermLink.replace('#', '')) - 1;
 			}
 
 
 			// Find author and convert to SteamID object
-			let authorLink = $(".authorline > .forum_op_author").attr("href");
+			let authorLink = $('.authorline > .forum_op_author').attr('href');
 
 			Helpers.resolveVanityURL(authorLink, (err, data) => { // This request takes <1 sec
 				if (err) {
@@ -124,8 +124,8 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 		} catch (err) {
 			callback(err, null);
 		}
-	}, "steamcommunity");
-}
+	}, 'steamcommunity');
+};
 
 
 /**
