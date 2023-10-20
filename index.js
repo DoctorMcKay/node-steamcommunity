@@ -1,9 +1,8 @@
+const {chrome} = require('@doctormckay/user-agents');
 const Request = require('request');
 const SteamID = require('steamid');
 
 const Helpers = require('./components/helpers.js');
-
-const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36";
 
 require('util').inherits(SteamCommunity, require('events').EventEmitter);
 
@@ -29,7 +28,7 @@ function SteamCommunity(options) {
 		"timeout": options.timeout || 50000,
 		"gzip": true,
 		"headers": {
-			"User-Agent": options.userAgent || USER_AGENT
+			"User-Agent": options.userAgent || chrome()
 		}
 	};
 
