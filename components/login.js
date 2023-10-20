@@ -1,3 +1,5 @@
+const {chrome} = require('@doctormckay/user-agents');
+
 const SteamCommunity = require('../index.js');
 
 /**
@@ -41,7 +43,10 @@ SteamCommunity.prototype._modernLogin = function(logOnDetails) {
 			logOnDetails.disableMobile
 				? EAuthTokenPlatformType.WebBrowser
 				: EAuthTokenPlatformType.MobileApp,
-			{localAddress: this._options.localAddress}
+			{
+				localAddress: this._options.localAddress,
+				userAgent: this._options.userAgent || chrome()
+			}
 		);
 
 		session.on('authenticated', async () => {
