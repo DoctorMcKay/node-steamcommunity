@@ -1,6 +1,4 @@
-const hex2b64 = require('node-bignumber').hex2b64;
 const Request = require('request');
-const RSA = require('node-bignumber').Key;
 const SteamID = require('steamid');
 
 const Helpers = require('./components/helpers.js');
@@ -61,158 +59,22 @@ SteamCommunity.prototype.login = function(details, callback) {
 		throw new Error("Missing either accountName or password to login; both are needed");
 	}
 
-	if (details.steamguard) {
-		var parts = details.steamguard.split('||');
-		this._setCookie(Request.cookie('steamMachineAuth' + parts[0] + '=' + encodeURIComponent(parts[1])), true);
-	}
-
-	var disableMobile = typeof details.disableMobile == 'undefined' ? true : details.disableMobile;
-
-	var self = this;
-
 	// Delete the cache
-	delete self._profileURL;
+	delete this._profileURL;
 
-	// headers required to convince steam that we're logging in from a mobile device so that we can get the oAuth data
-	var mobileHeaders = {};
-	if (!disableMobile) {
-		mobileHeaders = {
-			"X-Requested-With": "com.valvesoftware.android.steam.community",
-			"Referer": "https://steamcommunity.com/mobilelogin?oauth_client_id=DE45CD61&oauth_scope=read_profile%20write_profile%20read_client%20write_client",
-			"User-Agent": this._options.mobileUserAgent || details.mobileUserAgent || "Mozilla/5.0 (Linux; U; Android 4.1.1; en-us; Google Nexus 4 - 4.1.1 - API 16 - 768x1280 Build/JRO03S) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30",
-			"Accept": "text/javascript, text/html, application/xml, text/xml, */*"
-		};
+	// default disableMobile to true
+	let logOnOptions = Object.assign({}, details);
+	logOnOptions.disableMobile = details.disableMobile !== false;
 
-		this._setCookie(Request.cookie("mobileClientVersion=0 (2.1.3)"));
-		this._setCookie(Request.cookie("mobileClient=android"));
-	} else {
-		mobileHeaders = {"Referer": "https://steamcommunity.com/login"};
-	}
+	this._modernLogin(logOnOptions).then(({sessionID, cookies, steamguard, mobileAccessToken}) => {
+		this.setCookies(cookies);
 
-	this.httpRequestPost("https://steamcommunity.com/login/getrsakey/", {
-		"form": {"username": details.accountName},
-		"headers": mobileHeaders,
-		"json": true
-	}, function(err, response, body) {
-		// Remove the mobile cookies
-		if (err) {
-			deleteMobileCookies();
-			callback(err);
-			return;
+		if (mobileAccessToken) {
+			this.setMobileAppAccessToken(mobileAccessToken);
 		}
 
-		if (!body.publickey_mod || !body.publickey_exp) {
-			deleteMobileCookies();
-			callback(new Error("Invalid RSA key received"));
-			return;
-		}
-
-		var key = new RSA();
-		key.setPublic(body.publickey_mod, body.publickey_exp);
-
-		var formObj = {
-			"captcha_text": details.captcha || "",
-			"captchagid": self._captchaGid,
-			"emailauth": details.authCode || "",
-			"emailsteamid": "",
-			"password": hex2b64(key.encrypt(details.password)),
-			"remember_login": "true",
-			"rsatimestamp": body.timestamp,
-			"twofactorcode": details.twoFactorCode || "",
-			"username": details.accountName,
-			"loginfriendlyname": "",
-			"donotcache": Date.now()
-		};
-
-		if (!disableMobile) {
-			formObj.oauth_client_id = "DE45CD61";
-			formObj.oauth_scope = "read_profile write_profile read_client write_client";
-			formObj.loginfriendlyname = "#login_emailauth_friendlyname_mobile";
-		}
-
-		self.httpRequestPost({
-			"uri": "https://steamcommunity.com/login/dologin/",
-			"json": true,
-			"form": formObj,
-			"headers": mobileHeaders
-		}, function(err, response, body) {
-			deleteMobileCookies();
-
-			if (err) {
-				callback(err);
-				return;
-			}
-
-			var error;
-			if (!body.success && body.emailauth_needed) {
-				// Steam Guard (email)
-				error = new Error("SteamGuard");
-				error.emaildomain = body.emaildomain;
-
-				callback(error);
-			} else if (!body.success && body.requires_twofactor) {
-				// Steam Guard (app)
-				callback(new Error("SteamGuardMobile"));
-			} else if (!body.success && body.captcha_needed && body.message.match(/Please verify your humanity/)) {
-				error = new Error("CAPTCHA");
-				error.captchaurl = "https://steamcommunity.com/login/rendercaptcha/?gid=" + body.captcha_gid;
-
-				self._captchaGid = body.captcha_gid;
-
-				callback(error);
-			} else if (!body.success) {
-				callback(new Error(body.message || "Unknown error"));
-			} else {
-				var sessionID = generateSessionID();
-				var oAuth = {};
-				self._setCookie(Request.cookie('sessionid=' + sessionID));
-
-				var cookies = self._jar.getCookieString("https://steamcommunity.com").split(';').map(function(cookie) {
-					return cookie.trim();
-				});
-
-				if (!disableMobile && body.oauth) {
-					oAuth = JSON.parse(body.oauth);
-					self.steamID = new SteamID(oAuth.steamid);
-					self.oAuthToken = oAuth.oauth_token;
-				} else {
-					for(var i = 0; i < cookies.length; i++) {
-						var parts = cookies[i].split('=');
-						if(parts[0] == 'steamLogin') {
-							self.steamID = new SteamID(decodeURIComponent(parts[1]).split('||')[0])
-							break;
-						}
-					}
-
-					self.oAuthToken = null;
-				}
-
-				// Find the Steam Guard cookie
-				var steamguard = null;
-				for (var i = 0; i < cookies.length; i++) {
-					var parts = cookies[i].split('=');
-					if(parts[0] == 'steamMachineAuth' + self.steamID) {
-						steamguard = self.steamID.toString() + '||' + decodeURIComponent(parts[1]);
-						break;
-					}
-				}
-
-				self.setCookies(cookies);
-
-				callback(null, sessionID, cookies, steamguard, disableMobile ? null : oAuth.oauth_token);
-			}
-		}, "steamcommunity");
-	}, "steamcommunity");
-
-	function deleteMobileCookies() {
-		var cookie = Request.cookie('mobileClientVersion=');
-		cookie.expires = new Date(0);
-		self._setCookie(cookie);
-
-		cookie = Request.cookie('mobileClient=');
-		cookie.expires = new Date(0);
-		self._setCookie(cookie);
-	}
+		callback(null, sessionID, cookies, steamguard, null);
+	}).catch(err => callback(err));
 };
 
 /**
@@ -576,6 +438,7 @@ SteamCommunity.prototype.getFriendsList = function(callback) {
 	});
 };
 
+require('./components/login.js');
 require('./components/http.js');
 require('./components/chat.js');
 require('./components/profile.js');
