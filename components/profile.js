@@ -1,3 +1,5 @@
+const StdLib = require('@doctormckay/stdlib');
+
 const Cheerio = require('cheerio');
 const FS = require('fs');
 
@@ -19,44 +21,42 @@ const CommentPrivacyState = {
 /**
  * Creates a profile page if you don't already have one.
  * @param {function} callback
+ * @return {Promise<void>}
  */
 SteamCommunity.prototype.setupProfile = function(callback) {
-	this._myProfile('edit?welcomed=1', null, (err, response, body) => {
-		if (!callback) {
-			return;
+	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
+		const {statusCode} = await this._myProfile('edit?welcomed=1', null);
+		if (statusCode !== 200) {
+			return reject(new Error(`HTTP error ${statusCode}`));
 		}
 
-		if (err || response.statusCode != 200) {
-			callback(err || new Error('HTTP error ' + response.statusCode));
-		} else {
-			callback(null);
-		}
+		resolve();
 	});
 };
 
 /**
  * Edits your profile details.
  * @param {object} settings
- * @param {function} callback
+ * @param {string} [settings.name] - Your new profile name
+ * @param {string} [settings.realName] - Your new profile "real name", or empty string to remove it
+ * @param {string} [settings.country] - A country code, like US, or empty string to remove it
+ * @param {string} [settings.state] - A state code, like FL, or empty string to remove it
+ * @param {number|string} [settings.city] - A numeric city code, or empty string to remove it
+ * @param {string} [settings.customURL] - Your new profile custom URL
+ * @param {function} [callback]
+ * @return {Promise<void>}
  */
 SteamCommunity.prototype.editProfile = function(settings, callback) {
-	this._myProfile('edit/info', null, (err, response, body) => {
-		if (err || response.statusCode != 200) {
-			if (callback) {
-				callback(err || new Error('HTTP error ' + response.statusCode));
-			}
-
-			return;
+	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
+		const {statusCode, rawBody} = await this._myProfile('edit/info', null);
+		if (statusCode !== 200) {
+			return reject(new Error(`HTTP error ${statusCode}`));
 		}
 
-		let $ = Cheerio.load(body);
+		let $ = Cheerio.load(rawBody);
 		let existingSettings = $('#profile_edit_config').data('profile-edit');
 		if (!existingSettings || !existingSettings.strPersonaName) {
-			if (callback) {
-				callback(new Error('Malformed response'));
-			}
-
-			return;
+			return reject(new Error('Malformed response'));
 		}
 
 		let values = {
@@ -78,41 +78,41 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 			json: 1
 		};
 
-		for (let i in settings) {
-			switch (i) {
+		for (let name in settings) {
+			switch (name) {
 				case 'name':
-					values.personaName = settings[i];
+					values.personaName = settings[name];
 					break;
 
 				case 'realName':
-					values.real_name = settings[i];
+					values.real_name = settings[name];
 					break;
 
 				case 'summary':
-					values.summary = settings[i];
+					values.summary = settings[name];
 					break;
 
 				case 'country':
-					values.country = settings[i];
+					values.country = settings[name];
 					break;
 
 				case 'state':
-					values.state = settings[i];
+					values.state = settings[name];
 					break;
 
 				case 'city':
-					values.city = settings[i];
+					values.city = settings[name];
 					break;
 
 				case 'customURL':
-					values.customURL = settings[i];
+					values.customURL = settings[name];
 					break;
 
 				case 'primaryGroup':
-					if(typeof settings[i] === 'object' && settings[i].getSteamID64) {
-						values.primary_group_steamid = settings[i].getSteamID64();
+					if (typeof settings[name] === 'object' && settings[name].getSteamID64) {
+						values.primary_group_steamid = settings[name].getSteamID64();
 					} else {
-						values.primary_group_steamid = new SteamID(settings[i]).getSteamID64();
+						values.primary_group_steamid = new SteamCommunity.SteamID(settings[name]).getSteamID64();
 					}
 
 					break;
@@ -133,53 +133,50 @@ SteamCommunity.prototype.editProfile = function(settings, callback) {
 			}
 		}
 
-		this._myProfile('edit', values, (err, response, body) => {
-			if (settings.customURL) {
-				delete this._profileURL;
-			}
+		const {statusCode: statusCode2, jsonBody} = await this._myProfile('edit', values);
+		if (settings.customURL) {
+			delete this._profileURL;
+		}
 
-			if (!callback) {
-				return;
-			}
+		if (statusCode2 !== 200) {
+			return reject(new Error(`HTTP error ${statusCode2}`));
+		}
 
-			if (err || response.statusCode != 200) {
-				callback(err || new Error('HTTP error ' + response.statusCode));
-				return;
-			}
+		if (!jsonBody) {
+			return reject(new Error('Malformed response'));
+		}
 
-			try {
-				let json = JSON.parse(body);
-				let err2 = Helpers.eresultError(json.success, json.errmsg);
-				if (err2) {
-					return callback(err2);
-				}
-
-				callback(null);
-			} catch (ex) {
-				callback(ex);
-			}
-		});
+		const jsonError = Helpers.eresultError(jsonBody.success, jsonBody.errmsg);
+		jsonError ? reject(jsonError) : resolve();
 	});
 };
 
+/**
+ * Edits your profile privacy settings
+ * @param {object} settings
+ * @param {number} [settings.profile] - A value from `SteamCommunity.PrivacyState` for your desired profile privacy state
+ * @param {number} [settings.comments] - A value from `SteamCommunity.PrivacyState` for your desired profile comments privacy state
+ * @param {number} [settings.inventory] - A value from `SteamCommunity.PrivacyState` for your desired inventory privacy state
+ * @param {boolean} [settings.inventoryGifts] - `true` to keep your Steam gift inventory private, `false` otherwise
+ * @param {number} [settings.gameDetails] - A value from `SteamCommunity.PrivacyState` for your desired privacy level
+ * required to view games you own and what game you're currently playing
+ * @param {boolean} [settings.playtime] - `true` to keep your game playtime private, `false` otherwise
+ * @param {number} [settings.friendsList] - A value from `SteamCommunity.PrivacyState` for your desired privacy level
+ * required to view your friends list
+ * @param {function} callback
+ * @return {Promise<object>} An object containing your newly updated privacy settings
+ */
 SteamCommunity.prototype.profileSettings = function(settings, callback) {
-	this._myProfile('edit/settings', null, (err, response, body) => {
-		if (err || response.statusCode != 200) {
-			if (callback) {
-				callback(err || new Error('HTTP error ' + response.statusCode));
-			}
-
-			return;
+	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
+		const {statusCode, rawBody} = await this._myProfile('edit/settings', null);
+		if (statusCode !== 200) {
+			return reject(new Error(`HTTP error ${statusCode}`));
 		}
 
-		let $ = Cheerio.load(body);
+		let $ = Cheerio.load(rawBody);
 		let existingSettings = $('#profile_edit_config').data('profile-edit');
 		if (!existingSettings || !existingSettings.Privacy) {
-			if (callback) {
-				callback(new Error('Malformed response'));
-			}
-
-			return;
+			return reject(new Error('Malformed response'));
 		}
 
 		// PrivacySettings => {PrivacyProfile, PrivacyInventory, PrivacyInventoryGifts, PrivacyOwnedGames, PrivacyPlaytime}
@@ -187,39 +184,39 @@ SteamCommunity.prototype.profileSettings = function(settings, callback) {
 		let privacy = existingSettings.Privacy.PrivacySettings;
 		let commentPermission = existingSettings.Privacy.eCommentPermission;
 
-		for (let i in settings) {
-			switch (i) {
+		for (let name in settings) {
+			switch (name) {
 				case 'profile':
-					privacy.PrivacyProfile = settings[i];
+					privacy.PrivacyProfile = settings[name];
 					break;
 
 				case 'comments':
-					commentPermission = CommentPrivacyState[settings[i]];
+					commentPermission = CommentPrivacyState[settings[name]];
 					break;
 
 				case 'inventory':
-					privacy.PrivacyInventory = settings[i];
+					privacy.PrivacyInventory = settings[name];
 					break;
 
 				case 'inventoryGifts':
-					privacy.PrivacyInventoryGifts = settings[i] ? SteamCommunity.PrivacyState.Private : SteamCommunity.PrivacyState.Public;
+					privacy.PrivacyInventoryGifts = settings[name] ? SteamCommunity.PrivacyState.Private : SteamCommunity.PrivacyState.Public;
 					break;
 
 				case 'gameDetails':
-					privacy.PrivacyOwnedGames = settings[i];
+					privacy.PrivacyOwnedGames = settings[name];
 					break;
 
 				case 'playtime':
-					privacy.PrivacyPlaytime = settings[i] ? SteamCommunity.PrivacyState.Private : SteamCommunity.PrivacyState.Public;
+					privacy.PrivacyPlaytime = settings[name] ? SteamCommunity.PrivacyState.Private : SteamCommunity.PrivacyState.Public;
 					break;
 
 				case 'friendsList':
-					privacy.PrivacyFriendsList = settings[i];
+					privacy.PrivacyFriendsList = settings[name];
 					break;
 			}
 		}
 
-		this._myProfile({
+		const {statusCode: statusCode2, jsonBody} = await this._myProfile({
 			method: 'POST',
 			endpoint: 'ajaxsetprivacy/',
 			json: true,
@@ -228,165 +225,156 @@ SteamCommunity.prototype.profileSettings = function(settings, callback) {
 				Privacy: JSON.stringify(privacy),
 				eCommentPermission: commentPermission
 			}
-		}, null, (err, response, body) => {
-			if (err || response.statusCode != 200) {
-				if (callback) {
-					callback(err || new Error('HTTP error ' + response.statusCode));
-				}
+		}, null);
 
-				return;
-			}
+		if (statusCode2 !== 200) {
+			return reject(new Error(`HTTP error ${statusCode2}`));
+		}
 
-			let err2 = Helpers.eresultError(body.success);
-			if (err2) {
-				callback && callback(err2);
-				return;
-			}
+		if (!jsonBody) {
+			return reject(new Error('Malformed response'));
+		}
 
-			if (callback) {
-				callback(null, body.Privacy);
-			}
-		});
+		let jsonError = Helpers.eresultError(jsonBody.success);
+		jsonError ? reject(jsonError) : resolve(jsonBody.Privacy);
 	});
 };
 
+/**
+ * Replaces your current avatar image with a new one.
+ *
+ * @param {string|Buffer} image - A `Buffer` containing the image, a string containing a URL to the image,
+ * or a string containing the path to the image on the local disk.
+ * @param {*} [format] - Required if image is a `Buffer`, else it will be detected from the `Content-Type` header
+ * (if image is a URL) or the file extension (if image is a local path).
+ * If provided, format should be one of jpg (or jpeg), gif, or png. These are the only supported image formats.
+ *
+ * The only supported protocols for URLs are http:// and https://. Any other string will be treated as a local path.
+ * @param {function} [callback]
+ * @return {Promise<{url: string}>} The URL to the new image on Steam's CDN
+ */
 SteamCommunity.prototype.uploadAvatar = function(image, format, callback) {
 	if (typeof format === 'function') {
 		callback = format;
 		format = null;
 	}
 
-	// are we logged in?
-	if (!this.steamID) {
-		callback(new Error('Not Logged In'));
-		return;
-	}
+	return StdLib.Promises.callbackPromise(['url'], callback, true, async (resolve, reject) => {
+		// are we logged in?
+		if (!this.steamID) {
+			return reject(new Error('Not Logged In'));
+		}
 
-	const doUpload = (buffer) => {
-		if (!format) {
-			if (callback) {
-				callback(new Error('Unknown image format'));
+		const doUpload = async (buffer) => {
+			if (!format) {
+				return reject(new Error('Unknown image format'));
 			}
 
-			return;
-		}
+			if (format.match(/^image\//)) {
+				format = format.substring(6);
+			}
 
-		if (format.match(/^image\//)) {
-			format = format.substring(6);
-		}
+			let filename = '';
+			let contentType = '';
 
-		let filename = '';
-		let contentType = '';
+			switch (format.toLowerCase()) {
+				case 'jpg':
+				case 'jpeg':
+					filename = 'avatar.jpg';
+					contentType = 'image/jpeg';
+					break;
 
-		switch (format.toLowerCase()) {
-			case 'jpg':
-			case 'jpeg':
-				filename = 'avatar.jpg';
-				contentType = 'image/jpeg';
-				break;
+				case 'png':
+					filename = 'avatar.png';
+					contentType = 'image/png';
+					break;
 
-			case 'png':
-				filename = 'avatar.png';
-				contentType = 'image/png';
-				break;
+				case 'gif':
+					filename = 'avatar.gif';
+					contentType = 'image/gif';
+					break;
 
-			case 'gif':
-				filename = 'avatar.gif';
-				contentType = 'image/gif';
-				break;
+				default:
+					return reject(new Error('Unknown or invalid image format'));
+			}
 
-			default:
-				if (callback) {
-					callback(new Error('Unknown or invalid image format'));
-				}
-
-				return;
-		}
-
-		this.httpRequestPost({
-			url: 'https://steamcommunity.com/actions/FileUploader',
-			formData: {
-				MAX_FILE_SIZE: buffer.length,
-				type: 'player_avatar_image',
-				sId: this.steamID.getSteamID64(),
-				sessionid: this.getSessionID(),
-				doSub: 1,
-				json: 1,
-				avatar: {
-					value: buffer,
-					options: {
-						filename: filename,
-						contentType: contentType
+			const {statusCode, jsonBody} = await this.httpRequest({
+				method: 'POST',
+				url: 'https://steamcommunity.com/actions/FileUploader',
+				json: true,
+				source: 'steamcommunity',
+				formData: {
+					MAX_FILE_SIZE: buffer.length,
+					type: 'player_avatar_image',
+					sId: this.steamID.getSteamID64(),
+					sessionid: this.getSessionID(),
+					doSub: 1,
+					json: 1,
+					avatar: {
+						value: buffer,
+						options: {
+							filename: filename,
+							contentType: contentType
+						}
 					}
 				}
-			},
-			json: true
-		}, (err, response, body) => {
-			if (err) {
-				callback && callback(err);
-				return;
+			});
+
+			if (jsonBody && !jsonBody.success && jsonBody.message) {
+				return reject(new Error(jsonBody.message));
 			}
 
-			if (body && !body.success && body.message) {
-				callback && callback(new Error(body.message));
-				return;
+			if (statusCode !== 200) {
+				return reject(new Error(`HTTP error ${statusCode}`));
 			}
 
-			if (response.statusCode != 200) {
-				callback && callback(new Error(`HTTP error ${response.statusCode}`));
-				return;
+			if (!jsonBody || !jsonBody.success) {
+				return reject(new Error('Malformed response'));
 			}
 
-			if (!body || !body.success) {
-				callback && callback(new Error('Malformed response'));
-				return;
+			resolve({url: jsonBody.images.full});
+		};
+
+		if (image instanceof Buffer) {
+			await doUpload(image);
+		} else if (image.match(/^https?:\/\//)) {
+			let statusCode, headers, rawBody;
+			try {
+				({statusCode, headers, rawBody} = await this.httpRequest({
+					method: 'GET',
+					url: image,
+					source: 'steamcommunity'
+				}));
+			} catch (err) {
+				return reject(new Error(`${err.message || err} downloading image`));
 			}
 
-			callback && callback(null, body.images.full);
-		}, 'steamcommunity');
-	};
-
-	if (image instanceof Buffer) {
-		doUpload(image);
-	} else if (image.match(/^https?:\/\//)) {
-		this.httpRequestGet({
-			url: image,
-			encoding: null
-		}, (err, response, body) => {
-			if (err || response.statusCode != 200) {
-				if (callback) {
-					callback(new Error(err ? `${err.message} downloading image` : `HTTP error ${response.statusCode} downloading image`));
-				}
-
-				return;
+			if (statusCode !== 200) {
+				return reject(new Error(`HTTP error ${statusCode} downloading image`));
 			}
 
 			if (!format) {
-				format = response.headers['content-type'];
+				format = headers['content-type'];
 			}
 
-			doUpload(body);
-		}, 'steamcommunity');
-	} else {
-		if (!format) {
-			format = image.match(/\.([^.]+)$/);
-			if (format) {
-				format = format[1];
+			await doUpload(rawBody);
+		} else {
+			if (!format) {
+				format = image.match(/\.([^.]+)$/);
+				if (format) {
+					format = format[1];
+				}
 			}
-		}
 
-		FS.readFile(image, (err, file) => {
-			if (err) {
-				if (callback) {
-					callback(err);
+			FS.readFile(image, async (err, file) => {
+				if (err) {
+					return reject(err);
 				}
 
-				return;
-			}
-
-			doUpload(file);
-		});
-	}
+				await doUpload(file);
+			});
+		}
+	});
 };
 
 /**
@@ -394,6 +382,7 @@ SteamCommunity.prototype.uploadAvatar = function(image, format, callback) {
  * @param {string} statusText - The text of this status update
  * @param {{appID: int}} [options] - Options for this status update. All are optional. If you don't pass any options, this can be omitted.
  * @param {function} callback - err, postID
+ * @return {Promise<{postID: number}>} The ID of this new post
  */
 SteamCommunity.prototype.postProfileStatus = function(statusText, options, callback) {
 	if (typeof options === 'function') {
@@ -401,28 +390,27 @@ SteamCommunity.prototype.postProfileStatus = function(statusText, options, callb
 		options = {};
 	}
 
-	this._myProfile('ajaxpostuserstatus/', {
-		appid: options.appID || 0,
-		sessionid: this.getSessionID(),
-		status_text: statusText
-	}, (err, res, body) => {
-		try {
-			body = JSON.parse(body);
-			if (body.message) {
-				callback(new Error(body.message));
-				return;
-			}
+	return StdLib.Promises.callbackPromise(['postID'], callback, false, (resolve, reject) => {
+		const {jsonBody} = this._myProfile('ajaxpostuserstatus/', {
+			appid: options.appID || 0,
+			sessionid: this.getSessionID(),
+			status_text: statusText
+		});
 
-			let match = body.blotter_html.match(/id="userstatus_(\d+)_/);
-			if (!match) {
-				callback(new Error('Malformed response'));
-				return;
-			}
-
-			callback(null, parseInt(match[1], 10));
-		} catch (ex) {
-			callback(ex);
+		if (!jsonBody) {
+			return reject(new Error('Malformed data'));
 		}
+
+		if (jsonBody.message) {
+			return reject(new Error(jsonBody.message));
+		}
+
+		let match = jsonBody.blotter_html.match(/id="userstatus_(\d+)_/);
+		if (!match) {
+			return reject(new Error('Malformed response'));
+		}
+
+		resolve({postID: parseInt(match[1], 10)});
 	});
 };
 
@@ -430,26 +418,20 @@ SteamCommunity.prototype.postProfileStatus = function(statusText, options, callb
  * Delete a previously-posted profile status update.
  * @param {int} postID
  * @param {function} [callback]
+ * @return {Promise<void>}
  */
 SteamCommunity.prototype.deleteProfileStatus = function(postID, callback) {
-	this._myProfile('ajaxdeleteuserstatus/', {
-		sessionid: this.getSessionID(),
-		postid: postID
-	}, (err, res, body) => {
-		if (!callback) {
-			return;
+	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
+		const {jsonBody} = this._myProfile('ajaxdeleteuserstatus/', {
+			sessionid: this.getSessionID(),
+			postid: postID
+		});
+
+		if (!jsonBody || !jsonBody.success) {
+			return reject(new Error('Malformed response'));
 		}
 
-		try {
-			body = JSON.parse(body);
-			if (!body.success) {
-				callback(new Error('Malformed response'));
-				return;
-			}
-
-			callback(Helpers.eresultError(body.success));
-		} catch (ex) {
-			callback(ex);
-		}
+		const err = Helpers.eresultError(jsonBody.success);
+		err ? reject(err) : resolve();
 	});
 };

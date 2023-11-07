@@ -71,6 +71,7 @@ SteamCommunity.prototype.httpRequest = function(options) {
 /**
  * @param {string|object} endpoint
  * @param {object} [form]
+ * @return {Promise<HttpResponse>}
  * @private
  */
 SteamCommunity.prototype._myProfile = async function(endpoint, form) {
