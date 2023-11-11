@@ -20,10 +20,10 @@ SteamCommunity.prototype.enableTwoFactor = function(callback) {
 		// TODO: Send this as protobuf to more closely mimic official app behavior
 		form: {
 			steamid: this.steamID.getSteamID64(),
-			authenticator_time: Math.floor(Date.now() / 1000),
 			authenticator_type: ETwoFactorTokenType.ValveMobileApp,
 			device_identifier: SteamTotp.getDeviceID(this.steamID),
-			sms_phone_id: '1'
+			sms_phone_id: '1',
+			version: 2
 		},
 		json: true
 	}, (err, response, body) => {
