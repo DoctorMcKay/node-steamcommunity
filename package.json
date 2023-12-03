@@ -1,6 +1,6 @@
 {
 	"name": "steamcommunity",
-	"version": "3.47.1",
+	"version": "3.48.0",
 	"description": "Provides an interface for logging into and interacting with the Steam Community website",
 	"files": [
 		"/classes",
