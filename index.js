@@ -154,9 +154,13 @@ SteamCommunity.prototype._setCookie = function(cookie, secure) {
 	var protocol = secure ? "https" : "http";
 	cookie.secure = !!secure;
 
-	this._jar.setCookie(cookie.clone(), protocol + "://steamcommunity.com");
-	this._jar.setCookie(cookie.clone(), protocol + "://store.steampowered.com");
-	this._jar.setCookie(cookie.clone(), protocol + "://help.steampowered.com");
+	if (cookie.domain) {
+		this._jar.setCookie(cookie.clone(), protocol + '://' + cookie.domain);
+	} else {
+		this._jar.setCookie(cookie.clone(), protocol + "://steamcommunity.com");
+		this._jar.setCookie(cookie.clone(), protocol + "://store.steampowered.com");
+		this._jar.setCookie(cookie.clone(), protocol + "://help.steampowered.com");
+	}
 };
 
 SteamCommunity.prototype.setCookies = function(cookies) {
