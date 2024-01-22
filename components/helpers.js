@@ -102,7 +102,16 @@ exports.resolveVanityURL = function(url, callback) {
 			}
 
 			let steamID64 = parsed.profile.steamID64[0];
-			let vanityURL = parsed.profile.customURL[0];
+			
+			let vanityURL;
+
+			if (parsed.profile.customURL) { // Always get customURL from XML if profile is public to support "/profiles/steamID64" urls
+				vanityURL = parsed.profile.customURL[0]
+			} else if (url.includes("steamcommunity.com/id/")) { // Get vanity from url param instead if profile is private as Steam does not include a customURL key for them
+				vanityURL = url.replace("https://steamcommunity.com/id/", "");
+			} else { // If a "/profiles/steamID64" link to a private profile was provided we cannot get the vanity
+				vanityURL = "";
+			}
 
 			callback(null, {"vanityURL": vanityURL, "steamID": steamID64});
 		});
