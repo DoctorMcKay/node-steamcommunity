@@ -13,7 +13,7 @@ SteamCommunity.prototype.getSteamUser = function(id, callback) {
 	}
 
 	var self = this;
-	this.httpRequest("http://steamcommunity.com/" + (typeof id === 'string' ? "id/" + id : "profiles/" + id.toString()) + "/?xml=1", function(err, response, body) {
+	this.httpRequest("https://steamcommunity.com/" + (typeof id === 'string' ? "id/" + id : "profiles/" + id.toString()) + "/?xml=1", function(err, response, body) {
 		if (err) {
 			callback(err);
 			return;
@@ -223,3 +223,5 @@ CSteamUser.prototype.getProfileBackground = function(callback) {
 CSteamUser.prototype.sendImage = function(imageContentsBuffer, options, callback) {
 	this._community.sendImageToUser(this.steamID, imageContentsBuffer, options, callback);
 };
+
+module.exports = CSteamUser;
