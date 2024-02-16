@@ -125,7 +125,7 @@ SteamCommunity.prototype.getSteamReview = function(userID, appID, callback) {
 
 					review.comments.push({
 						index: i,
-						id: comment.children('.commentthread_comment_text').attr('id').replace('content_', ''),
+						id: comment.children('.commentthread_comment_text').attr('id').replace('comment_content_', ''),
 						authorLink: author.children('.commentthread_author_link').attr('href'),
 						postedDate: Helpers.decodeSteamTime(author.children('.commentthread_comment_timestamp').text()),
 						content: commentEmoji.replaceWith(commentEmoji.attr('alt')).end().find('br').replaceWith('\n').end().text().trim() // Preserve emojis by using alt text and line breaks in text
@@ -181,3 +181,41 @@ function CSteamReview(community, data) {
 	// Clone all the data we received
 	Object.assign(this, data);
 }
+
+
+/**
+ * Posts a comment to this review
+ * @param {String} message - Content of the comment to post
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+CSteamReview.prototype.comment = function(message, callback) {
+	this._community.postReviewComment(this.steamID.getSteamID64(), this.appID, message, callback);
+};
+
+CSteamReview.prototype.deleteComment = function(cid, callback) {
+	this._community.deleteReviewComment(this.steamID.getSteamID64(), this.appID, cid, callback);
+};
+
+CSteamReview.prototype.subscribe = function(callback) {
+	this._community.subscribeReviewComments(this.steamID.getSteamID64(), this.appID, callback);
+};
+
+CSteamReview.prototype.unsubscribe = function(callback) {
+	this._community.unsubscribeReviewComments(this.steamID.getSteamID64(), this.appID, callback);
+};
+
+CSteamReview.prototype.voteHelpful = function(callback) {
+	this._community.voteReviewHelpful(this.reviewID, callback);
+};
+
+CSteamReview.prototype.voteUnhelpful = function(callback) {
+	this._community.voteReviewUnhelpful(this.reviewID, callback);
+};
+
+CSteamReview.prototype.voteFunny = function(callback) {
+	this._community.voteReviewFunny(this.reviewID, callback);
+};
+
+CSteamReview.prototype.voteRemoveFunny = function(callback) {
+	this._community.voteReviewRemoveFunny(this.reviewID, callback);
+};
