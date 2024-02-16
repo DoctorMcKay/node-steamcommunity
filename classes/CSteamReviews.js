@@ -6,6 +6,31 @@ const SteamCommunity  = require('../index.js');
 const Helpers = require('../components/helpers.js');
 
 
+/**
+ * @typedef Review
+ * @type {object}
+ * @property {SteamID} steamID SteamID object of the review author
+ * @property {string} appID AppID of the associated game
+ * @property {Date} postedDate Date of when the review was posted initially
+ * @property {Date} [updatedDate] Date of when the review was last updated. Remains `null` if review was never updated
+ * @property {boolean} recommended True if the author recommends the game, false otherwise.
+ * @property {string} content Text content of the review
+ * @property {number} [commentsAmount] Amount of comments reported by Steam. Remains `null` if coments are disabled
+ * @property {Array.<{ index: number, id: string, authorLink: string, postedDate: Date, content: string }>} [comments] Array of comments left on the review
+ * @property {number} recentPlaytimeHours Amount of hours the author played this game for in the last 2 weeks
+ * @property {number} totalPlaytimeHours Amount of hours the author played this game for in total
+ * @property {number} [playtimeHoursAtReview] Amount of hours the author played this game for at the point of review. Remains `null` if Steam does not provide this information.
+ * @property {number} votesHelpful Amount of 'Review is helpful' votes
+ * @property {number} votesFunny Amount of 'Review is funny' votes
+ */
+
+/**
+ * Scrape a review's DOM to get all available information
+ * @param {string | SteamID} userID - SteamID object or steamID64 of the review author
+ * @param {string} appID - AppID of the associated game
+ * @param {function(Error, CSteamReview)} [callback] - First argument is null/Error, second is object containing all available information
+ * @returns {Promise.<CSteamReview>} Resolves with CSteamReview object
+ */
 SteamCommunity.prototype.getSteamReview = function(userID, appID, callback) {
 	if (typeof userID !== 'string' && !Helpers.isSteamID(userID)) {
 		throw new Error('userID parameter should be a user URL string or a SteamID object');
@@ -131,6 +156,12 @@ SteamCommunity.prototype.getSteamReview = function(userID, appID, callback) {
 };
 
 
+/**
+ * Constructor - Creates a new CSteamReview object
+ * @class
+ * @param {SteamCommunity} community - Current SteamCommunity instance
+ * @param {Review} data - Review data collected by the scraper
+ */
 function CSteamReview(community, data) {
 	/**
 	 * @type {SteamCommunity}
