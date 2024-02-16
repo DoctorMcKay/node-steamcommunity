@@ -14,6 +14,7 @@ const Helpers = require('../components/helpers.js');
  * @property {Date} postedDate Date of when the review was posted initially
  * @property {Date} [updatedDate] Date of when the review was last updated. Remains `null` if review was never updated
  * @property {boolean} recommended True if the author recommends the game, false otherwise.
+ * @property {boolean} isEarlyAccess True if the review is an early access review
  * @property {string} content Text content of the review
  * @property {number} [commentsAmount] Amount of comments reported by Steam. Remains `null` if coments are disabled
  * @property {Array.<{ index: number, id: string, authorLink: string, postedDate: Date, content: string }>} [comments] Array of comments left on the review
@@ -52,6 +53,7 @@ SteamCommunity.prototype.getSteamReview = function(userID, appID, callback) {
 		postedDate: null,
 		updatedDate: null,
 		recommended: null,
+		isEarlyAccess: false,
 		content: null,
 		commentsAmount: null,
 		comments: [],
@@ -95,6 +97,9 @@ SteamCommunity.prototype.getSteamReview = function(userID, appID, callback) {
 
 			// Find out if user recommended the game or not
 			review.recommended = $('.ratingSummary').text().trim() == 'Recommended';
+
+			// Find out if review is an early access review
+			review.isEarlyAccess = $('.early_access_review').length > 0;
 
 			// Get content
 			review.content = $('.review_area_content > #ReviewText').find('br').replaceWith('\n').end().text().trim(); // Preserve line breaks in text
