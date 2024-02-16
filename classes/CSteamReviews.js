@@ -33,8 +33,8 @@ SteamCommunity.prototype.getSteamReview = function(userID, appID, callback) {
 		recentPlaytimeHours: null,
 		totalPlaytimeHours: null,
 		playtimeHoursAtReview: null,
-		votesHelpful: null,
-		votesFunny: null
+		votesHelpful: 0,
+		votesFunny: 0
 	};
 
 
@@ -109,7 +109,7 @@ SteamCommunity.prototype.getSteamReview = function(userID, appID, callback) {
 			}
 
 			// Get votes
-			let ratings = $('.ratingBar').find('br').replaceWith('\n').end().text().trim().split('\n')
+			let ratings = $('.ratingBar').find('br').replaceWith('\n').end().text().trim().split('\n');
 
 			let helpfulStr = ratings.find((e) => e.includes('helpful'));
 			let funnyStr   = ratings.find((e) => e.includes('funny'));
@@ -122,13 +122,21 @@ SteamCommunity.prototype.getSteamReview = function(userID, appID, callback) {
 				review.votesFunny = Number(funnyStr.split(' ')[0]);
 			}
 
+			resolve(new CSteamReview(this, review));
+
 		} catch (err) {
-			callback(err, null);
+			reject(err);
 		}
 	});
 };
 
 
 function CSteamReview(community, data) {
+	/**
+	 * @type {SteamCommunity}
+	 */
+	this._community = community;
 
+	// Clone all the data we received
+	Object.assign(this, data);
 }
