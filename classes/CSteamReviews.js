@@ -9,6 +9,7 @@ const Helpers = require('../components/helpers.js');
 /**
  * @typedef Review
  * @type {object}
+ * @property {string} [reviewID] ID of review, used for voting & reporting. Remains `null` if it is your review or you are not logged in as the buttons are not presented then.
  * @property {SteamID} steamID SteamID object of the review author
  * @property {string} appID AppID of the associated game
  * @property {Date} postedDate Date of when the review was posted initially
@@ -48,6 +49,7 @@ SteamCommunity.prototype.getSteamReview = function(userID, appID, callback) {
 
 	// Construct object holding all the data we can scrape
 	let review = {
+		reviewID: null,
 		steamID: userID,
 		appID: appID,
 		postedDate: null,
@@ -80,6 +82,9 @@ SteamCommunity.prototype.getSteamReview = function(userID, appID, callback) {
 			// Load output into cheerio to make parsing easier
 			let $ = Cheerio.load(result.textBody);
 
+
+			// Find reviewID which is needed for upvoting, downvoting, etc.
+			review.reviewID = $('.review_rate_bar').children('span').attr('id').replace('RecommendationVoteUpBtn', '');
 
 			// Find postedDate & updatedDate and convert to timestamp
 			let posted = $('.recommendation_date').text().split('\n');
