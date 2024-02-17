@@ -7,9 +7,11 @@ const Helpers = require('../components/helpers.js');
 
 /**
  * Posts a comment to a review
+ * @param {string | SteamID} userID - SteamID object or steamID64 of the review author
+ * @param {string} appID - AppID of the associated game
  * @param {String} message - Content of the comment to post
  * @param {function} [callback] - Takes only an Error object/null as the first argument
- * @return Promise<void>
+ * @return Promise<void> Resolves on success, rejects on failure
  */
 SteamCommunity.prototype.postReviewComment = function(userID, appID, message, callback) {
 	if (typeof userID == 'string') {
@@ -38,6 +40,14 @@ SteamCommunity.prototype.postReviewComment = function(userID, appID, message, ca
 	});
 };
 
+/**
+ * Deletes a comment from a review
+ * @param {string | SteamID} userID - SteamID object or steamID64 of the review author
+ * @param {string} appID - AppID of the associated game
+ * @param {String} message - Content of the comment to post
+ * @param {function} [callback] - Takes only an Error object/null as the first argument
+ * @return Promise<void> Resolves on success, rejects on failure
+ */
 SteamCommunity.prototype.deleteReviewComment = function(userID, appID, cid, callback) {
 	if (typeof userID == 'string') {
 		userID = new SteamID(userID);
@@ -65,6 +75,13 @@ SteamCommunity.prototype.deleteReviewComment = function(userID, appID, cid, call
 	});
 };
 
+/**
+ * Subscribes to a review's comment section
+ * @param {string | SteamID} userID - SteamID object or steamID64 of the review author
+ * @param {string} appID - AppID of the associated game
+ * @param {function} [callback] - Takes only an Error object/null as the first argument
+ * @return Promise<void> Resolves on success, rejects on failure
+ */
 SteamCommunity.prototype.subscribeReviewComments = function(userID, appID, callback) {
 	if (typeof userID == 'string') {
 		userID = new SteamID(userID);
@@ -85,6 +102,13 @@ SteamCommunity.prototype.subscribeReviewComments = function(userID, appID, callb
 	});
 };
 
+/**
+ * Unsubscribes from a review's comment section
+ * @param {string | SteamID} userID - SteamID object or steamID64 of the review author
+ * @param {string} appID - AppID of the associated game
+ * @param {function} [callback] - Takes only an Error object/null as the first argument
+ * @return Promise<void> Resolves on success, rejects on failure
+ */
 SteamCommunity.prototype.unsubscribeReviewComments = function(userID, appID, callback) {
 	if (typeof userID == 'string') {
 		userID = new SteamID(userID);
@@ -105,6 +129,12 @@ SteamCommunity.prototype.unsubscribeReviewComments = function(userID, appID, cal
 	});
 };
 
+/**
+ * Votes on a review as helpful
+ * @param {string} rid - ID of the review. You can obtain it through `getSteamReview()`
+ * @param {function} [callback] - Takes only an Error object/null as the first argument
+ * @return Promise<void> Resolves on success, rejects on failure
+ */
 SteamCommunity.prototype.voteReviewHelpful = function(rid, callback) {
 	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
 		let res = await this.httpRequest({
@@ -127,6 +157,12 @@ SteamCommunity.prototype.voteReviewHelpful = function(rid, callback) {
 	});
 };
 
+/**
+ * Votes on a review as unhelpful
+ * @param {string} rid - ID of the review. You can obtain it through `getSteamReview()`
+ * @param {function} [callback] - Takes only an Error object/null as the first argument
+ * @return Promise<void> Resolves on success, rejects on failure
+ */
 SteamCommunity.prototype.voteReviewUnhelpful = function(rid, callback) {
 	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
 		let res = await this.httpRequest({
@@ -149,6 +185,12 @@ SteamCommunity.prototype.voteReviewUnhelpful = function(rid, callback) {
 	});
 };
 
+/**
+ * Votes on a review as funny
+ * @param {string} rid - ID of the review. You can obtain it through `getSteamReview()`
+ * @param {function} [callback] - Takes only an Error object/null as the first argument
+ * @return Promise<void> Resolves on success, rejects on failure
+ */
 SteamCommunity.prototype.voteReviewFunny = function(rid, callback) {
 	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
 		let res = await this.httpRequest({
@@ -172,6 +214,12 @@ SteamCommunity.prototype.voteReviewFunny = function(rid, callback) {
 	});
 };
 
+/**
+ * Removes funny vote from a review
+ * @param {string} rid - ID of the review. You can obtain it through `getSteamReview()`
+ * @param {function} [callback] - Takes only an Error object/null as the first argument
+ * @return Promise<void> Resolves on success, rejects on failure
+ */
 SteamCommunity.prototype.voteReviewRemoveFunny = function(rid, callback) {
 	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
 		let res = await this.httpRequest({

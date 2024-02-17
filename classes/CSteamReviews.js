@@ -18,7 +18,7 @@ const Helpers = require('../components/helpers.js');
  * @property {boolean} isEarlyAccess True if the review is an early access review
  * @property {string} content Text content of the review
  * @property {number} [commentsAmount] Amount of comments reported by Steam. Remains `null` if coments are disabled
- * @property {Array.<{ index: number, id: string, authorLink: string, postedDate: Date, content: string }>} [comments] Array of comments left on the review
+ * @property {Array.<{ index: number, id: string, authorLink: string, postedDate: Date, content: string }>} [comments] Array of the last 10 comments left on this review
  * @property {number} recentPlaytimeHours Amount of hours the author played this game for in the last 2 weeks
  * @property {number} totalPlaytimeHours Amount of hours the author played this game for in total
  * @property {number} [playtimeHoursAtReview] Amount of hours the author played this game for at the point of review. Remains `null` if Steam does not provide this information.
@@ -185,37 +185,66 @@ function CSteamReview(community, data) {
 
 /**
  * Posts a comment to this review
- * @param {String} message - Content of the comment to post
+ * @param {string} message - Content of the comment to post
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
 CSteamReview.prototype.comment = function(message, callback) {
 	this._community.postReviewComment(this.steamID.getSteamID64(), this.appID, message, callback);
 };
 
-CSteamReview.prototype.deleteComment = function(cid, callback) {
-	this._community.deleteReviewComment(this.steamID.getSteamID64(), this.appID, cid, callback);
+/**
+ * Deletes a comment from this review
+ * @param {string} gidcomment - ID of the comment to delete
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+CSteamReview.prototype.deleteComment = function(gidcomment, callback) {
+	this._community.deleteReviewComment(this.steamID.getSteamID64(), this.appID, gidcomment, callback);
 };
 
+/**
+ * Subscribes to this review's comment section
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
 CSteamReview.prototype.subscribe = function(callback) {
 	this._community.subscribeReviewComments(this.steamID.getSteamID64(), this.appID, callback);
 };
 
+/**
+ * Unsubscribes from this review's comment section
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
 CSteamReview.prototype.unsubscribe = function(callback) {
 	this._community.unsubscribeReviewComments(this.steamID.getSteamID64(), this.appID, callback);
 };
 
+/**
+ * Votes on this review as helpful
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
 CSteamReview.prototype.voteHelpful = function(callback) {
 	this._community.voteReviewHelpful(this.reviewID, callback);
 };
 
+/**
+ * Votes on this review as unhelpful
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
 CSteamReview.prototype.voteUnhelpful = function(callback) {
 	this._community.voteReviewUnhelpful(this.reviewID, callback);
 };
 
+/**
+ * Votes on this review as funny
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
 CSteamReview.prototype.voteFunny = function(callback) {
 	this._community.voteReviewFunny(this.reviewID, callback);
 };
 
+/**
+ * Removes funny vote from this review
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
 CSteamReview.prototype.voteRemoveFunny = function(callback) {
 	this._community.voteReviewRemoveFunny(this.reviewID, callback);
 };
