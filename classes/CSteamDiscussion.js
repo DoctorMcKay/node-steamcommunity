@@ -63,6 +63,7 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 			if (url.includes('steamcommunity.com/discussions/forum'))     discussion.type = EDiscussionType.Forum;
 			if (/steamcommunity.com\/app\/.+\/discussions/g.test(url))    discussion.type = EDiscussionType.App;
 			if (/steamcommunity.com\/groups\/.+\/discussions/g.test(url)) discussion.type = EDiscussionType.Group;
+			if (/steamcommunity.com\/app\/.+\/eventcomments/g.test(url))  discussion.type = EDiscussionType.Eventcomments;
 
 
 			// Get appID from breadcrumbs if this discussion is associated to one
@@ -73,16 +74,18 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 			}
 
 
-			// Get forumID from breadcrumbs
-			let forumIdHref;
+			// Get forumID from breadcrumbs - Ignore for type Eventcomments as it doesn't have multiple forums
+			if (discussion.type != EDiscussionType.Eventcomments) {
+				let forumIdHref;
 
-			if (discussion.type == EDiscussionType.Group) { // Groups have an extra breadcrumb so we need to shift by 2
-				forumIdHref = breadcrumbs[4].attribs.href.split('/');
-			} else {
-				forumIdHref = breadcrumbs[2].attribs.href.split('/');
+				if (discussion.type == EDiscussionType.Group) { // Groups have an extra breadcrumb so we need to shift by 2
+					forumIdHref = breadcrumbs[4].attribs.href.split('/');
+				} else {
+					forumIdHref = breadcrumbs[2].attribs.href.split('/');
+				}
+
+				discussion.forumID = forumIdHref[forumIdHref.length - 2];
 			}
-
-			discussion.forumID = forumIdHref[forumIdHref.length - 2];
 
 
 			// Get id, gidforum and topicOwner. The first is used in the URL itself, the other two only in post requests
@@ -119,20 +122,24 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 			}
 
 
-			// Find author and convert to SteamID object
-			let authorLink = $('.authorline > .forum_op_author').attr('href');
+			// Find author and convert to SteamID object - Ignore for type Eventcomments as they are posted by the "game", not by an Individual
+			if (discussion.type != EDiscussionType.Eventcomments) {
+				let authorLink = $('.authorline > .forum_op_author').attr('href');
 
-			Helpers.resolveVanityURL(authorLink, (err, data) => { // This request takes <1 sec
-				if (err) {
-					reject(err);
-					return;
-				}
+				Helpers.resolveVanityURL(authorLink, (err, data) => { // This request takes <1 sec
+					if (err) {
+						reject(err);
+						return;
+					}
 
-				discussion.author = new SteamID(data.steamID);
+					discussion.author = new SteamID(data.steamID);
 
-				// Resolve when ID was resolved as otherwise owner will always be null
+					// Resolve when ID was resolved as otherwise owner will always be null
+					resolve(new CSteamDiscussion(this, discussion));
+				});
+			} else {
 				resolve(new CSteamDiscussion(this, discussion));
-			});
+			}
 
 		} catch (err) {
 			reject(err);
@@ -145,7 +152,7 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
  * Constructor - Creates a new Discussion object
  * @class
  * @param {SteamCommunity} community
- * @param {{ id: string, appID: string, forumID: string, author: SteamID, postedDate: Object, title: string, content: string, commentsAmount: number }} data
+ * @param {{ id: string, type: EDiscussionType, appID: string, forumID: string, gidforum: string, topicOwner: string, author: SteamID, postedDate: Object, title: string, content: string, commentsAmount: number, answerCommentIndex: number }} data
  */
 function CSteamDiscussion(community, data) {
 	/**
