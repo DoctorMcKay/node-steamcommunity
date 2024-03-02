@@ -27,14 +27,15 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 		title: null,
 		content: null,
 		commentsAmount: null, // I originally wanted to fetch all comments by default but that would have been a lot of potentially unused data
-		answerCommentIndex: null
+		answerCommentIndex: null,
+		accountCanComment: null // Is this account allowed to comment on this discussion?
 	};
 
 	// Get DOM of discussion
 	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
 		let result = await this.httpRequest({
 			method: 'GET',
-			url: url,
+			url: url + '?l=en',
 			source: 'steamcommunity'
 		});
 
@@ -122,6 +123,12 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 			}
 
 
+			// Check if this account is allowed to comment on this discussion
+			let cannotReplyReason = $('.topic_cannotreply_reason');
+
+			discussion.accountCanComment = cannotReplyReason.length == 0;
+
+
 			// Find author and convert to SteamID object - Ignore for type Eventcomments as they are posted by the "game", not by an Individual
 			if (discussion.type != EDiscussionType.Eventcomments) {
 				let authorLink = $('.authorline > .forum_op_author').attr('href');
@@ -152,7 +159,7 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
  * Constructor - Creates a new Discussion object
  * @class
  * @param {SteamCommunity} community
- * @param {{ id: string, type: EDiscussionType, appID: string, forumID: string, gidforum: string, topicOwner: string, author: SteamID, postedDate: Object, title: string, content: string, commentsAmount: number, answerCommentIndex: number }} data
+ * @param {{ id: string, type: EDiscussionType, appID: string, forumID: string, gidforum: string, topicOwner: string, author: SteamID, postedDate: Object, title: string, content: string, commentsAmount: number, answerCommentIndex: number, accountCanComment: boolean }} data
  */
 function CSteamDiscussion(community, data) {
 	/**
