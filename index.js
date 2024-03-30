@@ -1,4 +1,5 @@
 const {chrome} = require('@doctormckay/user-agents');
+const {Semaphore} = require('@doctormckay/stdlib/concurrency.js');
 const Request = require('request');
 const SteamID = require('steamid');
 
@@ -45,6 +46,9 @@ function SteamCommunity(options) {
 
 	this.request = options.request || Request.defaults({"forever": true}); // "forever" indicates that we want a keep-alive agent
 	this.request = this.request.defaults(defaults);
+
+	this._requestsSemaphore = new Semaphore(options.requestsLimiter || 10);
+	this._requestsLimiterDelay = options.requestsLimiterDelay || 0;
 
 	// English
 	this._setCookie(Request.cookie('Steam_Language=english'));

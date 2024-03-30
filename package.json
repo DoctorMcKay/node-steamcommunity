@@ -28,7 +28,8 @@
 		"url": "https://github.com/DoctorMcKay/node-steamcommunity.git"
 	},
 	"dependencies": {
-	  	"@doctormckay/user-agents": "^1.0.0",
+		"@doctormckay/stdlib": "^2.10.0",
+		"@doctormckay/user-agents": "^1.0.0",
 		"async": "^2.6.3",
 		"cheerio": "0.22.0",
 		"image-size": "^0.8.2",

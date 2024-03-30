@@ -45,28 +45,32 @@ SteamCommunity.prototype.httpRequest = function(uri, options, callback, source) 
 			return;
 		}
 
-		self.request(options, function (err, response, body) {
-			var hasCallback = !!callback;
-			var httpError = options.checkHttpError !== false && self._checkHttpError(err, response, callback, body);
-			var communityError = !options.json && options.checkCommunityError !== false && self._checkCommunityError(body, httpError ? function () {} : callback); // don't fire the callback if hasHttpError did it already
-			var tradeError = !options.json && options.checkTradeError !== false && self._checkTradeError(body, httpError || communityError ? function () {} : callback); // don't fire the callback if either of the previous already did
-			var jsonError = options.json && options.checkJsonError !== false && !body ? new Error("Malformed JSON response") : null;
+		this._requestsSemaphore.wait((release) => {
+			self.request(options, function (err, response, body) {
+				setTimeout(release, this._requestsLimiterDelay);
 
-			self.emit('postHttpRequest', requestID, source, options, httpError || communityError || tradeError || jsonError || null, response, body, {
-				"hasCallback": hasCallback,
-				"httpError": httpError,
-				"communityError": communityError,
-				"tradeError": tradeError,
-				"jsonError": jsonError
-			});
-
-			if (hasCallback && !(httpError || communityError || tradeError)) {
-				if (jsonError) {
-					callback.call(self, jsonError, response);
-				} else {
-					callback.apply(self, arguments);
+				var hasCallback = !!callback;
+				var httpError = options.checkHttpError !== false && self._checkHttpError(err, response, callback, body);
+				var communityError = !options.json && options.checkCommunityError !== false && self._checkCommunityError(body, httpError ? function () {} : callback); // don't fire the callback if hasHttpError did it already
+				var tradeError = !options.json && options.checkTradeError !== false && self._checkTradeError(body, httpError || communityError ? function () {} : callback); // don't fire the callback if either of the previous already did
+				var jsonError = options.json && options.checkJsonError !== false && !body ? new Error("Malformed JSON response") : null;
+	
+				self.emit('postHttpRequest', requestID, source, options, httpError || communityError || tradeError || jsonError || null, response, body, {
+					"hasCallback": hasCallback,
+					"httpError": httpError,
+					"communityError": communityError,
+					"tradeError": tradeError,
+					"jsonError": jsonError
+				});
+	
+				if (hasCallback && !(httpError || communityError || tradeError)) {
+					if (jsonError) {
+						callback.call(self, jsonError, response);
+					} else {
+						callback.apply(self, arguments);
+					}
 				}
-			}
+			});
 		});
 	}
 };
