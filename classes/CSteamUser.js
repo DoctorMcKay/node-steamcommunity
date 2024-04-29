@@ -223,3 +223,5 @@ CSteamUser.prototype.getProfileBackground = function(callback) {
 CSteamUser.prototype.sendImage = function(imageContentsBuffer, options, callback) {
 	this._community.sendImageToUser(this.steamID, imageContentsBuffer, options, callback);
 };
+
+module.exports = CSteamUser;

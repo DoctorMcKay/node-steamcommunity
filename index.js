@@ -1,5 +1,5 @@
 const {chrome} = require('@doctormckay/user-agents');
-const Request = require('request');
+const Request = require('@cypress/request');
 const SteamID = require('steamid');
 
 const Helpers = require('./components/helpers.js');
