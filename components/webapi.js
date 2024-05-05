@@ -47,6 +47,33 @@ SteamCommunity.prototype.getWebApiKey = function(unused, callback) {
 };
 
 /**
+ * Revokes your account's Steam Web API key.
+ * @param {function} callback
+ */
+SteamCommunity.prototype.revokeWebApiKey = function(callback) {
+	this.httpRequestPost({
+		uri: "https://steamcommunity.com/dev/revokekey",
+		form: {
+			Revoke: "Revoke My Steam Web API Key",
+			sessionid: this.getSessionID()
+		},
+		json: true
+	}, (err, response, body) => {
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if(response.statusCode != 302) {
+			callback(new Error("HTTP error " + response.statusCode));
+			return;
+		}
+
+		callback(null);
+	}, "steamcommunity");
+};
+
+/**
  * @typedef CreateApiKeyOptions
  * @property {string} domain - The domain to associate with your API key
  * @property {string} [requestID] - If finalizing an existing create request, include the request ID
