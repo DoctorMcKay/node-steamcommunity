@@ -22,6 +22,7 @@ SteamCommunity.prototype.getSteamSharedFile = function(sharedFileId, callback) {
 		fileSize: null,
 		postDate: null,
 		resolution: null,
+		categories: [],
 		uniqueVisitorsCount: null,
 		favoritesCount: null,
 		upvoteCount: null,
@@ -114,6 +115,14 @@ SteamCommunity.prototype.getSteamSharedFile = function(sharedFileId, callback) {
 			}
 
 
+			// Find categories if guide or workshop item
+			if (sharedfile.type == ESharedFileType.Guide || sharedfile.type == ESharedFileType.Workshop) {
+				let categoryTag = $(".workshopTagsTitle:contains(\"Category:\")").parent().contents().slice(1).text(); // Find div containing 'Category:' workshopTagsTitle, remove first element 'Category:' and get everything else as text
+
+				sharedfile.categories = categoryTag ? categoryTag.split(", ") : []; // Convert to array if string is not empty (aka no categories have been found)
+			}
+
+
 			// Find uniqueVisitorsCount. We can't use ' || null' here as Number("0") casts to false
 			if (statsTableObj["Unique Visitors"]) {
 				sharedfile.uniqueVisitorsCount = Number(statsTableObj["Unique Visitors"]);
@@ -170,7 +179,7 @@ SteamCommunity.prototype.getSteamSharedFile = function(sharedFileId, callback) {
  * Constructor - Creates a new SharedFile object
  * @class
  * @param {SteamCommunity} community
- * @param {{ id: string, type: ESharedFileType, appID: number, owner: SteamID|null, fileSize: string|null, postDate: number, resolution: string|null, uniqueVisitorsCount: number, favoritesCount: number, upvoteCount: number|null, guideNumRatings: Number|null, isUpvoted: boolean, isDownvoted: boolean }} data
+ * @param {{ id: string, type: ESharedFileType, appID: number, owner: SteamID|null, fileSize: string|null, postDate: number, resolution: string|null, category: string[], uniqueVisitorsCount: number, favoritesCount: number, upvoteCount: number|null, guideNumRatings: Number|null, isUpvoted: boolean, isDownvoted: boolean }} data
  */
 function CSteamSharedFile(community, data) {
 	/**
