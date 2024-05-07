@@ -247,3 +247,19 @@ CSteamSharedFile.prototype.unfavorite = function(callback) {
 CSteamSharedFile.prototype.unsubscribe = function(callback) {
 	this._community.unsubscribeSharedFileComments(this.owner, this.id, callback);
 };
+
+/**
+ * Subscribes to this workshop item
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+CSteamSharedFile.prototype.subscribeWorkshop = function(callback) {
+	this._community.subscribeWorkshopSharedFile(this.id, this.appID, callback);
+};
+
+/**
+ * Unsubscribes from this workshop item
+ * @param {function} callback - Takes only an Error object/null as the first argument
+ */
+CSteamSharedFile.prototype.unsubscribeWorkshop = function(callback) {
+	this._community.unsubscribeWorkshopSharedFile(this.id, this.appID, callback);
+};
