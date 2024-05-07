@@ -23,6 +23,7 @@ SteamCommunity.prototype.getSteamSharedFile = function(sharedFileId, callback) {
 		postDate: null,
 		resolution: null,
 		categories: [],
+		tags: [],
 		uniqueVisitorsCount: null,
 		favoritesCount: null,
 		upvoteCount: null,
@@ -123,6 +124,12 @@ SteamCommunity.prototype.getSteamSharedFile = function(sharedFileId, callback) {
 			}
 
 
+			// Find tags (there can be multiple)
+			let tagsTag = $(".workshopTagsTitle:contains(\"Tags:\")").next().contents();
+
+			sharedfile.tags = tagsTag.map((i, e) => e.type === 'text' ? $(e).text() : '').get() || []; // Map text to an array - https://stackoverflow.com/a/31543727
+
+
 			// Find uniqueVisitorsCount. We can't use ' || null' here as Number("0") casts to false
 			if (statsTableObj["Unique Visitors"]) {
 				sharedfile.uniqueVisitorsCount = Number(statsTableObj["Unique Visitors"]);
@@ -179,7 +186,7 @@ SteamCommunity.prototype.getSteamSharedFile = function(sharedFileId, callback) {
  * Constructor - Creates a new SharedFile object
  * @class
  * @param {SteamCommunity} community
- * @param {{ id: string, type: ESharedFileType, appID: number, owner: SteamID|null, fileSize: string|null, postDate: number, resolution: string|null, category: string[], uniqueVisitorsCount: number, favoritesCount: number, upvoteCount: number|null, guideNumRatings: Number|null, isUpvoted: boolean, isDownvoted: boolean }} data
+ * @param {{ id: string, type: ESharedFileType, appID: number, owner: SteamID|null, fileSize: string|null, postDate: number, resolution: string|null, category: string[], tags: string[], uniqueVisitorsCount: number, favoritesCount: number, upvoteCount: number|null, guideNumRatings: Number|null, isUpvoted: boolean, isDownvoted: boolean }} data
  */
 function CSteamSharedFile(community, data) {
 	/**
