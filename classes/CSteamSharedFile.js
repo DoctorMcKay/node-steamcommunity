@@ -228,7 +228,7 @@ CSteamSharedFile.prototype.comment = function(message, callback) {
  * Subscribes to this sharedfile's comment section. Note: Checkbox on webpage does not update
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
-CSteamSharedFile.prototype.subscribe = function(callback) {
+CSteamSharedFile.prototype.subscribeComments = function(callback) {
 	this._community.subscribeSharedFileComments(this.owner, this.id, callback);
 };
 
@@ -244,7 +244,7 @@ CSteamSharedFile.prototype.unfavorite = function(callback) {
  * Unsubscribes from this sharedfile's comment section. Note: Checkbox on webpage does not update
  * @param {function} callback - Takes only an Error object/null as the first argument
  */
-CSteamSharedFile.prototype.unsubscribe = function(callback) {
+CSteamSharedFile.prototype.unsubscribeComments = function(callback) {
 	this._community.unsubscribeSharedFileComments(this.owner, this.id, callback);
 };
 
