@@ -291,7 +291,7 @@ SteamCommunity.prototype.getGiftDetails = function(giftID, callback) {
 			return;
 		}
 
-		if (!body.packageid || !body.gift_name) {
+		if (!body.packageid) {
 			callback(new Error("Malformed response"));
 			return;
 		}
