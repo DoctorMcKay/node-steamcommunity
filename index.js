@@ -192,6 +192,42 @@ SteamCommunity.prototype.getSessionID = function(host = "http://steamcommunity.c
 	return sessionID;
 };
 
+SteamCommunity.prototype.getAccessToken = function(host = "http://steamcommunity.com", callback) {
+	var self = this;
+	if (self._accessToken[host]) {
+		callback(null, self._accessToken[host]);
+		return;
+	}
+
+	self.httpRequestGet({
+		"uri": host + '/pointssummary/ajaxgetasyncconfig',
+		"json": true
+	}, (err, res, body) => {
+		if (err) {
+			callback(err ? err : new Error('HTTP error ' + res.statusCode));
+			return;
+		}
+
+		if (body.success != 1) {
+			callback(Helpers.eresultError(body.success));
+			return;
+		}
+
+		if (!body.data || !body.data.webapi_token) {
+			callback(new Error('Malformed response'));
+			return;
+		}
+
+		self._accessToken = self._accessToken || {};
+		self._accessToken[host] = body.data.webapi_token;
+		setTimeout(function () {
+			delete self._accessToken[host]; // delete the cache
+		}, 60000).unref();
+
+		callback(null, body.data.webapi_token);
+	});
+};
+
 function generateSessionID() {
 	return require('crypto').randomBytes(12).toString('hex');
 }
@@ -443,6 +479,7 @@ SteamCommunity.prototype.getFriendsList = function(callback) {
 
 require('./components/login.js');
 require('./components/http.js');
+require('./components/awards.js');
 require('./components/chat.js');
 require('./components/profile.js');
 require('./components/market.js');
