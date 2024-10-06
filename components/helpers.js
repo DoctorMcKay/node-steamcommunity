@@ -1,4 +1,4 @@
-const request = require('request');
+const request = require('@cypress/request');
 const SteamID = require('steamid');
 const xml2js  = require('xml2js');
 
