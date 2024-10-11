@@ -740,16 +740,6 @@ SteamCommunity.prototype.getTradePartnerInventory = function(partner,token, appI
 				return;
 			}
 
-			if (!body || !body.success || !body.rgInventory || !body.rgDescriptions || !body.rgCurrency) {
-				if (body) {
-					callback(new Error(body.Error || "Malformed response"));
-				} else {
-					callback(new Error("Malformed response"));
-				}
-
-				return;
-			}
-
 			var i;
 			for (i in body.rgInventory) {
 				if (!body.rgInventory.hasOwnProperty(i)) {
