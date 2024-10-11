@@ -718,7 +718,7 @@ SteamCommunity.prototype.getTradePartnerInventory = function(partner,token, appI
 				"Referer": `https://steamcommunity.com/tradeoffer/new/?partner=${partner.accountid}&token=${token}`
 			},
 			"qs": {
-				"sessionid": this.getSessionID(),
+				"sessionid": self.getSessionID(),
 				"partner": partner.getSteamID64(),
 				"appid": appID,
 				"contextid": contextID,
