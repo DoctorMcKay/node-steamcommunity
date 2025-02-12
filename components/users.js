@@ -682,6 +682,94 @@ SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, cont
 	}
 };
 
+
+
+/**
+ * Get the contents of a user's inventory from trade window.
+ * @param {SteamID|string} partner - The user's SteamID as a SteamID object or a string which can parse into one
+ * @param {string} [token] - Their trade token
+ * @param {int} appID - The Steam application ID of the game for which you want an inventory
+ * @param {int} contextID - The ID of the "context" within the game you want to retrieve
+ * @param {function} callback
+ */
+SteamCommunity.prototype.getTradePartnerInventory = function(partner,token, appID, contextID, callback) {
+	if (typeof contextID === 'function') {
+		callback = contextID;
+		contextID = appID;
+		appID = token;
+	}
+
+	if (typeof partner === 'string' && partner.match(/^https?:\/\//)) {
+		// It's a trade URL I guess
+		var url = require('url').parse(partner, true);
+		if (!url.query.partner) {
+			throw new Error("Invalid trade URL");
+		}
+
+		partner = SteamID.fromIndividualAccountID(url.query.partner);
+		token = url.query.token;
+	}
+
+	var self = this;
+
+	if (typeof partner === 'string') {
+		partner = new SteamID(partner);
+	}
+
+	get([], []);
+
+	function get(inventory, currency) {
+		self.httpRequest({
+			"uri": `https://steamcommunity.com/tradeoffer/new/partnerinventory`,
+			"headers": {
+				"Referer": `https://steamcommunity.com/tradeoffer/new/?partner=${partner.accountid}&token=${token}`
+			},
+			"qs": {
+				"sessionid": self.getSessionID(),
+				"partner": partner.getSteamID64(),
+				"appid": appID,
+				"contextid": contextID,
+			},
+			"json": true
+		}, function (err, response, body) {
+			if (err) {
+				callback(err);
+				return;
+			}
+
+			if (!body || !body.success || !body.rgInventory || !body.rgDescriptions || !body.rgCurrency) {
+				if(body && Array.isArray(body) && body.length === 2 && body[0] === 'success' && body[1] === false) {
+					callback(new Error("This profile is private."));
+				} else {
+					callback(new Error("Malformed response"));
+				}
+
+				return;
+			}
+
+			var i;
+			for (i in body.rgInventory) {
+				if (!body.rgInventory.hasOwnProperty(i)) {
+					continue;
+				}
+
+				inventory.push(new CEconItem(body.rgInventory[i], body.rgDescriptions, contextID));
+			}
+
+			for (i in body.rgCurrency) {
+				if (!body.rgCurrency.hasOwnProperty(i)) {
+					continue;
+				}
+
+				currency.push(new CEconItem(body.rgCurrency[i], body.rgDescriptions, contextID));
+			}
+
+			callback(null, inventory, currency);
+		}, "steamcommunity");
+	}
+};
+
+
 /**
  * Upload an image to Steam and send it to another user over Steam chat.
  * @param {SteamID|string} userID - Either a SteamID object or a string that can parse into one
