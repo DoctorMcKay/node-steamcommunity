@@ -629,6 +629,13 @@ SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, cont
 				return;
 			}
 
+			if (appID == 730 && body && body.success && !body.assets) {
+				// CS inventory has no visible items. We need a special case for this because Valve is incapable of
+				// doing anything not dumb.
+				callback(null, [], [], body.total_inventory_count);
+				return;
+			}
+
 			if (!body || !body.success || !body.assets || !body.descriptions) {
 				if (body) {
 					// Dunno if the error/Error property even exists on this new endpoint
