@@ -54,7 +54,7 @@ SteamCommunity.prototype._modernLogin = function(logOnDetails) {
 				let webCookies = await session.getWebCookies();
 				let sessionIdCookie = webCookies.find(c => c.startsWith('sessionid='));
 				resolve({
-					sessionID: sessionIdCookie.split('=')[1],
+					sessionID: sessionIdCookie.split('=')[1].split(';')[0].trim(),
 					cookies: webCookies,
 					steamguard: session.steamGuardMachineToken,
 					mobileAccessToken: logOnDetails.disableMobile ? null : session.accessToken
