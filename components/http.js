@@ -1,3 +1,5 @@
+var URL = require('url');
+
 var SteamCommunity = require('../index.js');
 
 SteamCommunity.prototype.httpRequest = function(uri, options, callback, source) {
@@ -17,6 +19,16 @@ SteamCommunity.prototype.httpRequest = function(uri, options, callback, source) 
 	if (this._httpRequestConvenienceMethod) {
 		options.method = this._httpRequestConvenienceMethod;
 		delete this._httpRequestConvenienceMethod;
+	}
+
+	// Add origin header if necessary
+	// https://github.com/DoctorMcKay/node-steamcommunity/issues/351
+	if ((options.method || 'GET').toUpperCase() != 'GET') {
+		options.headers = options.headers || {};
+		if (!options.headers.origin) {
+			var parsedUrl = URL.parse(options.url);
+			options.headers.origin = parsedUrl.protocol + '//' + parsedUrl.host;
+		}
 	}
 
 	var requestID = ++this._httpRequestID;
