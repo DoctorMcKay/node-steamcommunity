@@ -390,8 +390,8 @@ SteamCommunity.prototype.postProfileStatus = function(statusText, options, callb
 		options = {};
 	}
 
-	return StdLib.Promises.callbackPromise(['postID'], callback, false, (resolve, reject) => {
-		const {jsonBody} = this._myProfile('ajaxpostuserstatus/', {
+	return StdLib.Promises.callbackPromise(['postID'], callback, false, async (resolve, reject) => {
+		const {jsonBody} = await this._myProfile('ajaxpostuserstatus/', {
 			appid: options.appID || 0,
 			sessionid: this.getSessionID(),
 			status_text: statusText
@@ -422,7 +422,7 @@ SteamCommunity.prototype.postProfileStatus = function(statusText, options, callb
  */
 SteamCommunity.prototype.deleteProfileStatus = function(postID, callback) {
 	return StdLib.Promises.callbackPromise(null, callback, true, async (resolve, reject) => {
-		const {jsonBody} = this._myProfile('ajaxdeleteuserstatus/', {
+		const {jsonBody} = await this._myProfile('ajaxdeleteuserstatus/', {
 			sessionid: this.getSessionID(),
 			postid: postID
 		});
