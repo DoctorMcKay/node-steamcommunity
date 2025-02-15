@@ -157,8 +157,11 @@ SteamCommunity.prototype.getSteamSharedFile = function(sharedFileId, callback) {
 
 
 			// Determine if this account has already voted on this sharedfile
-			sharedfile.isUpvoted   = String($(".workshopItemControlCtn > #VoteUpBtn")[0].attribs["class"]).includes("toggled");   // Check if upvote btn class contains "toggled"
-			sharedfile.isDownvoted = String($(".workshopItemControlCtn > #VoteDownBtn")[0].attribs["class"]).includes("toggled"); // Check if downvote btn class contains "toggled"
+			const voteUpBtn   = $(".workshopItemControlCtn > #VoteUpBtn")[0]   || $(".greenlight_controls > #VoteUpBtn")[0];   // workshopItemControlCtn for "normal" items, greenlight_controls for items which can be voted into a game (e.g. CS skins)
+			const voteDownBtn = $(".workshopItemControlCtn > #VoteDownBtn")[0] || $(".greenlight_controls > #VoteDownBtn")[0];
+
+			sharedfile.isUpvoted   = String(voteUpBtn.attribs["class"]).includes("toggled");   // Check if upvote btn class contains "toggled"
+			sharedfile.isDownvoted = String(voteDownBtn.attribs["class"]).includes("toggled"); // Check if downvote btn class contains "toggled"
 
 
 			// Find owner profile link, convert to steamID64 using SteamIdResolver lib and create a SteamID object
