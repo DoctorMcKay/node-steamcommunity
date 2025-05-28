@@ -28,7 +28,7 @@ function CEconItem(item, description, contextID) {
 		}
 
 		for (thing in description) {
-			if (description.hasOwnProperty(thing)) {
+			if (description.hasOwnProperty(thing) && !this.hasOwnProperty(thing)) {
 				this[thing] = description[thing];
 			}
 		}
