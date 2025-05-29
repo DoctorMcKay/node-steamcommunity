@@ -590,7 +590,7 @@ SteamCommunity.prototype.getUserInventoryContents = function(userID, appID, cont
 			},
 			"qs": {
 				"l": language, // Default language
-				"count": 1000, // Max items per 'page'
+				"count": 2000, // Max items per 'page'
 				"start_assetid": start
 			},
 			"json": true
