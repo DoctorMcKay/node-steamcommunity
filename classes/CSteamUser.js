@@ -3,6 +3,11 @@ var Helpers = require('../components/helpers.js');
 var SteamID = require('steamid');
 var xml2js = require('xml2js');
 
+function normalizeStateMessage(message) {
+  if (typeof message !== 'string') return message;
+  return message.replace(/<br\s*\/?>(\s*)?/gi, ' ').trim();
+}
+
 SteamCommunity.prototype.getSteamUser = function(id, callback) {
 	if(typeof id !== 'string' && !Helpers.isSteamID(id)) {
 		throw new Error("id parameter should be a user URL string or a SteamID object");
@@ -55,7 +60,7 @@ function CSteamUser(community, userData, customurl) {
 	this.steamID = new SteamID(userData.steamID64[0]);
 	this.name = processItem('steamID');
 	this.onlineState = processItem('onlineState');
-	this.stateMessage = processItem('stateMessage');
+	this.stateMessage = normalizeStateMessage(processItem('stateMessage'));
 	this.privacyState = processItem('privacyState', 'uncreated');
 	this.visibilityState = processItem('visibilityState');
 	this.avatarHash = processItem('avatarIcon', '').match(/([0-9a-f]+)\.[a-z]+$/);
