@@ -131,7 +131,7 @@ SteamCommunity.prototype.getSteamDiscussion = function(url, callback) {
 
 			// Find author and convert to SteamID object - Ignore for type Eventcomments as they are posted by the "game", not by an Individual
 			if (discussion.type != EDiscussionType.Eventcomments) {
-				let authorLink = $('.authorline > .forum_op_author').attr('href');
+				let authorLink = $('.forum_op_author').attr('href');
 
 				Helpers.resolveVanityURL(authorLink, (err, data) => { // This request takes <1 sec
 					if (err) {
