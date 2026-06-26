@@ -68,9 +68,20 @@ function CEconItem(item, description, contextID, assetProperties) {
 
 	// Restore cache_expiration, if we can (for CS:GO items)
 	if (this.appid == 730 && this.contextid == 2 && this.owner_descriptions) {
-		let description = this.owner_descriptions.find(d => d.value && d.value.indexOf('Tradable/Marketable After ') == 0);
+		let description = this.owner_descriptions.find((d) => d.value && d.value.indexOf("Tradable/Marketable After ") == 0);
 		if (description) {
-			let date = new Date(description.value.substring(26).replace(/[,()]/g, ''));
+			const match = description.value.match(/(\d{1,2}) (\w+) @ (\d{1,2}:\d{2})(am|pm)/i);
+			const [, day, month, time, meridian] = match;
+			const now = new Date();
+			let year = now.getFullYear();
+			let date = new Date(`${day} ${month} ${year} ${time} ${meridian}`);
+
+			if (date.getTime() < now.getTime()) {
+				date = new Date(
+					`${day} ${month} ${year + 1} ${time} ${meridian}`,
+				);
+			}
+
 			if (date) {
 				this.cache_expiration = date.toISOString();
 			}
