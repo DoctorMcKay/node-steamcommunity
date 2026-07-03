@@ -68,6 +68,10 @@ SteamCommunity.prototype._modernLogin = function(logOnDetails) {
 			reject(err);
 		});
 
+		session.on('timeout', () => {
+			reject(new Error('Login timed out'));
+		});
+
 		try {
 			let startResult = await session.startWithCredentials({
 				accountName: logOnDetails.accountName,
