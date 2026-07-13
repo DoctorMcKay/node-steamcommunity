@@ -261,7 +261,10 @@ function request(community, url, key, time, tag, params, json, callback) {
 	var req = {
 		method: url == 'multiajaxop' ? 'POST' : 'GET',
 		uri: 'https://steamcommunity.com/mobileconf/' + url,
-		json: !!json
+		json: !!json,
+		headers: {
+			'user-agent': 'okhttp/4.9.2'
+		}
 	};
 
 	if (req.method == 'GET') {
