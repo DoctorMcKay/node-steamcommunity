@@ -473,3 +473,306 @@ SteamCommunity.prototype.deleteProfileStatus = function(postID, callback) {
 		}
 	});
 };
+
+/**
+ * Get your profile activity feed.
+ * @param {{start: int|date, startoffset: int, myactivity: int, l: string}} [options] - All are optional. If you don't pass any options, this can be omitted.
+ * @param {function} callback - err, activities
+ */
+SteamCommunity.prototype.getFriendActivity = function(options, callback) {
+	if (typeof options === 'function') {
+		callback = options;
+		var l = 'english';
+		var startoffset = 0;
+        var start = new Date();
+		var myactivity = 0;
+        start.setHours(0);
+        start.setMinutes(0);
+        start.setSeconds(0);
+        start = Math.floor(startDate.valueOf() / 1000);
+		options = { start, startoffset, myactivity, l };
+	}
+
+	if (!callback) {
+		return;
+	}
+
+	options.start = options.start.valueOf ? options.start.valueOf() : options.start;
+	var qs = new URLSearchParams(params);
+	this._myProfile("ajaxgetusernews/?" + qs, null, (err, res, body) => {
+		if(err) {
+			callback(err);
+			return;
+		}
+
+		if(!body) {
+			callback(new Error("Malformed response"));
+			return;
+		}
+
+		try {
+			body = JSON.parse(body);
+			if (!body.success) {
+				callback(new Error("Malformed response"));
+				return;
+			}
+
+			parseFriendActivity(body, callback);
+		} catch (ex) {
+			callback(ex);
+		}
+	});
+
+	function parseFriendActivity(body, callback) {
+		var $ = Cheerio.load(body.blotter_html);
+		var output = {
+			"start": new Date(body.timestart * 1000),
+			"nextRequest": body.next_request,
+			"items": []
+		};
+
+		Array.prototype.forEach.call($('.blotter_block, .blotter_daily_rollup_line, .blotter_daily_rollup_line_groups'), function(item) {
+			var data = {};
+
+			var $item = $(item);
+			var $dailyRollup = $item.find('.blotter_daily_rollup')
+			if ($dailyRollup.length > 0) {
+				return;
+			}
+
+			var $userBlock = $item.find('.blotter_author_block');
+			var $groupBlock = $item.find('.blotter_group_announcement_header');
+
+			// Author
+			if ($userBlock.length > 0) {
+				var $miniprofile = $userBlock.find(' > div > a[data-miniprofile]');
+
+				var sid = new SteamID();
+				sid.universe = SteamID.Universe.PUBLIC;
+				sid.type = SteamID.Type.INDIVIDUAL;
+				sid.instance = SteamID.Instance.DESKTOP;
+				sid.accountid = $miniprofile.data('miniprofile');
+
+				var nameGroup = $miniprofile.text();
+				var nicknameGroup = $miniprofile.find('.nickname_block').text();
+				var name = nameGroup.replace(nicknameGroup, '').trim();
+				var nickname = $miniprofile.find('.nickname_name').text().trim();
+
+				data.author = {
+					"steamID": sid,
+					"url": $miniprofile.attr('href'),
+					"avatar": $userBlock.find('img').attr('src'),
+					"name": name
+				};
+
+				if (nickname) {
+					data.author.nickName = nickname;
+				}
+			} else if ($groupBlock.length > 0) {
+				var $line = $groupBlock.find('.blotter_group_announcement_header_text > a:first');
+				var url = $line.attr('href');
+				var sid;
+				if (url.includes('/curator/')) {
+					sid = new SteamID();
+					sid.universe = SteamID.Universe.PUBLIC;
+					sid.type = SteamID.Type.CLAN;
+					sid.instance = SteamID.Instance.DESKTOP;
+					sid.accountid = parseInt(url.split('/curator/')[1].match(/^\d+/g)[0], 10);
+				}
+
+				data.author = {
+					"url": url,
+					"avatar": $groupBlock.find('img').attr('src'),
+					"name": $line.text().trim()
+				};
+
+				if (sid) {
+					data.author.steamID = sid;
+				}
+			} else { // should be daily_rollup_line
+				var $avatar = $item.find('.blotter_rollup_avatar');
+				var $subject = $item.find('span > a:first');
+				var sid, name, nickname;
+
+				if ($subject.is('[data-miniprofile]')) {
+					sid = new SteamID();
+					sid.universe = SteamID.Universe.PUBLIC;
+					sid.type = SteamID.Type.INDIVIDUAL;
+					sid.instance = SteamID.Instance.DESKTOP;
+					sid.accountid = $subject.data('miniprofile');
+
+					var nameGroup = $subject.text();
+					var nicknameGroup = $subject.find('.nickname_block').text();
+					name = nameGroup.replace(nicknameGroup, '').trim();
+					nickname = $subject.find('.nickname_name').text().trim();
+				} else {
+					name = $subject.text().trim();
+				}
+
+				data.author = {
+					"url": $avatar.find('a').attr('href'),
+					"avatar": $avatar.find('img').attr('src'),
+					"name": name
+				};
+
+				if (sid) {
+					data.author.steamID = sid;
+				}
+
+				if (nickname) {
+					data.author.nickName = nickname;
+				}
+			}
+
+			// Subject
+			if ($userBlock.length > 0) {
+				data.subject = $userBlock.find(' > div:last').text().trim();
+			} else if ($groupBlock.length > 0) {
+				data.subject = $groupBlock.find('.blotter_group_announcement_header_text').text().replace(data.author.name, '').trim();
+			} else {
+				data.subject = $item.find('span').text().trim();
+			}
+
+			// Body
+			// TODO: Better parsing of body (consider each type separately?)
+			data.body = $item.text();
+			data.blotter = $item.html(); // include this?
+
+			// Misc
+			data.apps = [...new Set($item.find('[href*="steamcommunity.com/app/"], [href*="steamcommunity.com/games/"]').get().map(e => parseInt(e.href.split('/')[4], 10)))];
+			data.votes = parseInt($(".rateUpCount > span, .blotter_voters_names").text().trim().split(" ")[0], 10) || 0;
+
+			// Add to output
+			output.items.push(data);
+		});
+
+		callback(null, output);
+	}
+};
+
+
+SteamCommunity.prototype.editFriendActivity = function(settings, callback) {
+	var self = this;
+	var values = {
+		"setting": 1,
+		"sessionid": self.getSessionID(),
+		"subscription_option[achievementunlocked]": 1,
+		"subscription_option[addedgametowishlist]": 1,
+		"subscription_option[createsgroup]": 1,
+		"subscription_option[curatorrecommendations]": 1,
+		"subscription_option[filefavorited]": 1,
+		"subscription_option[followingpublishedugc]": 1,
+		"subscription_option[friendadded]": 1,
+		"subscription_option[greenlightannouncement]": 1,
+		"subscription_option[joinedgroup]": 1,
+		"subscription_option[postedannouncement]": 1,
+		"subscription_option[promotednewadmin]": 1,
+		"subscription_option[receivednewgame]": 1,
+		"subscription_option[receivesgroupcomment]": 1,
+		"subscription_option[recommendedgame]": 1,
+		"subscription_option[scheduledevent]": 1,
+		"subscription_option[screenshotpublished]": 1,
+		"subscription_option[selectednewpotw]": 1,
+		"subscription_option[taggedinscreenshot]": 1,
+		"subscription_option[videopublished]": 1,
+		"subscription_option[workshopannouncement]": 1
+	};
+
+	for (var i in settings) {
+		if(!settings.hasOwnProperty(i)) {
+			continue;
+		}
+
+		switch(i) {
+			case 'addedGameToWishlist':
+				values['subscriptions[addedgametowishlist]'] = settings[i] ? 1 : 0;
+				break;
+
+			case 'createsGroup':
+				values['subscriptions[createsgroup]'] = settings[i] ? 1 : 0;
+				break;
+
+			case 'curatorRecommendations':
+				values['subscriptions[curatorrecommendations]'] = settings[i] ? 1 : 0;
+				break;
+
+			case 'fileFavoried':
+				values['subscriptions[filefavorited]'] = settings[i] ? 1 : 0;
+				break;
+
+			case 'followingPublishedUGC':
+				values['subscriptions[followingpublishedugc]'] = settings[i] ? 1 : 0;
+				break;
+
+			case 'friendAdded':
+				values['subscriptions[friendadded]'] = settings[i] ? 1 : 0;
+				break;
+
+			case 'greenlightAnnouncement':
+				values['subscriptions[greenlightannouncement]'] = settings[i] ? 1 : 0;
+				break;
+
+			case 'joinedGroup':
+				values['subscriptions[joinedgroup]'] = settings[i] ? 1 : 0;
+				break;
+
+			case 'postedAnnouncement':
+				values['subscriptions[postedannouncement]'] = settings[i] ? 1 : 0;
+				break;
+
+			case 'promotedNewAdmin':
+				values['subscriptions[promotednewadmin]'] = settings[i] ? 1 : 0;
+				break;
+
+			case 'receivedNewGame':
+				values['subscriptions[receivednewgame]'] = settings[i] ? 1 : 0;
+				break;
+
+			case 'receivesGroupComment':
+				values['subscriptions[receivesgroupcomment]'] = settings[i] ? 1 : 0;
+				break;
+
+			case 'recommendedGame':
+				values['subscriptions[recommendedgame]'] = settings[i] ? 1 : 0;
+				break;
+
+			case 'scheduledEvent':
+				values['subscriptions[scheduledevent]'] = settings[i] ? 1 : 0;
+				break;
+
+			case 'screenshotPublished':
+				values['subscriptions[screenshotpublished]'] = settings[i] ? 1 : 0;
+				break;
+
+			case 'selectedNewPotw':
+				values['subscriptions[selectednewpotw]'] = settings[i] ? 1 : 0;
+				break;
+
+			case 'taggedInScreenshot':
+				values['subscriptions[taggedinscreenshot]'] = settings[i] ? 1 : 0;
+				break;
+
+			case 'videoPublished':
+				values['subscriptions[videopublished]'] = settings[i] ? 1 : 0;
+				break;
+
+			case 'workshopAnnouncement':
+				values['subscriptions[workshopannouncement]'] = settings[i] ? 1 : 0
+				break;
+
+		}
+	}
+
+	self._myProfile('blotteredit', values, function(err, response, body) {
+		if (!callback) {
+			return;
+		}
+
+		if (err || response.statusCode != 200) {
+			callback(err || new Error('HTTP error ' + response.statusCode));
+			return;
+		}
+
+		callback(null);
+	});
+};
