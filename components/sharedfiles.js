@@ -2,6 +2,8 @@ var SteamID = require('steamid');
 
 var SteamCommunity = require('../index.js');
 
+const Helpers = require('./helpers.js');
+
 
 /**
  * Deletes a comment from a sharedfile's comment section
@@ -20,14 +22,25 @@ SteamCommunity.prototype.deleteSharedFileComment = function(userID, sharedFileId
 		"form": {
 			"gidcomment": cid,
 			"count": 10,
+			"json": 1,
 			"sessionid": this.getSessionID()
-		}
+		},
+		"json": true
 	}, function(err, response, body) {
 		if (!callback) {
 			return;
 		}
 
-		callback(err);
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (body.success) {
+			callback(null);
+		} else {
+			callback(new Error(body.error));
+		}
 	}, "steamcommunity");
 };
 
@@ -45,7 +58,7 @@ SteamCommunity.prototype.favoriteSharedFile = function(sharedFileId, appid, call
 			"appid": appid,
 			"sessionid": this.getSessionID()
 		}
-	}, function(err, response, body) {
+	}, function(err, response, body) { // Steam does not seem to return any errors for this request
 		if (!callback) {
 			return;
 		}
@@ -71,14 +84,25 @@ SteamCommunity.prototype.postSharedFileComment = function(userID, sharedFileId, 
 		"form": {
 			"comment": message,
 			"count": 10,
+			"json": 1,
 			"sessionid": this.getSessionID()
-		}
+		},
+		"json": true
 	}, function(err, response, body) {
 		if (!callback) {
 			return;
 		}
 
-		callback(err);
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (body.success) {
+			callback(null);
+		} else {
+			callback(new Error(body.error));
+		}
 	}, "steamcommunity");
 };
 
@@ -97,14 +121,26 @@ SteamCommunity.prototype.subscribeSharedFileComments = function(userID, sharedFi
 		"uri": `https://steamcommunity.com/comment/PublishedFile_Public/subscribe/${userID.toString()}/${sharedFileId}/`,
 		"form": {
 			"count": 10,
+			"json": 1,
 			"sessionid": this.getSessionID()
-		}
+		},
+		"json": true
 	}, function(err, response, body) { // eslint-disable-line
 		if (!callback) {
 			return;
 		}
 
-		callback(err);
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (body.success && body.success != SteamCommunity.EResult.OK) {
+			callback(Helpers.eresultError(body.success));
+			return;
+		}
+
+		callback(null);
 	}, "steamcommunity");
 };
 
@@ -122,7 +158,7 @@ SteamCommunity.prototype.unfavoriteSharedFile = function(sharedFileId, appid, ca
 			"appid": appid,
 			"sessionid": this.getSessionID()
 		}
-	}, function(err, response, body) {
+	}, function(err, response, body) { // Steam does not seem to return any errors for this request
 		if (!callback) {
 			return;
 		}
@@ -146,13 +182,25 @@ SteamCommunity.prototype.unsubscribeSharedFileComments = function(userID, shared
 		"uri": `https://steamcommunity.com/comment/PublishedFile_Public/unsubscribe/${userID.toString()}/${sharedFileId}/`,
 		"form": {
 			"count": 10,
+			"json": 1,
 			"sessionid": this.getSessionID()
-		}
+		},
+		"json": true
 	}, function(err, response, body) { // eslint-disable-line
 		if (!callback) {
 			return;
 		}
 
-		callback(err);
+		if (err) {
+			callback(err);
+			return;
+		}
+
+		if (body.success && body.success != SteamCommunity.EResult.OK) {
+			callback(Helpers.eresultError(body.success));
+			return;
+		}
+
+		callback(null);
 	}, "steamcommunity");
 };
